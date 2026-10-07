@@ -1,8 +1,8 @@
-# CURRENT STATUS — KAMUCL 1.1.15 Windows
+# CURRENT STATUS — QuaAN 1.1.15 Windows
 
 ## Identity
 
-- Project: KAMUCL。
+- Project: QuaAN。
 - Version or revision: 1.1.15；最终master/main独立提交与v1.1.15标签由归档外部DELIVERY-1.1.15.json及Release回执记录。
 - Status timestamp: 2026-10-06 18:18（Asia/Hong_Kong）。
 - Prepared by: 本批实施与独立评审agent；Windows x64四项修改，未继承全平台合格结论。
@@ -17,9 +17,9 @@
 
 | Windows成品 | 字节 | SHA256 |
 | --- | ---: | --- |
-| KAMUCL-1.1.15.exe | 97289152 | `4822890c6cc94353a16687d812fdfb0be9379dad1c0258ef4b1a35c14d686df9` |
-| KAMUCL-1.1.15-windows-x64.zip | 97320724 | `9f7f6de1a92b4e8a2d9f09bb24140082040a80ae8e9d9def58765212b4df6d0f` |
-| KAMUCL-1.1.15-windows-x64-unpacked.zip | 142949477 | `bafb95956a15dd428fd93938f348de77e5ff6b331adb4acd95d5ee867c3c164f` |
+| QuaAN-1.1.15.exe | 97289152 | `4822890c6cc94353a16687d812fdfb0be9379dad1c0258ef4b1a35c14d686df9` |
+| QuaAN-1.1.15-windows-x64.zip | 97320724 | `9f7f6de1a92b4e8a2d9f09bb24140082040a80ae8e9d9def58765212b4df6d0f` |
+| QuaAN-1.1.15-windows-x64-unpacked.zip | 142949477 | `bafb95956a15dd428fd93938f348de77e5ff6b331adb4acd95d5ee867c3c164f` |
 
 源码与交接ZIP的摘要在归档外部清单中，避免自引用。交接包显式包含源码和上述三包，记录命令["node","source/scripts/check-licenses.cjs"]仅验证许可。运输复制、干净解压和命令再执行由交付回执记录，功能证据不由许可命令替代。
 
@@ -53,7 +53,7 @@ src/shared/serverPrivacy.ts、connection/ServerAddress.vue与服务器页面；s
 
 ---
 
-# Historical CURRENT STATUS — KAMUCL 1.1.14 Mac ARM64 接续候选
+# Historical CURRENT STATUS — QuaAN 1.1.14 Mac ARM64 接续候选
 
 2026-10-06 14:28（Asia/Hong_Kong）补充：第三轮原生运行 37421862931，源 `4b43130cfb5ac9a44c10c21570b9c79bdc4cca54`，13 项任务为 8 成功、4 失败、1 撤回跳过；纯测试 1147 项中 1142 通过、0 失败、5 平台跳过。DMG 四主题实际 1280×900 与 960×620、125% 缩放通过。APP 皮肤行走原始 22 完整帧跨度 1.75 秒，12 FPS，原门槛 30 FPS，保持失败；收藏 APP/DMG 的 1.20.1 世界 240 秒失败和显示恢复失败保持。parity 的主题重载后旧文档身份错误只修 QA，后续精确重构建的专项不算完整功能通过。独立最终评分仍未满足，不发布正式 v1.1.14。下方成品表保持为原 298 构建的历史原件，最新成品以外部交付清单为准。
 
@@ -65,17 +65,17 @@ Windows 三包已构建，干净解压、冷/暖启动、中文路径及当前�
 
 | 候选成品 | 字节 | SHA256 |
 | --- | ---: | --- |
-| KAMUCL-1.1.14.exe | 97184697 | 3a25ed17f3478e974575c12f5ecfd1461291d61326d386b5263ac290a20c41c7 |
-| KAMUCL-1.1.14-windows-x64.zip | 97216269 | 66b1155aad5ed0f77b8700876f55a25486845f5ff8e4da2a2a53f261c0136f6b |
-| KAMUCL-1.1.14-windows-x64-unpacked.zip | 142853692 | 7b0d354388a22a95c793529a9a8b0f4596e8687b70d38a09a947a5687402fe60 |
-| KAMUCL-1.1.14-mac-arm64.zip | 125874340 | 54235e74eae4ea76087c6fbfead1ccddb296421ee31d5d27d3f9eaf56293d970 |
-| KAMUCL-1.1.14-mac-arm64.dmg | 135695698 | f0e3616c75ae169f470a470f7dc0e3f6d237fdc71cc4d81af9136f0a5dbe73bd |
+| QuaAN-1.1.14.exe | 97184697 | 3a25ed17f3478e974575c12f5ecfd1461291d61326d386b5263ac290a20c41c7 |
+| QuaAN-1.1.14-windows-x64.zip | 97216269 | 66b1155aad5ed0f77b8700876f55a25486845f5ff8e4da2a2a53f261c0136f6b |
+| QuaAN-1.1.14-windows-x64-unpacked.zip | 142853692 | 7b0d354388a22a95c793529a9a8b0f4596e8687b70d38a09a947a5687402fe60 |
+| QuaAN-1.1.14-mac-arm64.zip | 125874340 | 54235e74eae4ea76087c6fbfead1ccddb296421ee31d5d27d3f9eaf56293d970 |
+| QuaAN-1.1.14-mac-arm64.dmg | 135695698 | f0e3616c75ae169f470a470f7dc0e3f6d237fdc71cc4d81af9136f0a5dbe73bd |
 
 公开 1.1.13 Release 与六份 Windows/源码/交接附件保持不变；1.1.14 没有正式标签或 Release。`master` 与 `main` 以 cherry-pick 维持独立历史，不操作 `wuhui`；保留用户图片、收藏、设置、全部计数、旧实例及未提交文件。
 
 ---
 
-# Historical CURRENT STATUS — KAMUCL 1.1.13
+# Historical CURRENT STATUS — QuaAN 1.1.13
 
 2026-10-06 11:54（Asia/Hong_Kong）：用户暂停 Mac ARM64 制作，本次只交付 Windows x64 收藏模组漏装修复。Mac 自动打包改为默认停用，仅在明确恢复后手动启用；当前没有活动的 Mac 作业。完整资源优化和十组/十对采集已撤回，已有改动保留、原失败保留，不将局部实验当作完整应用资源收益。Windows 的真实双来源收藏、两份所选文件及一份必要前置哈希、实际生成世界、保存正常退出和重启均通过；独立专项合理性 9.1、功能性 9.0、外观 8.9。界面/动画/便携包原始证明另行保留；最终仅 Windows 的放行报告、源码/交接包及公开附件核对正在收尾，没有把 Mac 或资源未测项目填成通过。
 
@@ -83,9 +83,9 @@ Windows 产品输入为 `25eada75831eb4567ca629149d13a7c39f91e67b`；后续仅 Q
 
 | Windows 成品 | 字节 | SHA256 |
 | --- | ---: | --- |
-| KAMUCL-1.1.13.exe | 97282552 | b808bc978df54a0dea45ad4daa9c16df23606bd011f3e6725395906e0da6438b |
-| KAMUCL-1.1.13-windows-x64.zip | 97314124 | 69024184a4d40439534b9807bcf1d57c1a3522464a05b4ddda425aa8dbad8c81 |
-| KAMUCL-1.1.13-windows-x64-unpacked.zip | 142942804 | 4569af4264146ab2e4312bc5215e0e4082594021e34203ba3cfc6e8f43059270 |
+| QuaAN-1.1.13.exe | 97282552 | b808bc978df54a0dea45ad4daa9c16df23606bd011f3e6725395906e0da6438b |
+| QuaAN-1.1.13-windows-x64.zip | 97314124 | 69024184a4d40439534b9807bcf1d57c1a3522464a05b4ddda425aa8dbad8c81 |
+| QuaAN-1.1.13-windows-x64-unpacked.zip | 142942804 | 4569af4264146ab2e4312bc5215e0e4082594021e34203ba3cfc6e8f43059270 |
 
 Mac `37365296044` 两次功能作业均未取得 ARM64 hosted runner，原步骤/附件为空，不能推断功能或产品失败；此前 Mac 实际游戏/显示及资源失败仍分别保留。第二次容量失败回执 `out/resource113/mac-ci-37365296044/attempt2-capacity-failure-receipt.json`，SHA256 `8e77568076090c38f62b888e40bc064d96e84a07aa1df1cda7541a4b4eebd451`。Mac 原生验收、Developer ID/公证、人工听感及完整资源收益仍未覆盖，不是本次 Windows 放行范围。
 
@@ -163,7 +163,7 @@ Windows 首个正式资源基线只完成首冷场，暖场在恢复窗口处失
 
 ---
 
-# Historical CURRENT STATUS — KAMUCL 1.1.12
+# Historical CURRENT STATUS — QuaAN 1.1.12
 
 2026-10-05 16:54（Asia/Hong_Kong）：本轮仅 Windows x64 与 Mac ARM64。整合包名称含 ASCII 冒号导致 Windows 重命名失败，以及默认目录、活动目录和异步安装目标不一致，均确认属于启动器缺陷。修复保持原下载地址、校验值、旧实例和设置兼容，旧任务完成后不再切回旧默认目录。
 
@@ -181,7 +181,7 @@ Mac ARM64 首次原生 run 37286684316 的公共测试为 1012 项：1007 通过
 
 ---
 
-# 历史：KAMUCL 1.1.11 接续候选
+# 历史：QuaAN 1.1.11 接续候选
 
 2026-10-04 16:22（Asia/Hong_Kong）：验收观察器最终冻结检查为 994 项，993 通过、0 失败、1 项平台专属跳过，原耗时 170461.1027 ms；类型、许可证、语法及差异格式检查通过。本批仅改 QA 与文档，实际公共产品和 Windows 成品来源仍为 85d811f27e2bd119e2d93ed6583a847b9b93b425，不重标已验证成品。Windows 三包冷／热启动、中文路径干净解压及四主题实际交互已独立通过；599 个步行和 916 个队列原帧已逐项核对，人工听感及完整矩阵仍未覆盖。
 
@@ -216,9 +216,9 @@ Windows 生产构建、ASAR／运行时检查及三份包已生成；本机全�
 
 所有平台完整资格仍为 false，视觉／交互／动效评分均未完成，没有 v1.1.11 正式标签或 Release。用户已明确没有真实 Intel Mac；Ubuntu 两架构 GNOME／KDE／XWayland 全部桌面证据尚缺。鸿蒙缺官方 SDK、合法签名、电脑及尚未完成的原生 JVM／JNI／GLFW／音频游戏链。新公共产品修改要求重新构建各桌面平台，旧包不能绑定新提交。当前源码提交、远端同步、最终成品与交接包身份将在本轮外部回执准确绑定，以下各轮记录为历史快照。
 
-2026-10-04 09:02（Asia/Hong_Kong）当前快照：第六轮精确绑定已推送 master `69c1e89ba23a007535c77bae65052f19b6d87f58`；main `bb41072b907d8ade365e9beadc4a71ee7e69a6ca` 经 cherry-pick 保留独立历史。Mac run [37163779043](https://github.com/kamubaba-i/KAMUCL/actions/runs/37163779043) 和 Linux run [37163779037](https://github.com/kamubaba-i/KAMUCL/actions/runs/37163779037) 已结束，均不构成完整平台合格或正式发行。版本仍为 1.1.11，本批不再修改 03:59 的内置更新日志或递增版本。
+2026-10-04 09:02（Asia/Hong_Kong）当前快照：第六轮精确绑定已推送 master `69c1e89ba23a007535c77bae65052f19b6d87f58`；main `bb41072b907d8ade365e9beadc4a71ee7e69a6ca` 经 cherry-pick 保留独立历史。Mac run [37163779043](https://github.com/kamubaba-i/QuaAN/actions/runs/37163779043) 和 Linux run [37163779037](https://github.com/kamubaba-i/QuaAN/actions/runs/37163779037) 已结束，均不构成完整平台合格或正式发行。版本仍为 1.1.11，本批不再修改 03:59 的内置更新日志或递增版本。
 
-Mac 两架构各 864 项为 860 通过、0 失败、4 项既有平台 skip；15 个任务中 12 成功、3 个正式 UI 失败。成功任务为 2 个打包、2 个实际 Demo 游戏、6 个限定集成、ARM DMG 的限定四主题 GUI 和 1 个独立 Intel GPU 诊断。ARM DMG 的实际可见皮肤步行、焦点和受管壁纸均通过；ARM APP 的原始 CDP 90 帧在第 55→56 帧倒退 1.618 ms，原算术 FPS 60.53927763443197、formalTimingUsable=false，保持失败。Intel APP／DMG 实际 WebGL 初始化仍失败；独立诊断收集成功也仍无画布，不能把它当产品修复。第六四个 Mac 成品实际内嵌文件为 Contents/Resources/kamucl-mac.json，sourceCommit、Electron 44.3.0、架构、最低 macOS 13 和签名均有实际核对；旧摘要的 kamucl-build.json 计划名在 summary.json 的 historicalSnapshotErrors 保留。
+Mac 两架构各 864 项为 860 通过、0 失败、4 项既有平台 skip；15 个任务中 12 成功、3 个正式 UI 失败。成功任务为 2 个打包、2 个实际 Demo 游戏、6 个限定集成、ARM DMG 的限定四主题 GUI 和 1 个独立 Intel GPU 诊断。ARM DMG 的实际可见皮肤步行、焦点和受管壁纸均通过；ARM APP 的原始 CDP 90 帧在第 55→56 帧倒退 1.618 ms，原算术 FPS 60.53927763443197、formalTimingUsable=false，保持失败。Intel APP／DMG 实际 WebGL 初始化仍失败；独立诊断收集成功也仍无画布，不能把它当产品修复。第六四个 Mac 成品实际内嵌文件为 Contents/Resources/quaan-mac.json，sourceCommit、Electron 44.3.0、架构、最低 macOS 13 和签名均有实际核对；旧摘要的 quaan-build.json 计划名在 summary.json 的 historicalSnapshotErrors 保留。
 
 Linux 两架构各 864 项为 861 通过、0 失败、3 skip；六个 AppImage／DEB／tar.gz 原生包的干净解压、ELF、执行位、摘要及内嵌 source69／实际 Electron 44.3.0 身份通过。三次 Xvfb 已启动实际应用，均在 ANGLE／Mesa llvmpipe 的 WebGL 创建失败后触发 skin canvas missing，原失败和时间保留，finalizer 没有再遮蔽首错。软件驱动 blocklist 是强线索，最终根因仍待同一进程 GPU 状态诊断；不能宣称 Vulkan 驱动缺失。没有 Ubuntu 24／26 两架构的真实 GNOME／KDE／XWayland 硬件桌面主机或完整验收。
 
@@ -264,9 +264,9 @@ GitHub workflow 标准授权已完成，第六 master `69c1e89ba23a007535c77bae6
 
 | 成品 | 字节数 | SHA256 |
 | --- | ---: | --- |
-| KAMUCL-1.1.11.exe | 97290244 | dd584c92935c71ebdcd5ca379d0f1f851c9a07b604a9dcdfd6f2a1986e8142c7 |
-| KAMUCL-1.1.11-windows-x64.zip | 97321815 | 78d31f0045102c983fa67d586511993312f2901c686b3f75be1d0f95c163bd2f |
-| KAMUCL-1.1.11-windows-x64-unpacked.zip | 143058234 | 676162091dc723ee97ee6309232eca01de24d0fe602ddaa3d2e71d702b2dd881 |
+| QuaAN-1.1.11.exe | 97290244 | dd584c92935c71ebdcd5ca379d0f1f851c9a07b604a9dcdfd6f2a1986e8142c7 |
+| QuaAN-1.1.11-windows-x64.zip | 97321815 | 78d31f0045102c983fa67d586511993312f2901c686b3f75be1d0f95c163bd2f |
+| QuaAN-1.1.11-windows-x64-unpacked.zip | 143058234 | 676162091dc723ee97ee6309232eca01de24d0fe602ddaa3d2e71d702b2dd881 |
 
 内嵌 ASAR SHA256：b03fe16bb64a0bb341069db58b736e3aaeffb8866495f45f1bc4c82dcc64b5f1。最终源码提交由 SOURCE-MANIFEST.json、源码审计回执和交接包清单绑定。完成最新应用构建后的改动仅涉及 QA、发布门控和文档；干净源码审计再次核对提交后的文件。全部用户图片、账号、收藏、计数和未提交的 pelican-bicycle.html 保留在原位置，不包含在成品或公开源码。
 
@@ -276,7 +276,7 @@ GitHub workflow 标准授权已完成，第六 master `69c1e89ba23a007535c77bae6
 
 ---
 
-# CURRENT STATUS — KAMUCL 1.1.10 历史
+# CURRENT STATUS — QuaAN 1.1.10 历史
 
 ## Last verified state
 
@@ -300,9 +300,9 @@ GitHub workflow 标准授权已完成，第六 master `69c1e89ba23a007535c77bae6
 
 ## Packaged artifact SHA256
 
-- KAMUCL-1.1.10.exe: 92e93260179b75f36d3e145ad70f7c4e818042d6de60fadf3949a372249b50da
-- KAMUCL-1.1.10-windows-x64.zip: 76cfb0eebf917a639b6551b0d360c47ddc71850239799a303430dce1fca95442
-- KAMUCL-1.1.10-windows-x64-unpacked.zip: d1b42165dedeed4d32f53559da120af90fd083001959deb63f23013bb2a5edd7
+- QuaAN-1.1.10.exe: 92e93260179b75f36d3e145ad70f7c4e818042d6de60fadf3949a372249b50da
+- QuaAN-1.1.10-windows-x64.zip: 76cfb0eebf917a639b6551b0d360c47ddc71850239799a303430dce1fca95442
+- QuaAN-1.1.10-windows-x64-unpacked.zip: d1b42165dedeed4d32f53559da120af90fd083001959deb63f23013bb2a5edd7
 
 ## Changed files and evidence
 
@@ -312,7 +312,7 @@ GitHub workflow 标准授权已完成，第六 master `69c1e89ba23a007535c77bae6
 
 以下保留 1.1.9 历史文档，仅用于追溯，不是当前验收或安装说明。
 
-# CURRENT STATUS — KAMUCL 1.1.9
+# CURRENT STATUS — QuaAN 1.1.9
 
 ## Last verified state
 
@@ -362,9 +362,9 @@ Windows 黑橙独立补验：release/validation-1.1.9/Delivery/Palette-State-Obs
 
 | 成品 | 字节数 | SHA256 |
 | --- | ---: | --- |
-| KAMUCL-1.1.9.exe | 97282718 | 11a8f16142a0f40519adb2203a91ee7bf74b2ab35ef456729e5034a8fc0aafef |
-| KAMUCL-1.1.9-windows-x64.zip | 97314287 | d71d0173ed7d3cabb92b70b77f08f773385c25d4f613d984a07c6a3a1d91149c |
-| KAMUCL-1.1.9-windows-x64-unpacked.zip | 143047398 | c33f492fc66054991cf8d8f904df2ffc477904e8e4e828d44e3c5901dea11c30 |
+| QuaAN-1.1.9.exe | 97282718 | 11a8f16142a0f40519adb2203a91ee7bf74b2ab35ef456729e5034a8fc0aafef |
+| QuaAN-1.1.9-windows-x64.zip | 97314287 | d71d0173ed7d3cabb92b70b77f08f773385c25d4f613d984a07c6a3a1d91149c |
+| QuaAN-1.1.9-windows-x64-unpacked.zip | 143047398 | c33f492fc66054991cf8d8f904df2ffc477904e8e4e828d44e3c5901dea11c30 |
 
 ## 历史失败与未覆盖
 
@@ -394,7 +394,7 @@ Windows 独立 lifecycle 首次原 run exit1：原生最小化成功，document.
 
 e81ddc7 CI37080988726：ARM job111081241919 与 Intel job111081241732 原结论均 success，APP／DMG 功能、实际游戏、工具与更新的作业成功不改写为失败。独立评审拒收该候选：Intel visual9／interaction9.1／motion8.5，Windows 与 ARM 原分数分别保留，不平均、不用正式采集或诊断B抵消原始A。正常 ARM CDP 60.22155321151912／59.28990924304912 fps 与 SCK whole 57.4999999999986／56.42857142857235 fps 原 passed=true；Intel CDP 29.680599324439076／29.249667689740264 fps、SCK whole 26.01303154825863／27.37552248580128 fps 原 passed=false。六个独立 observer ABA case 功能 complete=true、每项10真实声源／计数／保存与正面结束；六项原 wholeFPS=false仍保留，不替代正式 baseline。clocks-A-original 完整原帧44→45 131.00935700003902ms、46→49 136.11220999996476ms，47／48原 idle 无伪造像素；源间隔324.9／262.6ms附近真实停顿未覆盖为通过。四帧 BGRA／PNG 全RGBA、六sidecar原PTS／status、官方ZIP／源Git blob／原日志与8787个安全成员SHA／大小／闭包已核对。额外时钟探针、67ms长任务、宿主或产品合成路径的因果仍未确立；B较快不是修复证明，物理听感和真实Microsoft上传等未覆盖项保留。原冻结清单 release/validation-1.1.9/Delivery/History/native-e81ddc7-job-success-independent-intel-motion-rejection/evidence.json（SHA256 32fd38f74973190f166caa4d09f81fc33ed2abe9597ab43d0d58618790f3d284）；宽scope完整评审仅引用原size／SHA，精简公共评审与14个原失败BGRA／PNG／JSON完整保留。
 
-历史完整原始证据：KAMUCL-1.1.9-validation-history-part001.zip、KAMUCL-1.1.9-validation-history-part002.zip、KAMUCL-1.1.9-validation-history-part003.zip、KAMUCL-1.1.9-validation-history-part004.zip、KAMUCL-1.1.9-validation-history-part005.zip，共 5 卷，每卷小于 2 GB；索引 KAMUCL-1.1.9-validation-history-index.json（SHA256 9284b34bda62cdce1b14b9fda11953b3326c201df4e174ca2a4b34fd2141fca4）。已核对当前 155056 个成员、原字节与分卷摘要，保留干净解压回执。临时浏览器 profile／缓存仅在公开排除记录中列明；原 out 与真实用户数据未删改。
+历史完整原始证据：QuaAN-1.1.9-validation-history-part001.zip、QuaAN-1.1.9-validation-history-part002.zip、QuaAN-1.1.9-validation-history-part003.zip、QuaAN-1.1.9-validation-history-part004.zip、QuaAN-1.1.9-validation-history-part005.zip，共 5 卷，每卷小于 2 GB；索引 QuaAN-1.1.9-validation-history-index.json（SHA256 9284b34bda62cdce1b14b9fda11953b3326c201df4e174ca2a4b34fd2141fca4）。已核对当前 155056 个成员、原字节与分卷摘要，保留干净解压回执。临时浏览器 profile／缓存仅在公开排除记录中列明；原 out 与真实用户数据未删改。
 
 仍未覆盖：物理扬声器／耳机的实际掌击听感及爆音感知，真实 Microsoft 登录／皮肤上传，社区两平台真实在线收藏安装，Mac 实际用户 PCL 包或私有存档游玩，公网 NAT、长期稳定性、磁盘耗尽、全部缩放与无中键设备实物验证，Developer ID 签名／公证。数字峰值与声源检查不替代听感。Mac 本轮工作和输出暂停，未声明任何 Mac 合格；实例专属图片优先主要依据源码／测试。
 

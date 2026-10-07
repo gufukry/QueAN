@@ -118,8 +118,8 @@ onUnmounted(() => timers.forEach(clearTimeout))
 
     <!-- Logo + 加载提示（定型期淡入） -->
     <div class="brand" :class="{ show: phase === 'settle' }">
-      <div class="brand-name">KAMUCL</div>
-      <div class="brand-hint">正在启动 KAMUCL…</div>
+      <div class="brand-name">QuaAN</div>
+      <div class="brand-hint">正在启动 QuaAN…</div>
     </div>
   </div>
 </template>

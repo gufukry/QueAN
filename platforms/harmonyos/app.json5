@@ -1,7 +1,7 @@
 {
   "app": {
-    "bundleName": "com.kamucl.launcher",
-    "vendor": "KAMUCL",
+    "bundleName": "com.quaan.launcher",
+    "vendor": "QuaAN",
     "versionCode": 1,
     "versionName": "0.0.0",
     "icon": "$media:app_icon",

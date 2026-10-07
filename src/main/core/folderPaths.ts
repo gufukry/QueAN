@@ -29,7 +29,7 @@ export function samePath(a: string, b: string): boolean {
  */
 export function resolveMinecraftRoot(input: string): {
   path: string
-  structure: 'minecraft' | 'kamucl' | 'empty'
+  structure: 'minecraft' | 'quaan' | 'empty'
 } {
   if (!input.trim()) throw new Error('文件夹路径不能为空')
   let selected = canonicalPath(input)
@@ -48,7 +48,7 @@ export function resolveMinecraftRoot(input: string): {
   }
 
   const hasVersions = fs.existsSync(path.join(selected, 'versions'))
-  const hasKamuclData = fs.existsSync(path.join(selected, '.kamucl'))
-  const structure = hasKamuclData ? 'kamucl' : hasVersions ? 'minecraft' : 'empty'
+  const hasQuaanData = fs.existsSync(path.join(selected, '.quaan'))
+  const structure = hasQuaanData ? 'quaan' : hasVersions ? 'minecraft' : 'empty'
   return { path: selected, structure }
 }

@@ -1,9 +1,9 @@
 {
-  "name": "kamucl",
-  "productName": "KAMUCL",
+  "name": "quaan",
+  "productName": "QuaAN",
   "version": "1.1.15",
-  "description": "KAMUCL - 简约美观的一键式 Minecraft 启动器",
-  "homepage": "https://github.com/kamubaba-i/KAMUCL",
+  "description": "QuaAN - 简约美观的一键式 Minecraft 启动器",
+  "homepage": "",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -21,8 +21,8 @@
     "license:check": "node scripts/check-licenses.cjs"
   },
   "build": {
-    "appId": "com.kamucl.launcher",
-    "productName": "KAMUCL",
+    "appId": "com.quaan.launcher",
+    "productName": "QuaAN",
     "directories": {
       "output": "release"
     },
@@ -48,7 +48,7 @@
       "out/main/GameWindowFocus.exe",
       "out/main/MacGameWindow",
       "out/main/LinuxGameWindow",
-      "out/main/kamucl-bridge.jar"
+      "out/main/quaan-bridge.jar"
     ],
     "beforePack": "scripts/portable-build-hook.cjs",
     "afterPack": "scripts/verify-windows-runtime.cjs",
@@ -73,12 +73,12 @@
         "portable",
         "zip"
       ],
-      "artifactName": "KAMUCL-${version}-windows-${arch}.${ext}",
+      "artifactName": "QuaAN-${version}-windows-${arch}.${ext}",
       "icon": "build/icon.png"
     },
     "portable": {
       "unpackDirName": false,
-      "artifactName": "KAMUCL-${version}.exe"
+      "artifactName": "QuaAN-${version}.exe"
     },
     "appImage": { "executableArgs": [] },
     "mac": {
@@ -89,16 +89,16 @@
       "category": "public.app-category.games",
       "icon": "build/icon-512.png",
       "identity": null,
-      "artifactName": "KAMUCL-${version}-mac-${arch}.${ext}"
+      "artifactName": "QuaAN-${version}-mac-${arch}.${ext}"
     },
     "linux": {
       "maintainer": "kamubaba-i <325699197+kamubaba-i@users.noreply.github.com>",
       "target": ["AppImage", "deb", "tar.gz"],
       "category": "Game",
-      "executableName": "kamucl",
+      "executableName": "quaan",
       "icon": "build/icon-512.png",
-      "artifactName": "KAMUCL-${version}-linux-${arch}.${ext}",
-      "desktop": { "entry": { "Name": "KAMUCL", "Comment": "Minecraft launcher", "Categories": "Game;", "StartupWMClass": "KAMUCL" } },
+      "artifactName": "QuaAN-${version}-linux-${arch}.${ext}",
+      "desktop": { "entry": { "Name": "QuaAN", "Comment": "Minecraft launcher", "Categories": "Game;", "StartupWMClass": "QuaAN" } },
       "synopsis": "Minecraft launcher"
     }
   },

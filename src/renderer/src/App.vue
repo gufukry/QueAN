@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import SupplementalModsResult from './components/SupplementalModsResult.vue'
 import { shouldReportGameCrash, signedExitCode } from '@shared/gameExit'
-const isMac = window.kamucl.platform === 'darwin'
+const isMac = window.quaan.platform === 'darwin'
 import LaunchNotice from './components/LaunchNotice.vue'
 import { pollTickets } from './voxlinkTickets'
 import CreatorMotto from './components/CreatorMotto.vue'
@@ -206,8 +206,8 @@ const resourceSubItems: Array<{ key: ViewName; label: string; icon: string }> = 
 ]
 
 /** 资源管理组是否展开（默认折叠；当前在其中任一子页时强制展开高亮） */
-const resourceExpanded = ref(localStorage.getItem('kamucl.resourceExpanded') === 'true')
-watch(resourceExpanded, value => localStorage.setItem('kamucl.resourceExpanded', String(value)))
+const resourceExpanded = ref(localStorage.getItem('quaan.resourceExpanded') === 'true')
+watch(resourceExpanded, value => localStorage.setItem('quaan.resourceExpanded', String(value)))
 const inResourceGroup = computed(() =>
   ['mods', 'packs', 'shaders', 'bridge', 'servers', 'recordings', 'projections'].includes(store.currentView)
 )
@@ -232,10 +232,10 @@ const win = async (action: 'minimize' | 'maximize' | 'close') => {
   if (action === 'close' && store.launchState?.status === 'running' && !closeHintShown) {
     closeHintShown = true
     toast('关闭启动器不影响游戏，游戏继续运行', 'info')
-    setTimeout(() => window.kamucl.send('window:close'), 1300)
+    setTimeout(() => window.quaan.send('window:close'), 1300)
     return
   }
-  window.kamucl.send(`window:${action}`)
+  window.quaan.send(`window:${action}`)
 }
 
 // ---------------- 启动器自更新弹窗 ----------------
@@ -459,7 +459,7 @@ function onDrop(e: DragEvent) {
     }
     return
   }
-  const paths = dropped.map((f) => window.kamucl.getFilePath(f))
+  const paths = dropped.map((f) => window.quaan.getFilePath(f))
   const names = dropped.map((f) => f.name.toLowerCase())
 
   if (names.length === 1 && /\.(json|txt|url|yggdrasil)$/.test(names[0])) {
@@ -822,7 +822,7 @@ const bgImages = computed(() => {
   if (!bg || bg.mode !== 'image') return [] as string[]
   return bg.images?.length ? bg.images : (bg.image ? [bg.image] : [])
 })
-const BG_INDEX_KEY = 'kamucl:bg-last-index'
+const BG_INDEX_KEY = 'quaan:bg-last-index'
 const currentBgIndex = ref(0)
 const currentBgImage = computed(() => bgImages.value[currentBgIndex.value % Math.max(1, bgImages.value.length)] ?? '')
 
@@ -1084,8 +1084,8 @@ onMounted(async () => {
   window.addEventListener('pointerdown', onGlobalPointerDown, true)
   offs.push(() => window.removeEventListener('pointerdown', onGlobalPointerDown, true))
   offs.push(
-    window.kamucl.on('window:caption-pointerdown', closeTopDropdowns),
-    window.kamucl.on('files:dragError', (error) => toast('无法拖出文件：' + String(error), 'error')),
+    window.quaan.on('window:caption-pointerdown', closeTopDropdowns),
+    window.quaan.on('files:dragError', (error) => toast('无法拖出文件：' + String(error), 'error')),
     onProgress((e) => {
       if (e.manualFiles && !store.tasks.some(t => t.manualFiles?.token === e.manualFiles?.token)) dlOpen.value = true
       store.progress = e
@@ -1186,11 +1186,11 @@ onMounted(async () => {
 
   try {
     store.settings = await getSettings()
-    window.kamucl.send('boot:stage', 'settings')
+    window.quaan.send('boot:stage', 'settings')
     void checkConfigStatus()
     await Promise.all([
-      refreshAccounts().then(() => window.kamucl.send('boot:stage', 'accounts')),
-      refreshInstalled().then(() => window.kamucl.send('boot:stage', 'instances'))
+      refreshAccounts().then(() => window.quaan.send('boot:stage', 'accounts')),
+      refreshInstalled().then(() => window.quaan.send('boot:stage', 'instances'))
     ])
         // 启动自检：发现上次下载未完成的残缺版本，提示去已安装页处理
         const broken = store.installed.filter((v) => v.incomplete)
@@ -1214,10 +1214,10 @@ onMounted(async () => {
     await nextTick()
     await waitForBootTasks()
     sealBootTasks()
-    window.kamucl.send('boot:stage', 'assets')
+    window.quaan.send('boot:stage', 'assets')
     await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
-    window.kamucl.send('boot:stage', 'paint')
-    window.kamucl.send('boot:renderer-ready')
+    window.quaan.send('boot:stage', 'paint')
+    window.quaan.send('boot:renderer-ready')
   }
 })
 
@@ -1251,7 +1251,7 @@ onUnmounted(() => {
         <MascotStage v-if="mascotOpen" ref="mascotRef" :focus-on-ready="mascotKeyboard" @ready="mascotReady=true" @activity="mascotBusy=$event" @render-mode="mascotSoftware=$event" @close="closeMascots"/>
         </div>
         <div data-ui="App:7494cda29e47" class="logo-text">
-          <span data-ui="App:c396a9ff34cb" class="logo-name">KAMUCL</span>
+          <span data-ui="App:c396a9ff34cb" class="logo-name">QuaAN</span>
           <span data-ui="App:31accf043a9a" class="logo-version">v{{ appVersion }}</span>
         </div>
       </div>

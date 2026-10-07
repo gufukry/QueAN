@@ -1,10 +1,10 @@
-# START HERE — KAMUCL 1.1.15 Windows
+# START HERE — QuaAN 1.1.15 Windows
 
 ## What this package contains
 
-- Project: KAMUCL，Minecraft 启动器。
+- Project: QuaAN，Minecraft 启动器。
 - Deliverable: 本批 Windows x64 服务器地址隐私、版本分类、披风加载及启动合成与导航残影修复。
-- Packaged artifact: KAMUCL-1.1.15.exe、Windows 紧凑 ZIP、展开 ZIP；精确摘要见 CURRENT_STATUS.md。
+- Packaged artifact: QuaAN-1.1.15.exe、Windows 紧凑 ZIP、展开 ZIP；精确摘要见 CURRENT_STATUS.md。
 - Intended receiver: 使用者及接续开发者；用户自行提供自己的账号和游戏目录。
 
 ## Prerequisites
@@ -16,7 +16,7 @@
 
 ## Setup
 
-1. 核对公开 SHA256SUMS.txt；ZIP 解压至普通目录，运行 EXE。展开 ZIP 运行其中 KAMUCL.exe。
+1. 核对公开 SHA256SUMS.txt；ZIP 解压至普通目录，运行 EXE。展开 ZIP 运行其中 QuaAN.exe。
 2. 开发源码使用 `npm ci`、`node scripts/build-bridge.cjs`；生产构建为 `npm run build`。
 3. 设置自己的默认下载位置并登录自己的账号；旧实例无需迁移。
 
@@ -49,23 +49,23 @@ Expected result: `License check passed`，退出 0。此命令仅验证许可，
 
 ---
 
-# Historical START HERE — KAMUCL 1.1.14 Mac ARM64 接续候选
+# Historical START HERE — QuaAN 1.1.14 Mac ARM64 接续候选
 
 2026-10-06 14:28（Asia/Hong_Kong）补充：第三轮原生运行 37421862931 的 DMG 四主题和实际 900 高度通过；APP 原始皮肤行走录屏为 12 FPS，收藏 APP/DMG 的世界及显示恢复仍失败。页面重载身份检查的 QA 修复单独复验，不能替代这些失败或完整放行；最终成品身份与哈希以交付清单为准。
 
 2026-10-06 13:52（Asia/Hong_Kong）：用户恢复 Mac ARM64，资源占用优化仍停止。Windows x64 / Mac ARM64 继续共用 Electron 44.3.0、当前界面、素材及收藏模组安装修复；Mac 陶瓦启动修复使本批递增至 1.1.14。Intel、Linux、鸿蒙未恢复。1.1.13 Windows 已公开发布，原附件与标签保持不变。
 
-Mac 使用 ZIP 中的 KAMUCL.app，或挂载 DMG 后复制到自己的应用目录；系统要求 macOS 13 或以上、Apple Silicon。现阶段是候选，尚未满足完整放行：原生构建、启动、更新、目录和陶瓦检查通过，DMG 四主题界面通过，但最新 APP 图库及操作坐标验收须复验，1.20.1 收藏安装的游戏世界检查在虚拟图形测试机仍未通过。具体证据和历史失败见 `docs/validation-1.1.14/README.md`。ad-hoc 签名校验不等于 Developer ID 签名或 Apple 公证，人工听感尚未覆盖。
+Mac 使用 ZIP 中的 QuaAN.app，或挂载 DMG 后复制到自己的应用目录；系统要求 macOS 13 或以上、Apple Silicon。现阶段是候选，尚未满足完整放行：原生构建、启动、更新、目录和陶瓦检查通过，DMG 四主题界面通过，但最新 APP 图库及操作坐标验收须复验，1.20.1 收藏安装的游戏世界检查在虚拟图形测试机仍未通过。具体证据和历史失败见 `docs/validation-1.1.14/README.md`。ad-hoc 签名校验不等于 Developer ID 签名或 Apple 公证，人工听感尚未覆盖。
 
 接收者自行登录并选择自己的游戏目录。源码开发需要 Node.js 24、锁定依赖及 JDK 17+；使用 `npm ci`、`node scripts/build-bridge.cjs`、`npm test`、`npx tsc --noEmit`、`npm run license:check`、`npm run build`。交接包便携验证命令为 `["node", "source/scripts/check-licenses.cjs"]`，仅验证许可，不替代原生功能或游戏验收。源码、交接包不含用户凭据、图片、整合包、存档、依赖缓存或 `pelican-bicycle.html`。每份成品与真实源码身份、SHA256、最终验收和未覆盖项由对应交付清单注明，不用旧包或跨运行证据拼成通过。
 
 ---
 
-# Historical START HERE — KAMUCL 1.1.13
+# Historical START HERE — QuaAN 1.1.13
 
 2026-10-06 11:54（Asia/Hong_Kong）：本次交付范围已按用户最新要求缩为 Windows x64，继续完成收藏模组漏装修复。Mac ARM64 制作暂停，不提供本版 Mac 附件；资源优化和完整占用对照停止，已有改动保留，不宣称整机资源收益。下方此前双平台及资源门控计划保留为历史，不能作为当前放行规则。
 
-Windows 使用 `KAMUCL-1.1.13.exe` 或紧凑 `KAMUCL-1.1.13-windows-x64.zip`；无需便携包装器时可用 `KAMUCL-1.1.13-windows-x64-unpacked.zip`。接收者自行登录并选择自己的游戏目录。原成品对应产品输入 `25eada75831eb4567ca629149d13a7c39f91e67b`，最终提交仅增加 QA、文档及暂停 Mac 自动任务的配置，不能描述为重新构建的成品。
+Windows 使用 `QuaAN-1.1.13.exe` 或紧凑 `QuaAN-1.1.13-windows-x64.zip`；无需便携包装器时可用 `QuaAN-1.1.13-windows-x64-unpacked.zip`。接收者自行登录并选择自己的游戏目录。原成品对应产品输入 `25eada75831eb4567ca629149d13a7c39f91e67b`，最终提交仅增加 QA、文档及暂停 Mac 自动任务的配置，不能描述为重新构建的成品。
 
 验证入口为 `npm test`、`npx tsc --noEmit`、`npm run license:check`、`npm run build`，收藏/界面/便携原生证明和独立评分见版本交付记录。交接包的便携验证命令为 `["node", "source/scripts/check-licenses.cjs"]`，成功只证明许可检查，不能替代真实游戏、原始画面或功能验收。源码开发需要 Node.js 24、锁定依赖及 JDK 17+；Electron 保持 44.3.0。源码包和交接包排除用户账号、凭据、图片、整合包、存档、依赖缓存及 `pelican-bicycle.html`。
 
@@ -81,7 +81,7 @@ Windows 使用 `KAMUCL-1.1.13.exe` 或紧凑 `KAMUCL-1.1.13-windows-x64.zip`；�
 
 ---
 
-# Historical START HERE — KAMUCL 1.1.12
+# Historical START HERE — QuaAN 1.1.12
 
 2026-10-05 16:51（Asia/Hong_Kong）：当前工作范围已由用户改为整合包文件名兼容与默认下载位置修复，只制作 Windows x64 和 Mac ARM64。下方 1.1.11 记录保留为历史，不是本轮发布的验收结论。当前成品与最终独立评分以 1.1.12 交付回执为准；完整多平台资格及历史未覆盖项不因本轮限定修复转为通过。
 
@@ -93,7 +93,7 @@ Windows 使用 `KAMUCL-1.1.13.exe` 或紧凑 `KAMUCL-1.1.13-windows-x64.zip`；�
 
 ---
 
-# 历史：KAMUCL 1.1.11 接续候选
+# 历史：QuaAN 1.1.11 接续候选
 
 2026-10-04 16:22（Asia/Hong_Kong）：验收观察器最终冻结检查为 994 项，993 通过、0 失败、1 项平台专属跳过，原耗时 170461.1027 ms；类型、许可证、语法及差异格式检查通过。本批仅改 QA 与文档，实际公共产品和 Windows 成品来源仍为 85d811f27e2bd119e2d93ed6583a847b9b93b425，不重标已验证成品。Windows 三包冷／热启动、中文路径干净解压及四主题实际交互已独立通过；599 个步行和 916 个队列原帧已逐项核对，人工听感及完整矩阵仍未覆盖。
 
@@ -128,9 +128,9 @@ Windows 产品仍来自 2d814479，后续 QA／归档／文档差异明确单列
 
 下方各轮时间戳是历史记录，不能替代本轮最终回执。
 
-2026-10-04 09:02（Asia/Hong_Kong）当前快照：第六轮精确绑定已推送 master `69c1e89ba23a007535c77bae65052f19b6d87f58`；main `bb41072b907d8ade365e9beadc4a71ee7e69a6ca` 经 cherry-pick 保留独立历史。Mac run [37163779043](https://github.com/kamubaba-i/KAMUCL/actions/runs/37163779043) 和 Linux run [37163779037](https://github.com/kamubaba-i/KAMUCL/actions/runs/37163779037) 已结束，均不构成完整平台合格或正式发行。版本仍为 1.1.11，本批不再修改 03:59 的内置更新日志或递增版本。
+2026-10-04 09:02（Asia/Hong_Kong）当前快照：第六轮精确绑定已推送 master `69c1e89ba23a007535c77bae65052f19b6d87f58`；main `bb41072b907d8ade365e9beadc4a71ee7e69a6ca` 经 cherry-pick 保留独立历史。Mac run [37163779043](https://github.com/kamubaba-i/QuaAN/actions/runs/37163779043) 和 Linux run [37163779037](https://github.com/kamubaba-i/QuaAN/actions/runs/37163779037) 已结束，均不构成完整平台合格或正式发行。版本仍为 1.1.11，本批不再修改 03:59 的内置更新日志或递增版本。
 
-Mac 两架构各 864 项为 860 通过、0 失败、4 项既有平台 skip；15 个任务中 12 成功、3 个正式 UI 失败。成功任务为 2 个打包、2 个实际 Demo 游戏、6 个限定集成、ARM DMG 的限定四主题 GUI 和 1 个独立 Intel GPU 诊断。ARM DMG 的实际可见皮肤步行、焦点和受管壁纸均通过；ARM APP 的原始 CDP 90 帧在第 55→56 帧倒退 1.618 ms，原算术 FPS 60.53927763443197、formalTimingUsable=false，保持失败。Intel APP／DMG 实际 WebGL 初始化仍失败；独立诊断收集成功也仍无画布，不能把它当产品修复。第六四个 Mac 成品实际内嵌文件为 Contents/Resources/kamucl-mac.json，sourceCommit、Electron 44.3.0、架构、最低 macOS 13 和签名均有实际核对；旧摘要的 kamucl-build.json 计划名在 summary.json 的 historicalSnapshotErrors 保留。
+Mac 两架构各 864 项为 860 通过、0 失败、4 项既有平台 skip；15 个任务中 12 成功、3 个正式 UI 失败。成功任务为 2 个打包、2 个实际 Demo 游戏、6 个限定集成、ARM DMG 的限定四主题 GUI 和 1 个独立 Intel GPU 诊断。ARM DMG 的实际可见皮肤步行、焦点和受管壁纸均通过；ARM APP 的原始 CDP 90 帧在第 55→56 帧倒退 1.618 ms，原算术 FPS 60.53927763443197、formalTimingUsable=false，保持失败。Intel APP／DMG 实际 WebGL 初始化仍失败；独立诊断收集成功也仍无画布，不能把它当产品修复。第六四个 Mac 成品实际内嵌文件为 Contents/Resources/quaan-mac.json，sourceCommit、Electron 44.3.0、架构、最低 macOS 13 和签名均有实际核对；旧摘要的 quaan-build.json 计划名在 summary.json 的 historicalSnapshotErrors 保留。
 
 Linux 两架构各 864 项为 861 通过、0 失败、3 skip；六个 AppImage／DEB／tar.gz 原生包的干净解压、ELF、执行位、摘要及内嵌 source69／实际 Electron 44.3.0 身份通过。三次 Xvfb 已启动实际应用，均在 ANGLE／Mesa llvmpipe 的 WebGL 创建失败后触发 skin canvas missing，原失败和时间保留，finalizer 没有再遮蔽首错。软件驱动 blocklist 是强线索，最终根因仍待同一进程 GPU 状态诊断；不能宣称 Vulkan 驱动缺失。没有 Ubuntu 24／26 两架构的真实 GNOME／KDE／XWayland 硬件桌面主机或完整验收。
 
@@ -148,7 +148,7 @@ Linux 两架构各 864 项为 861 通过、0 失败、3 skip；六个 AppImage�
 
 本包是多平台移植的接续候选，不是 Mac／Linux／鸿蒙完整验收或正式发行。source69 的 Mac 四个与 Linux 六个新候选已实际生成、内嵌身份核对并保留 SHA；ARM DMG 限定 GUI 成功不覆盖 ARM APP 原时间逆序、Intel 两种包的 WebGL 失败或 Linux 三次 Xvfb 失败。当前第七 QA 尚无原生结果。鸿蒙缺官方 SDK、合法签名条件和实机，尚无 HAP 或游戏证明。以 CURRENT_STATUS.md、docs/RELEASE-1.1.11.md 和独立评审为当前状态，下方旧版本说明只用于追溯。
 
-Windows x64 使用 _handoff/artifacts/KAMUCL-1.1.11.exe，或解压紧凑 ZIP；无法使用自解压包装器时解压 windows-x64-unpacked ZIP。各附件 SHA256 在 CURRENT_STATUS.md；交接包逐文件清单在 _handoff/manifest.json 与 _handoff/SHA256SUMS.txt。账户、游戏、用户图片、私钥和未提交的 pelican-bicycle.html 不包含在内，接收者自行选择自己的游戏目录和登录。
+Windows x64 使用 _handoff/artifacts/QuaAN-1.1.11.exe，或解压紧凑 ZIP；无法使用自解压包装器时解压 windows-x64-unpacked ZIP。各附件 SHA256 在 CURRENT_STATUS.md；交接包逐文件清单在 _handoff/manifest.json 与 _handoff/SHA256SUMS.txt。账户、游戏、用户图片、私钥和未提交的 pelican-bicycle.html 不包含在内，接收者自行选择自己的游戏目录和登录。
 
 当前 Mac／Linux 接续构建使用 Node.js 24、npm、Git、完整 JDK 17+；Windows 源码最低需要 Node.js 22+。依次运行 npm ci、node scripts/build-bridge.cjs、npx tsc --noEmit、npm test、npm run license:check、npm run build。Mac／Linux 共同 Electron 基线为 44.3.0，必须在对应原生架构上构建；Mac 最低 macOS 13，Linux 目标 Ubuntu 24.04／26.04 LTS。Mac 打包入口 node scripts/pack-mac.mjs <arm64|x64> --package-only；Linux 入口 node scripts/pack-linux.cjs <arm64|x64>。只构建不构成原生功能或一致性通过，详细验收清单见 docs/validation-1.1.11/parity-matrix.json。Mac 当前为 ad-hoc 签名，不是 Developer ID 签名或公证。
 
@@ -160,9 +160,9 @@ Windows x64 使用 _handoff/artifacts/KAMUCL-1.1.11.exe，或解压紧凑 ZIP；
 
 ---
 
-# START HERE — KAMUCL 1.1.10 历史
+# START HERE — QuaAN 1.1.10 历史
 
-当前交付为 Windows x64；下载并运行 KAMUCL-1.1.10.exe，或解压紧凑 ZIP。需要绕过自解压包装器时用 windows-x64-unpacked ZIP。两种 Mac 架构继续暂停。
+当前交付为 Windows x64；下载并运行 QuaAN-1.1.10.exe，或解压紧凑 ZIP。需要绕过自解压包装器时用 windows-x64-unpacked ZIP。两种 Mac 架构继续暂停。
 
 源码需要 Node.js 22+、npm、Git、完整 JDK 17+；Windows 使用 PowerShell。运行 npm ci、node scripts/build-bridge.cjs、npx tsc --noEmit、npm test、npm run license:check、npm run build；打包 npm run dist:win。已验证的 Windows 使用 Electron 44.3.0。
 
@@ -172,20 +172,20 @@ Windows x64 使用 _handoff/artifacts/KAMUCL-1.1.11.exe，或解压紧凑 ZIP；
 
 ---
 
-# KAMUCL 1.1.9 交付入口（Windows）
+# QuaAN 1.1.9 交付入口（Windows）
 
 **用户已将本轮交付限定为 Windows，暂缓 Intel 和 Apple Silicon Mac 的开发、构建与验收。验收范围以 CURRENT_STATUS.md 为准；公开状态、版本标签和下载附件以 GitHub 的 v1.1.9 Release 及外部 SHA256SUMS.txt 为准。**
 
 本轮交付包含皮肤编辑器布局、主题勾选控件与安装弹窗、LOGO 原位卡慕互动、统一整合包分类导入的源码、资源、锁文件、测试、许可证及 Windows 成品。功能见 docs/FEATURES_1.1.9.md；实际覆盖、历史失败和未覆盖项见 CURRENT_STATUS.md 与 docs/RELEASE_1.1.9.md。详细证据位于交接包 release/validation-1.1.9/Delivery/；用户整合包、存档、浏览器配置和账号不包含在内。暂停前的 Mac 失败证据保留，不能视为 Mac 合格或已交付。
 
-- Project: KAMUCL 1.1.9。
+- Project: QuaAN 1.1.9。
 - Deliverable: 本轮实现、Windows 成品、完整源码及验证证据。
 - Packaged artifact: Windows EXE / compact ZIP / unpacked ZIP；不包含 Mac 安装包。
 - Intended receiver: 启动器使用者及接续开发者。
 
 ## Use the deliverable
 
-Windows x64 使用 KAMUCL-1.1.9.exe，或解压 KAMUCL-1.1.9-windows-x64.zip。保留 EXE 旁的 KAMUCL-runtime 缓存；无法运行自解压包装器时使用 unpacked ZIP。本轮不提供 Mac 下载或安装说明。
+Windows x64 使用 QuaAN-1.1.9.exe，或解压 QuaAN-1.1.9-windows-x64.zip。保留 EXE 旁的 QuaAN-runtime 缓存；无法运行自解压包装器时使用 unpacked ZIP。本轮不提供 Mac 下载或安装说明。
 
 交接包成品在 _handoff/artifacts/；GitHub Release 提供 Windows 独立下载。升级保留用户图片、收藏、设置和所有历史人物计数；另六人的界面退出，不删除计数。此前误导入的实例不会自动删除。
 
@@ -219,7 +219,7 @@ Windows 成品命令为 npm run dist:win。本轮不执行 Mac 构建或验收�
 
 - npm test：公开合成包分类、安全路径、事务回滚、互动队列和持久化、皮肤编辑状态机等。
 - scripts/verify-windows-package.cjs：最终 Windows 成品、中文路径、冷/热启动、ZIP 解压与完整文件摘要。
-- scripts/verify-ui-refinement.cjs：隔离成品 GUI；KAMUCL_EXTENSION_GUI=1 覆盖全部本轮模块。KAMUCL_UI_MODULE 可指定 header、skin118、palette、gallery、gallery118、import119、selection119。
+- scripts/verify-ui-refinement.cjs：隔离成品 GUI；QuaAN_EXTENSION_GUI=1 覆盖全部本轮模块。QuaAN_UI_MODULE 可指定 header、skin118、palette、gallery、gallery118、import119、selection119。
 - scripts/verify-kamu-logo-119-ui.cjs：实际模型就绪、键盘焦点、连续点击、声音源、关闭重试、隐藏与释放；旧 verify-mascot-header-ui.cjs 按版本选择。
 - scripts/verify-pcl-import-119.cjs <private-export.zip>：真实服务导入和所属游戏窗口验证，结果仅写 ignored out。私有 ZIP 由使用者提供，不包含在源码。
 - scripts/verify-mac.cjs、scripts/verify-mac-game.cjs：原生 APP / DMG 及真实 Minecraft 窗口与世界检查。
@@ -230,4 +230,4 @@ Windows 成品命令为 npm run dist:win。本轮不执行 Mac 构建或验收�
 
 夹具社区响应不等同真实在线收藏安装；数值音频检查不等同耳机或扬声器听感。真实微软上传、硬件主观听测、用户存档实际游玩等未覆盖项以发行报告为准。
 
-历史原始截图帧与失败记录已打包为 KAMUCL-1.1.9-validation-history-part001.zip 至 part005.zip，均可独立解压；完整清单为 KAMUCL-1.1.9-validation-history-index.json。五卷共 155056 个文件、5827360601 字节原始内容，已逐文件核对源目录与干净解压后的大小、SHA256 和完整清单；每卷小于 GitHub 单附件 2GB 限制。包含暂停前的 Mac 失败及 Windows 长路径漏收证据，失败指标保持原值。交接包完整携带所有最终原始证据、历史帧时间及日志；历史图片、视频、原像素和音频由上述五卷完整保存，避免重复使交接 ZIP 超过单附件限制。Delivery/HISTORY-REFERENCE.json 列出各附件大小、SHA256 与每个未重复媒体成员所在分卷及摘要。临时浏览器缓存单独列为隐私排除，原始历史帧和失败结果没有删改；交接包运输校验与外部历史附件闭合分别验证，接收者需核对索引和全部五卷。
+历史原始截图帧与失败记录已打包为 QuaAN-1.1.9-validation-history-part001.zip 至 part005.zip，均可独立解压；完整清单为 QuaAN-1.1.9-validation-history-index.json。五卷共 155056 个文件、5827360601 字节原始内容，已逐文件核对源目录与干净解压后的大小、SHA256 和完整清单；每卷小于 GitHub 单附件 2GB 限制。包含暂停前的 Mac 失败及 Windows 长路径漏收证据，失败指标保持原值。交接包完整携带所有最终原始证据、历史帧时间及日志；历史图片、视频、原像素和音频由上述五卷完整保存，避免重复使交接 ZIP 超过单附件限制。Delivery/HISTORY-REFERENCE.json 列出各附件大小、SHA256 与每个未重复媒体成员所在分卷及摘要。临时浏览器缓存单独列为隐私排除，原始历史帧和失败结果没有删改；交接包运输校验与外部历史附件闭合分别验证，接收者需核对索引和全部五卷。

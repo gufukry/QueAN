@@ -21,7 +21,15 @@
             "Bash(grep)",
             "writeFile",
             "terminal(cd)",
-            "terminal(node)"
+            "terminal(node)",
+            "Bash(touch)",
+            "Bash(mount)",
+            "Bash(apk)",
+            "Bash(tail)",
+            "Bash(dd)",
+            "Bash(command)",
+            "Bash(mv)",
+            "Bash(stat)"
         ],
         "deny": []
     }

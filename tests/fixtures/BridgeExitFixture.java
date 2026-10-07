@@ -1,4 +1,4 @@
-package cn.kamucl.bridge;
+package cn.quaan.bridge;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

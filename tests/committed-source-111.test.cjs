@@ -7,10 +7,10 @@ const { execFileSync } = require('node:child_process')
 const { readCommittedSource } = require('../scripts/committed-source.cjs')
 
 function repository(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kamucl-source 中文 '))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'quaan-source 中文 '))
   t.after(() => {
     assert(path.resolve(root).startsWith(path.resolve(os.tmpdir()) + path.sep))
-    assert(path.basename(root).startsWith('kamucl-source 中文 '))
+    assert(path.basename(root).startsWith('quaan-source 中文 '))
     fs.rmSync(root, { recursive: true, force: true })
   })
   const git = args => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim()
