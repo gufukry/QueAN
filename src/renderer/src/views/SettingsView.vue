@@ -304,6 +304,7 @@ const themeOptions = computed(() => {
   const customColors = store.settings?.custom.colors ?? DEFAULT_CUSTOM_THEME.colors
   const named = (key: Exclude<ThemeName, 'custom'>) => ({ key, ...THEME_PRESETS[key] })
   return [
+    named('macos'),
     named('transparent'),
     named('blue-white'),
     named('black-orange'),

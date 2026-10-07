@@ -1244,6 +1244,18 @@ onUnmounted(() => {
   >
     <!-- ============ 左侧边栏（宽度 --sidebar-w） ============ -->
     <aside data-ui="App:25064d2bb910" class="sidebar" data-edit="sidebar">
+      <!-- 非 macOS：窗口控制做成左上角红黄绿交通灯 -->
+      <div data-ui="App:trafficlights0001" v-if="!isMac" class="traffic-lights">
+        <button data-ui="App:trafficlightclose" class="traffic-light t-close" title="关闭" aria-label="关闭" @click="win('close')">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4 4l4 4M8 4l-4 4" /></svg>
+        </button>
+        <button data-ui="App:trafficlightmin01" class="traffic-light t-min" title="最小化" aria-label="最小化" @click="win('minimize')">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3.6 6h4.8" /></svg>
+        </button>
+        <button data-ui="App:trafficlightmax01" class="traffic-light t-max" title="最大化/还原" aria-label="最大化或还原" @click="win('maximize')">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><rect x="4" y="4" width="4" height="4" rx="0.6" /></svg>
+        </button>
+      </div>
       <!-- Logo 区 -->
       <div data-ui="App:fc5fc8ba7e96" class="logo-area">
         <div class="brand-slot">
@@ -1384,25 +1396,6 @@ onUnmounted(() => {
             <span data-ui="App:9fb26325a181" v-if="store.noticesUnread" class="bell-dot"></span>
           </button>
 
-          <template v-if="!isMac">
-          <span data-ui="App:2d64ba8e392c" class="top-divider"></span>
-
-          <button data-ui="App:e3e46a2d0aaf" class="win-btn" title="最小化" @click="win('minimize')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <path d="M5 12h14" />
-            </svg>
-          </button>
-          <button data-ui="App:bd7bf1eb0182" class="win-btn" title="最大化/还原" @click="win('maximize')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <rect x="6" y="6" width="12" height="12" rx="1.5" />
-            </svg>
-          </button>
-          <button data-ui="App:f3cf1f9c86a5" class="win-btn win-close" title="关闭" @click="win('close')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
-          </button>
-          </template>
         </div>
 
         <!-- 通知中心下拉 -->
@@ -1751,8 +1744,8 @@ onUnmounted(() => {
   z-index: 1;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-  border-radius: var(--radius-md);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 18px 48px rgba(0,0,0,.16);
 }
 /* 自定义背景层：垫底铺满，不拦截交互 */
 .app-bg {
@@ -1808,7 +1801,7 @@ onUnmounted(() => {
   gap: var(--space-1);
 }
 .logo-name {
-  font-family: 'Segoe UI Variable Display', 'Segoe UI', sans-serif;
+  font-family: var(--app-font);
   font-size: var(--text-xl);
   font-weight: 700;
   letter-spacing: 2px;
@@ -2383,39 +2376,45 @@ onUnmounted(() => {
   color: var(--text-dim);
 }
 
-.top-divider {
-  width: 1px;
-  height: 20px;
-  background: var(--border);
-  margin: 0 8px;
+/* ---------------- macOS 风格交通灯（非 macOS 平台自绘窗口控制） ---------------- */
+.traffic-lights {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
   flex-shrink: 0;
+  -webkit-app-region: no-drag;
 }
-
-.win-btn {
+.traffic-light {
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: var(--ctl-h);
-  border: none;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text-dim);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  color: rgba(0, 0, 0, 0.55);
+  transition: filter 0.15s ease;
 }
-.win-btn svg {
-  width: 15px;
-  height: 15px;
+.traffic-light svg {
+  width: 8px;
+  height: 8px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity 0.12s ease;
 }
-.win-btn:hover {
-  background: var(--card-2);
-  color: var(--text);
-}
-.win-close:hover {
-  background: var(--danger);
-  color: #fff;
-}
+.traffic-lights:hover .traffic-light svg { opacity: 1; }
+.traffic-light:hover { filter: brightness(1.06); }
+.traffic-light:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.t-close { background: #ff5f57; }
+.t-min { background: #febc2e; }
+.t-max { background: #28c840; }
 
 /* 内容区 */
 .content {

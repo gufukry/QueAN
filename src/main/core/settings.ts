@@ -55,7 +55,7 @@ function defaults(): Settings {
     defaultIsolation: true,
     reduceMotion: false,
     msClientId: DEFAULT_MS_CLIENT_ID,
-    theme: 'transparent',
+    theme: 'macos',
     custom: structuredClone(DEFAULT_CUSTOM_THEME),
     disabledFeatures: [],
     favoriteVersions: [],

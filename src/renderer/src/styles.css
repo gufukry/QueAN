@@ -68,6 +68,8 @@ html[data-platform="darwin"] .shell { border-radius: 0; }
   --card-pad: 20px;
   --card-gap: 16px;
   --sec-gap: 28px;
+  /* macOS 风格字体栈：优先系统 SF，其次苹方/雅黑 */
+  --app-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
   /* 布局与语义默认值（自定义主题可 inline 覆盖） */
   --sidebar-w: 208px;
   --banner-h: 430px;
@@ -167,7 +169,7 @@ body,
 }
 
 body {
-  font-family: system-ui, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  font-family: var(--app-font);
   font-size: var(--text-md);
   color: var(--text);
   background: transparent;

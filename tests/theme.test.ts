@@ -37,6 +37,7 @@ test('旧主题 key 无损迁移到六主题体系，未知值回退图一默认
 
 test('五套固定色板齐全且正文、次要文字具有可读对比度', () => {
   assert.deepEqual(Object.keys(THEME_PRESETS), [
+    'macos',
     'blue-white',
     'black-orange',
     'white-pink',
@@ -48,6 +49,7 @@ test('五套固定色板齐全且正文、次要文字具有可读对比度', ()
     assert.ok(contrast(theme.colors.textDim, theme.colors.card) >= 4, `${key} 次要文字对比度不足`)
     assert.notEqual(theme.colors.accent.toLowerCase(), theme.colors.card.toLowerCase())
   }
+  assert.equal(THEME_PRESETS.macos.label, 'macOS')
   assert.equal(THEME_PRESETS['blue-white'].label, '白蓝')
   assert.equal(THEME_PRESETS['black-orange'].label, '橙黑')
   assert.equal(THEME_PRESETS['black-pink'].label, '粉黑')

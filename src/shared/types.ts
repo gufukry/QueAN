@@ -196,6 +196,7 @@ export interface JavaInfo {
 
 // ---------------- 设置 ----------------
 export type ThemeName =
+  | 'macos'
   | 'blue-white'
   | 'black-orange'
   | 'white-pink'
@@ -259,6 +260,21 @@ export const THEME_PRESETS: Record<
   BuiltinThemeName,
   { label: string; colors: CustomTheme['colors']; description: string }
 > = {
+  macos: {
+    label: 'macOS',
+    description: '苹果系统风格的浅灰玻璃与系统蓝强调色',
+    colors: {
+      accent: '#0a84ff',
+      bg: '#eceef2',
+      card: '#ffffff',
+      text: '#1d1d1f',
+      textDim: '#6e6e73',
+      border: '#d9d9de',
+      sidebarBg: '#e7e7ec',
+      sidebarText: '#48484a',
+      bannerText: '#ffffff'
+    }
+  },
   'blue-white': {
     label: '白蓝',
     description: '清爽明亮的蓝白玻璃界面',
