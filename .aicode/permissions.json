@@ -1,0 +1,28 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(pwd)",
+            "Bash(ls)",
+            "Bash(echo)",
+            "Bash(git)",
+            "Bash(node)",
+            "Bash(npm)",
+            "terminal",
+            "Bash(curl)",
+            "Bash(head)",
+            "Bash(for)",
+            "Bash(do)",
+            "Bash(wget)",
+            "Bash(done)",
+            "Bash(cd)",
+            "Bash(mkdir)",
+            "Bash(tar)",
+            "Bash(1)",
+            "Bash(grep)",
+            "writeFile",
+            "terminal(cd)",
+            "terminal(node)"
+        ],
+        "deny": []
+    }
+}
