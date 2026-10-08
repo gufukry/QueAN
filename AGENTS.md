@@ -1,11 +1,18 @@
-# 项目默认交付流程
+# 项目规则（QuaAN）
 
-用户已明确授权：每批修改完成后，默认完成验证、打包，并更新到 https://github.com/kamubaba-i/QuaAN ，无需再次询问是否打包或发布。
+本仓库是 QuaAN —— 基于 KAMUCL v1.1.15 二开的 Minecraft Java 启动器（MIT）。
+原始上游：https://github.com/kamubaba-i/KAMUCL 。本仓库（发布目标）：https://github.com/gufukry/QueAN
 
-- 每批功能或修复递增版本尾号，同步 package.json、package-lock.json 根包版本、内置更新日志。更新日志日期必须采用本地时间 YYYY-MM-DD HH:mm，精确到小时和分钟。
-- 版本号每百进一：尾号从 0 到 99，下一版向前一位进一并将尾号归零（例如 1.0.99 → 1.1.0）。
-- 运行与改动相关的验证及构建；生成 Windows 便携 EXE、ZIP，验证便携包启动和 SHA256。
-- 提交项目源码并推送 origin/master；沿用 main 的独立历史，通过 cherry-pick 同步本批提交，禁止强制推送或覆盖远端更新。
-- 在上述仓库发布对应版本的 GitHub Release，上传 EXE、ZIP、SHA256SUMS.txt，并核对远端提交、标签和附件。
-- 不合并或推送 wuhui 分支。保留现有用户改动，不结束他人的游戏进程。
-- 如当次用户明确要求只分析、暂不执行、暂不发布或有其他限制，以当次指令为准。发布失败应保留成品并准确报告失败环节。
+## 交付流程
+
+- 每批功能或修复完成后，运行与本批改动相关的验证与构建：`npm test`、`npx tsc --noEmit`、`npm run license:check`。
+- Windows 包由 GitHub Actions 工作流 `.github/workflows/windows-build.yml` 在 GitHub 的 Windows 机器上自动构建（便携 EXE、ZIP、SHA256SUMS）。本地容器为 aarch64 Linux，无法直接出 Windows EXE。
+- 推送源码到本仓库 `origin/master`（`https://github.com/gufukry/QueAN`）。除非用户明确要求，不推送到任何其它仓库。
+- 版本号写在 `package.json`，需与 `package-lock.json` 根版本、`src/shared/updateNotes.ts` 内置更新日志保持同步；更新日志日期用本地时间 `YYYY-MM-DD HH:mm`。
+
+## 约定
+
+- 品牌与渠道常量集中在 `src/shared/branding.ts`（自更新仓库、内测群号），改这里，不要散落代码深处。
+- 保留 `LICENSE`（MIT）与 `THIRD_PARTY_NOTICES.md`，不改写原始版权声明。
+- 保留用户既有改动，不结束他人的游戏进程。
+- 用户当次明确要求优先：如当次要求只分析、暂不执行或暂不发布，以当次指令为准。

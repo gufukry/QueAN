@@ -17,7 +17,7 @@ const path = require('node:path')
 const crypto = require('node:crypto')
 const { execFileSync } = require('node:child_process')
 
-const REPO = 'kamubaba-i/QuaAN'
+const REPO = 'gufukry/QueAN'
 const root = path.join(__dirname, '..')
 const pkg = require(path.join(root, 'package.json'))
 const version = pkg.version

@@ -5,8 +5,8 @@
  *   node scripts/mock-update-server.cjs [port=8310]
  *
  * 提供：
- *   GET /repos/kamubaba-i/QuaAN/releases/latest  → 伪造最新版 v99.0.0（资产指向本服务器）
- *   GET /repos/kamubaba-i/QuaAN/releases         → 3 个历史版本（v99.0.0 / v1.0.0 / v0.9.9）
+ *   GET /repos/gufukry/QueAN/releases/latest  → 伪造最新版 v99.0.0（资产指向本服务器）
+ *   GET /repos/gufukry/QueAN/releases         → 3 个历史版本（v99.0.0 / v1.0.0 / v0.9.9）
  *   GET /download/<file>                          → 资产下载（QuaAN-*.exe 为随机内容的测试文件）
  *   GET /SHA256SUMS.txt                           → 与测试文件一致的真实校验值
  *

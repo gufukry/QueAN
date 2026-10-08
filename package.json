@@ -3,7 +3,7 @@
   "productName": "QuaAN",
   "version": "1.0.0",
   "description": "QuaAN - 简约美观的一键式 Minecraft 启动器",
-  "homepage": "",
+  "homepage": "https://github.com/gufukry/QueAN",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -92,7 +92,7 @@
       "artifactName": "QuaAN-${version}-mac-${arch}.${ext}"
     },
     "linux": {
-      "maintainer": "kamubaba-i <325699197+kamubaba-i@users.noreply.github.com>",
+      "maintainer": "gufukry <gufukry@users.noreply.github.com>",
       "target": ["AppImage", "deb", "tar.gz"],
       "category": "Game",
       "executableName": "quaan",

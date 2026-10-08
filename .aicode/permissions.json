@@ -29,7 +29,10 @@
             "Bash(dd)",
             "Bash(command)",
             "Bash(mv)",
-            "Bash(stat)"
+            "Bash(stat)",
+            "Bash(npx tsc)",
+            "Bash(npm run)",
+            "Bash(npx tsx)"
         ],
         "deny": []
     }

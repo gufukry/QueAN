@@ -14,7 +14,7 @@ import { fetchSha256Sums } from '../src/main/core/selfUpdate'
 
 const hash = (data: Buffer | string) => crypto.createHash('sha256').update(data).digest('hex')
 test('update checksum lookup stays on the selected release when latest changes', async () => {
-  const requested: string[] = [], hint = 'https://github.com/kamubaba-i/QuaAN/releases/download/v1.0.77/QuaAN-1.0.77.exe'
+  const requested: string[] = [], hint = 'https://github.com/gufukry/QueAN/releases/download/v1.0.77/QuaAN-1.0.77.exe'
   const sums = await fetchSha256Sums(hint, async url => { requested.push(url); return new Response(hash('77') + '  QuaAN-1.0.77.exe') })
   assert.equal(sums?.get('QuaAN-1.0.77.exe'), hash('77'))
   assert.deepEqual(requested, [hint.replace(/[^/]+$/, 'SHA256SUMS.txt')])
