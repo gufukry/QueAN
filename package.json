@@ -1,7 +1,7 @@
 {
   "name": "quean",
   "productName": "QueAN",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "QueAN - 简约美观的一键式 Minecraft 启动器",
   "homepage": "https://github.com/gufukry/QueAN",
   "main": "out/main/index.js",
