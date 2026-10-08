@@ -86,11 +86,12 @@ test('navigation identifies the active page independently of hover', () => {
   assert.doesNotMatch(app, /navHoverKey/)
 })
 
-test('splash holds the assembled avatar for two seconds before revealing', () => {
-  const startup = read('src/shared/startup.ts')
-  assert.match(startup, /ASSEMBLED_HOLD_MS = 2000/)
+test('splash fades the logo in and hands off once the renderer is ready', () => {
   const splash = read('src/renderer/src/splash.ts')
-  assert.match(splash, /reduced \|\| elapsed - convergence >= CONVERGE_DURATION \+ ASSEMBLED_HOLD_MS/)
+  assert.match(splash, /canAssembleBoot\(state\)/)
+  assert.match(splash, /requestAnimationFrame\(frame\)/)
+  assert.match(splash, /bridge\.assembled\(\)/)
+  assert.match(splash, /bridge\.ready\(\)/)
 })
 
 test('java picker save button uses the gold accent style and actions row is laid out', () => {
