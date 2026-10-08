@@ -1,0 +1,62 @@
+name: Windows packages
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, main]
+    tags: ['v*']
+    paths:
+      - '.github/workflows/windows-build.yml'
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'native/**'
+      - 'bridge/**'
+      - 'build/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'electron.vite.config.ts'
+      - 'tsconfig*.json'
+      - 'LICENSE'
+      - 'THIRD_PARTY_NOTICES.md'
+      - 'licenses/**'
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: npm ci
+      - run: npm test
+      - run: npx tsc --noEmit
+      - run: npm run license:check
+      - run: node scripts/build-bridge.cjs
+      - run: node scripts/verify-bridge-exit.cjs
+      - name: Build Windows portable EXE and ZIP
+        run: npm run dist:win
+      - name: Generate SHA256SUMS.txt
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem release -File | Where-Object { $_.Name -match '\.(exe|zip)$' } | Sort-Object Name
+          $lines = foreach ($f in $files) { (Get-FileHash $f.FullName -Algorithm SHA256).Hash.ToLower() + '  ' + $f.Name }
+          Set-Content -Path release/SHA256SUMS.txt -Value $lines -Encoding ascii
+          Get-Content release/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-packages
+          path: |
+            release/*.exe
+            release/*-windows-x64.zip
+            release/*-windows-x64-unpacked.zip
+            release/SHA256SUMS.txt
+          if-no-files-found: error
