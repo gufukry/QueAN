@@ -1239,6 +1239,12 @@ onUnmounted(() => {
   >
     <!-- ============ 左侧边栏（宽度 --sidebar-w） ============ -->
     <aside data-ui="App:25064d2bb910" class="sidebar" data-edit="sidebar">
+      <!-- 非 macOS：左上角三色圆点（纯装饰，无功能） -->
+      <div v-if="!isMac" class="traffic-lights" aria-hidden="true">
+        <span class="t-close"></span>
+        <span class="t-min"></span>
+        <span class="t-max"></span>
+      </div>
       <!-- Logo 区 -->
       <div data-ui="App:fc5fc8ba7e96" class="logo-area">
         <div class="brand-slot">
@@ -2402,6 +2408,24 @@ onUnmounted(() => {
   background: var(--danger);
   color: #fff;
 }
+/* 左上角三色圆点（纯装饰，不可交互） */
+.traffic-lights {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.traffic-lights span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.traffic-lights .t-close { background: #ff5f57; }
+.traffic-lights .t-min { background: #febc2e; }
+.traffic-lights .t-max { background: #28c840; }
 
 /* 内容区 */
 .content {
