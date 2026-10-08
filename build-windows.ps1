@@ -13,6 +13,9 @@ try {
   Write-Host "==> npm install" -ForegroundColor Cyan
   npm install
 
+  Write-Host "==> npm run build (electron-vite)" -ForegroundColor Cyan
+  npm run build
+
   Write-Host "==> build portable EXE (electron-builder --win portable)" -ForegroundColor Cyan
   npx electron-builder --win portable --x64 --publish never
 
