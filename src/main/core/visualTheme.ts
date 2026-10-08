@@ -32,7 +32,7 @@ export async function importVisualTheme(code:string,preview=false):Promise<Setti
  if(value.startsWith('QueAN2.'))p=JSON.parse(gunzipSync(Buffer.from(value.slice(8),'base64'),{maxOutputLength:MAX}).toString('utf8'))
  else if(value.startsWith('QueAN.'))p={format:2,theme:'custom',custom:{colors:JSON.parse(Buffer.from(value.slice(7),'base64').toString('utf8')).colors}}
  else throw new Error('请粘贴完整的 QueAN 主题码')
- if(p.format!==2||!['custom','blue-white','black-orange','white-pink','black-pink','transparent'].includes(p.theme))throw new Error('不支持的主题格式')
+ if(p.format!==2||!['macos','custom','blue-white','black-orange','white-pink','black-pink','transparent'].includes(p.theme))throw new Error('不支持的主题格式')
  const colors={...DEFAULT_CUSTOM_THEME.colors};for(const key of Object.keys(colors) as (keyof typeof colors)[])if(/^#[a-f0-9]{6}$/i.test(p.custom?.colors?.[key]))colors[key]=p.custom.colors[key]
  const current=getSettings()
  const imported=new Map<string,{path:string;purpose:'background'|'launch-thumbnail'}>()

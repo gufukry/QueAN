@@ -7,7 +7,7 @@ const appliedMaterial = new WeakMap<BrowserWindow, () => void>()
 
 /** DWM 的染色也要跟随应用主题，否则浅色系统会在暗色页面下叠一层白灰色。 */
 export function applyNativeAppearance(window: BrowserWindow | null, settings: Settings): void {
-  const light = settings.theme === 'blue-white' || settings.theme === 'white-pink' ||
+  const light = settings.theme === 'macos' || settings.theme === 'blue-white' || settings.theme === 'white-pink' ||
     (settings.theme === 'custom' && /^#[0-9a-f]{6}$/i.test(settings.custom.colors.bg) &&
       parseInt(settings.custom.colors.bg.slice(1, 3), 16) * .299 +
       parseInt(settings.custom.colors.bg.slice(3, 5), 16) * .587 +

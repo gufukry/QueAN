@@ -365,6 +365,7 @@ export function normalizeThemeName(value: unknown): ThemeName {
   const raw = typeof value === 'string' ? value : ''
   if (raw in aliases) return aliases[raw]
   if (
+    raw === 'macos' ||
     raw === 'blue-white' ||
     raw === 'black-orange' ||
     raw === 'white-pink' ||
