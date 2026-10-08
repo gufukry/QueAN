@@ -252,7 +252,7 @@ export function updateDownloadCandidates(assetUrl: string, settings: Pick<Settin
   const source = settings.updateSource ?? 'auto'
   if (source === 'direct') return [assetUrl]
   if (source === 'mirror') return mirrored ? [mirrored] : [assetUrl]
-  return mirrored ? [assetUrl, mirrored] : [assetUrl]
+  return mirrored ? [mirrored, assetUrl] : [assetUrl]
 }
 
 // ---------------- 下载（接入下载中心） ----------------

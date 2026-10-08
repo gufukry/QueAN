@@ -4,7 +4,6 @@ import UpdateDialogShell from '../components/UpdateDialogShell.vue'
 const ThirdPartyNotices = defineAsyncComponent(() => import('../components/ThirdPartyNotices.vue'))
 import {
   addCustomJava,
-  applyLocalUpdate,
   applyPendingUpdate,
   cancelJavaScan,
   checkUpdate,
@@ -12,19 +11,15 @@ import {
   getPendingUpdate,
   getSettings,
   getSystemInfo,
-  getUpdateState,
   hideJava,
   installPlugin,
   listJava,
   listPlugins,
-  listUpdateReleases,
   onProgress,
   openPluginsDir,
   pickAddJava,
-  pickLocalUpdateFile,
   refreshJava,
   removePlugin,
-  restoreUpdateBackup,
   selectDir,
   setDownloadFolder,
   setPluginEnabled
@@ -33,11 +28,11 @@ import { enterEditMode, store, toast } from '../store'
 import { DEFAULT_CUSTOM_THEME, THEME_PRESETS } from '@shared/types'
 import { autoMemoryMB } from '@shared/memory'
 import MemoryOrganizer from '../components/MemoryOrganizer.vue'
-import type { LocalUpdateCheck, PluginInfo, ReleaseInfo, Settings, ThemeName, UpdateStateInfo } from '@shared/types'
+import type { PluginInfo, ReleaseInfo, Settings, ThemeName } from '@shared/types'
 import { useMotion } from '../motion'
 const { systemReduced } = useMotion()
 import { usePlatformUpdate } from '../composables/usePlatformUpdate'
-const { systemInstaller, installAction, updateReadyMessage } = usePlatformUpdate()
+const { installAction, updateReadyMessage } = usePlatformUpdate()
 const systemMotionHelp = window.quean.platform === 'darwin'
   ? '若需要动画，请在系统设置 → 辅助功能 → 显示中关闭“减少动态效果”。'
   : window.quean.platform === 'win32'
@@ -172,75 +167,13 @@ async function onCheckUpdate() {
   }
 }
 
-const updateSource = computed(() => store.settings?.updateSource ?? 'auto')
-function onUpdateSourceChange(e: Event) {
-  void save({ updateSource: (e.target as HTMLSelectElement).value as Settings['updateSource'] })
-}
-function onUpdateMirrorChange(e: Event) {
-  void save({ updateMirrorUrl: (e.target as HTMLInputElement).value.trim() })
-}
-
-// 版本回退
-const rollback = ref<{ open: boolean; loading: boolean; list: ReleaseInfo[]; selected: string }>({
-  open: false, loading: false, list: [], selected: ''
-})
-async function openRollback() {
-  rollback.value.open = true
-  rollback.value.loading = true
-  try {
-    rollback.value.list = (await listUpdateReleases()).filter((r) => r.version !== appVersion)
-    if (!rollback.value.list.length) toast('没有可回退的历史版本', 'info')
-  } catch (e) {
-    toast('获取历史版本失败：' + errText(e), 'error')
-  } finally {
-    rollback.value.loading = false
-  }
-}
-function confirmRollback() {
-  const release = rollback.value.list.find((r) => r.version === rollback.value.selected)
-  rollback.value.open = false
-  if (!release) return
-  store.updatePrompt = { release, rollback: true }
-}
-function releaseSummary(body: string): string {
-  const first = (body || '').split(/\r?\n/).map((s) => s.replace(/^(?:#+|[-*])\s*/, '').trim()).filter(s => s && !/^QueAN\s+v?[\d.]+$/i.test(s))[0] ?? ''
-  return first.length > 60 ? first.slice(0, 60) + '…' : first
-}
-function releaseDate(value: string): string {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-
-// 还原到更新前的版本
-const updateState = ref<UpdateStateInfo | null>(null)
-const restoringBackup = ref(false)
 // 已就绪待安装的更新（下次启动时应用，也可立即安装）
 const pendingUpdate = ref<{ release: ReleaseInfo; file: string } | null>(null)
 async function refreshUpdateState() {
   try {
-    updateState.value = await getUpdateState()
-  } catch {
-    updateState.value = null
-  }
-  try {
     pendingUpdate.value = await getPendingUpdate()
   } catch {
     pendingUpdate.value = null
-  }
-}
-async function onRestoreBackup() {
-  if (!updateState.value) return
-  restoringBackup.value = true
-  try {
-    await restoreUpdateBackup()
-    restoringBackup.value = false
-    await refreshUpdateState()
-    toast('备份已准备，下次手动启动时恢复', 'success')
-  } catch (e) {
-    restoringBackup.value = false
-    toast('还原失败：' + errText(e), 'error')
   }
 }
 async function onApplyPending() {
@@ -249,30 +182,6 @@ async function onApplyPending() {
     toast(updateReadyMessage(), 'success')
   } catch (e) {
     toast('安装失败：' + errText(e), 'error')
-  }
-}
-
-// 从本地文件安装更新
-const localUpdate = ref<{ check: LocalUpdateCheck; confirming: boolean } | null>(null)
-async function onPickLocalUpdate() {
-  try {
-    const check = await pickLocalUpdateFile()
-    if (!check) return
-    localUpdate.value = { check, confirming: true }
-  } catch (e) {
-    toast('校验安装包失败：' + errText(e), 'error')
-  }
-}
-async function confirmLocalUpdate() {
-  const lu = localUpdate.value
-  if (!lu) return
-  localUpdate.value = null
-  try {
-    await applyLocalUpdate(lu.check)
-    await refreshUpdateState()
-    toast(updateReadyMessage('本地更新已准备'), 'success')
-  } catch (e) {
-    toast('安装更新失败：' + errText(e), 'error')
   }
 }
 
@@ -1123,49 +1032,11 @@ async function onRemovePlugin(p: PluginInfo) {
             <span data-ui="SettingsView:5ae61f0d3e62" class="upd-failed-text">你的网络可能无法连接 GitHub，检查更新失败</span>
             <button data-ui="SettingsView:c30ef48b6984" class="btn btn-ghost btn-sm" @click="onCheckUpdate">重试</button>
           </div>
-          <div class="upd-row">
-            <span class="upd-label">自动安装更新</span>
-            <label class="switch">
-              <input data-ui="SettingsView:bc540ac861a7"
-                :checked="store.settings.autoUpdate !== false"
-                type="checkbox"
-                @change="save({ autoUpdate: ($event.target as HTMLInputElement).checked })"
-              />
-              <span class="switch-ui"></span>
-            </label>
-            <span data-ui="SettingsView:94871aad1da8" class="muted upd-auto-hint">{{ systemInstaller ? '发现新版本静默下载，下次启动打开系统安装器；关闭则弹窗询问' : '发现新版本静默下载，下次启动时应用；关闭则弹窗询问' }}</span>
-          </div>
           <div data-ui="SettingsView:1c8ad9d5ad0b" v-if="pendingUpdate" class="upd-row upd-pending-row">
             <span data-ui="SettingsView:0447f8159ad6" class="upd-pending-text">{{ updateReadyMessage(`v${pendingUpdate.release.version} 已就绪`) }}</span>
             <button data-ui="SettingsView:5bd17b41383a" class="btn btn-gold btn-sm" @click="onApplyPending">{{ installAction }}</button>
           </div>
-          <div class="upd-row">
-            <span class="upd-label">更新下载源</span>
-            <select data-ui="SettingsView:c67695800552" class="select upd-source" :value="updateSource" @change="onUpdateSourceChange">
-              <option value="auto">自动（直连优先，镜像加速）</option>
-              <option value="direct">仅 GitHub 直连</option>
-              <option value="mirror">仅自定义镜像</option>
-            </select>
-          </div>
-          <div data-ui="SettingsView:c63358a8e469" v-if="updateSource !== 'direct'" class="upd-row">
-            <span class="upd-label">自定义镜像</span>
-            <input data-ui="SettingsView:573dec07c5b6"
-              class="input mono upd-mirror"
-              :value="store.settings.updateMirrorUrl ?? ''"
-              placeholder="https://ghproxy.net/（留空用默认）"
-              @change="onUpdateMirrorChange"
-            />
-          </div>
-          <details class="update-maintenance"><summary>维护与恢复</summary>
-          <div data-ui="SettingsView:bb7974b118ee" class="upd-row upd-actions-row">
-            <button data-ui="SettingsView:3752063389f8" class="btn btn-ghost btn-sm" @click="openRollback">版本回退…</button>
-            <button data-ui="SettingsView:a671c86452da" v-if="updateState" class="btn btn-ghost btn-sm" :disabled="restoringBackup" @click="onRestoreBackup">
-              还原到更新前的版本（v{{ updateState.backupVersion }}）
-            </button>
-            <button data-ui="SettingsView:c7a44c22390c" class="btn btn-ghost btn-sm" @click="onPickLocalUpdate">从本地文件安装更新…</button>
-          </div>
-          </details>
-          <p class="muted group-hint">更新包发布在 GitHub Releases。</p>
+          <p class="muted group-hint">更新包发布在 GitHub Releases，下载自动走镜像加速。仅提供「检查更新」与「立即更新」。</p>
         </div>
       </details>
 
@@ -1213,67 +1084,6 @@ async function onRemovePlugin(p: PluginInfo) {
     </template>
 
     </div>
-    <!-- 版本回退：历史版本列表 -->
-    <UpdateDialogShell v-if="rollback.open" label="版本回退" @dismiss="rollback.open = false">
-      <template #header>
-        <div class="upd-modal-head">
-          <h3 class="upd-modal-title">版本回退</h3>
-          <button data-ui="SettingsView:606774134bae" class="icon-btn" title="关闭" @click="rollback.open = false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-          </button>
-        </div>
-        <p data-ui="SettingsView:f683c36eb3d1" class="upd-modal-subtitle muted">当前 v{{ appVersion }} · 选择要恢复的历史版本</p>
-      </template>
-        <p data-ui="SettingsView:e60d0b9f406f" class="upd-risk">⚠ 旧版本可能不兼容新配置格式。回退前将自动备份当前版本，可随时还原。</p>
-        <div data-ui="SettingsView:057bbe26b76d" v-if="rollback.loading" class="empty"><span class="spin"></span></div>
-        <div data-ui="SettingsView:5fc7aa4d0d0b" v-else class="upd-release-list">
-          <label data-ui="SettingsView:75b890b63a58" v-for="r in rollback.list" :key="r.version" class="upd-release-item" :class="{ selected: rollback.selected === r.version }">
-            <input data-ui="SettingsView:839c64939132" v-model="rollback.selected" type="radio" name="rollback-version" :value="r.version" />
-            <span data-ui="SettingsView:147be114439d" class="upd-release-main">
-              <span data-ui="SettingsView:472e50c1be99" class="upd-release-ver">v{{ r.version }}</span>
-              <span data-ui="SettingsView:f2396c2f4962" class="muted upd-release-date">{{ releaseDate(r.publishedAt) }}</span>
-              <span data-ui="SettingsView:b10e6198b84f" v-if="releaseSummary(r.body)" class="muted upd-release-summary">{{ releaseSummary(r.body) }}</span>
-            </span>
-          </label>
-          <div data-ui="SettingsView:b683a5ef98a2" v-if="!rollback.list.length" class="empty"><span>没有可回退的历史版本</span></div>
-        </div>
-      <template #footer><div class="upd-modal-actions">
-          <button data-ui="SettingsView:64d5b7c61143" class="btn btn-ghost" @click="rollback.open = false">取消</button>
-          <button data-ui="SettingsView:8a817c12df3a" class="btn btn-gold" :disabled="!rollback.selected" @click="confirmRollback">回退到选中版本</button>
-        </div></template>
-    </UpdateDialogShell>
-
-    <!-- 本地文件安装更新确认 -->
-    <UpdateDialogShell v-if="localUpdate?.confirming" label="安装本地更新包" @dismiss="localUpdate = null">
-      <template #header>
-        <div class="upd-modal-head">
-          <h3 class="upd-modal-title">安装本地更新包</h3>
-          <button data-ui="SettingsView:7162c61cf755" class="icon-btn" title="关闭" @click="localUpdate = null">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-          </button>
-        </div>
-      </template>
-        <p data-ui="SettingsView:d8da86ab7cbc" class="upd-local-file">{{ localUpdate.check.fileName }} · {{ (localUpdate.check.fileSize / 1048576).toFixed(1) }} MB</p>
-        <div class="upd-local-check">
-          <span>版本校验</span>
-          <span data-ui="SettingsView:152ca71f54e0" v-if="localUpdate.check.versionOk" class="upd-ok">v{{ localUpdate.check.version }} ≥ 当前 v{{ appVersion }} ✓</span>
-          <span v-else class="upd-warn">⚠ {{ localUpdate.check.version ? `v${localUpdate.check.version} 低于当前 v${appVersion}` : '无法从文件名识别版本号' }}，继续需自担风险</span>
-        </div>
-        <div class="upd-local-check">
-          <span>完整性校验</span>
-          <span data-ui="SettingsView:9df9b415ad42" v-if="localUpdate.check.sha256 === 'match'" class="upd-ok">SHA256 与 GitHub Release 一致 ✓</span>
-          <span data-ui="SettingsView:5b6de8db67a7" v-else-if="localUpdate.check.sha256 === 'mismatch'" class="upd-warn">⚠ SHA256 不一致！文件可能被篡改（{{ localUpdate.check.detail }}）</span>
-          <span v-else class="upd-warn">⚠ 无法联网校验，请确认文件来自官方渠道，风险自担</span>
-        </div>
-      <template #footer><div class="upd-modal-actions">
-          <button data-ui="SettingsView:3ccc5837a1e1" class="btn btn-ghost" @click="localUpdate = null">取消</button>
-          <button data-ui="SettingsView:1b671fb6ec3e"
-            class="btn"
-            :class="localUpdate.check.versionOk && localUpdate.check.sha256 === 'match' ? 'btn-gold' : 'btn-danger'"
-            @click="confirmLocalUpdate"
-          >确认安装</button>
-        </div></template>
-    </UpdateDialogShell>
 
   </div>
 </template>

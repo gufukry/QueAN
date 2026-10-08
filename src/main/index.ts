@@ -287,17 +287,12 @@ app.whenReady().then(async () => {
           release: result.release,
           skipVersion: s.skipUpdateVersion,
           current: app.getVersion(),
-          autoUpdate: s.autoUpdate !== false,
+          autoUpdate: false,
           supported: applyMod.updateSupported(),
           downloading: applyMod.isUpdateDownloading(),
           pendingVersion: pending?.release.version ?? blockedUpdateVersion()
         })
-        if (action === 'auto-download') {
-          launcherLogInfo('main', `自动安装模式：静默下载更新 v${result.release.version}`)
-          applyMod.startAutoUpdate(result.release, s)
-        } else if (action === 'prompt') {
-          win?.webContents.send('event:updatePrompt', result.release)
-        }
+        if (action === 'prompt') win?.webContents.send('event:updatePrompt', result.release)
       } catch (e) {
         launcherLogInfo('main', `启动自动检查更新失败（静默降级）：${e instanceof Error ? e.message : String(e)}`)
       }
