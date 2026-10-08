@@ -1086,11 +1086,11 @@ onUnmounted(() => {
 .top-launch-bar .hero-content, .top-launch-bar .hero-content h1, .top-launch-bar .hero-game-version { color: var(--text); text-shadow: none; }
 .top-launch-bar .hero-kicker, .top-launch-bar .hero-settings, .top-launch-bar .hero-more { background: var(--card-2); color: var(--text); border-color: var(--border); backdrop-filter: none; }
 .top-launch-bar .loader-badge { color: var(--accent-2); background: var(--accent-soft); }
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
   .home-body { grid-template-columns: minmax(0, 1fr); }
   .home-side { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
 }
-@media (max-width: 700px) {
+@media (max-width: 860px) {
   .home-side { grid-template-columns: minmax(0, 1fr); }
 }
 .quick-entries { background: var(--surface-content); border: 1px solid var(--border); border-radius: 15px; padding: 16px; }
@@ -1102,7 +1102,7 @@ onUnmounted(() => {
 .qe-icon { display: flex; color: var(--accent-2); }
 .qe-icon svg { width: 24px; height: 24px; }
 .qe-label { font-weight: 600; }
-@media (max-width: 700px) { .qe-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 860px) { .qe-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* macOS 风格：启动按钮扁平化 */
 .launch-combo { border-radius: 10px; }
 .launch-main, .launch-arrow { background: var(--accent); }

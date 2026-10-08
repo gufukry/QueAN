@@ -29,8 +29,8 @@ export function windowAppearance(
   return {
     width: 1360,
     height: 860,
-    minWidth: 960,
-    minHeight: 620,
+    minWidth: 820,
+    minHeight: 560,
     frame: platform === 'darwin',
     titleBarStyle: platform === 'darwin' ? 'hiddenInset' : undefined,
     trafficLightPosition: platform === 'darwin' ? { x: 16, y: 16 } : undefined,
