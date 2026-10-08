@@ -39,6 +39,8 @@ const emit = defineEmits<{
 }>()
 
 const copied = ref(false)
+/** 关闭/隐藏弹窗：下载中隐藏但保留下载任务（继续在下载中心跑），其余状态直接关闭 */
+function dismiss() { emit(props.state === 'done' ? 'close' : 'later') }
 async function copyGroup() {
   try {
     await navigator.clipboard.writeText(props.qqGroup)
@@ -62,11 +64,11 @@ const sizeText = computed(() => {
 </script>
 
 <template>
-  <UpdateDialogShell :label="rollback ? '版本回退确认' : '启动器更新'" @dismiss="state === 'found' ? emit('later') : state === 'done' ? emit('close') : undefined">
+  <UpdateDialogShell :label="rollback ? '版本回退确认' : '启动器更新'" @dismiss="dismiss()">
     <template #header>
       <div class="upd-head">
         <div><p class="upd-eyebrow">QueAN · {{ rollback ? '版本回退' : '软件更新' }}</p><h3 class="upd-title">{{ state === 'found' ? (rollback ? '回退到' : '发现新版本') : state === 'downloading' ? '正在下载' : '准备安装' }} v{{ release.version }}</h3></div>
-        <button v-if="state !== 'downloading'" class="icon-btn" :aria-label="state === 'found' ? '稍后提醒' : '关闭'" @click="state === 'found' ? emit('later') : emit('close')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        <button class="icon-btn" :aria-label="state === 'done' ? '关闭' : state === 'downloading' ? '隐藏（后台继续下载）' : '稍后提醒'" @click="dismiss()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       </div>
       <div class="upd-meta"><span>当前 v{{ currentVersion }}</span><span v-if="dateText">{{ dateText }}</span><span v-if="sizeText">{{ sizeText }}</span></div>
     </template>
