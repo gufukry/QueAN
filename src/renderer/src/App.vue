@@ -43,7 +43,6 @@ import {
   startUpdateDownload
 } from './api'
 import type { ReleaseInfo } from '@shared/types'
-import { QQ_GROUP_NUMBER } from '@shared/branding'
 import UpdateModal from './components/UpdateModal.vue'
 import { applyLaunchState, dismissTask, enterEditMode, exitEditMode, finalizeTask, markNoticesRead, recordLastPlayed, refreshAccounts, refreshInstalled, resetProgressMono, stageLabel, store, toast, upsertTaskProgress } from './store'
 import type { ViewName } from './store'
@@ -246,9 +245,6 @@ const updateModal = reactive<{
   slowHint: boolean
   rollback: boolean
 }>({ open: false, release: null, state: 'found', taskId: '', slowHint: false, rollback: false })
-
-/** 内测群号：设置覆盖优先，默认 shared/branding 常量 */
-const qqGroup = computed(() => store.settings?.qqGroupNumber?.trim() || QQ_GROUP_NUMBER)
 
 /** 更新下载任务进度（从下载中心任务列表取，含速度） */
 const updateTask = computed(() => store.tasks.find((t) => t.id === updateModal.taskId))
@@ -1523,7 +1519,6 @@ onUnmounted(() => {
       :percent="updatePercent"
       :speed-text="updateSpeedText"
       :slow-hint="updateModal.slowHint"
-      :qq-group="qqGroup"
       :rollback="updateModal.rollback"
       @update-now="onUpdateNow"
       @later="onUpdateLater"

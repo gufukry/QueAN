@@ -34,7 +34,6 @@ import { DEFAULT_CUSTOM_THEME, THEME_PRESETS } from '@shared/types'
 import { autoMemoryMB } from '@shared/memory'
 import MemoryOrganizer from '../components/MemoryOrganizer.vue'
 import type { LocalUpdateCheck, PluginInfo, ReleaseInfo, Settings, ThemeName, UpdateStateInfo } from '@shared/types'
-import { QQ_GROUP_NUMBER } from '@shared/branding'
 import { useMotion } from '../motion'
 const { systemReduced } = useMotion()
 import { usePlatformUpdate } from '../composables/usePlatformUpdate'
@@ -1166,9 +1165,7 @@ async function onRemovePlugin(p: PluginInfo) {
             <button data-ui="SettingsView:c7a44c22390c" class="btn btn-ghost btn-sm" @click="onPickLocalUpdate">从本地文件安装更新…</button>
           </div>
           </details>
-          <p class="muted group-hint">
-            更新包发布在 GitHub Releases；下载较慢时可到 QueAN 内测群（{{ store.settings.qqGroupNumber?.trim() || QQ_GROUP_NUMBER }}）获取，群内文件与 GitHub 版本一致。
-          </p>
+          <p class="muted group-hint">更新包发布在 GitHub Releases。</p>
         </div>
       </details>
 

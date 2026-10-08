@@ -11,6 +11,7 @@ import {
   getSkinProfile,
   getSettings,
   launchGame,
+  killGame,
   restartGame,
   cancelGameRestart,
   listJava,
@@ -232,6 +233,21 @@ async function startVersion(id: string, createCommandWorld = false) {
   } catch (error) {
     store.launchState = { status: 'error', text: errText(error) }
     toast('启动失败：' + errText(error), 'error')
+  }
+}
+
+/** 从启动器内关闭当前实例的游戏进程 */
+async function stopCurrentGame() {
+  if (!running.value) return
+  try {
+    const res = await killGame()
+    if (res?.requiresForce) {
+      if (!window.confirm('游戏未在限定时间内退出，是否强制关闭？')) return
+      await killGame(res.forceToken)
+    }
+    toast('正在关闭游戏…', 'info')
+  } catch (error) {
+    toast('关闭游戏失败：' + errText(error), 'error')
   }
 }
 
@@ -526,6 +542,10 @@ onUnmounted(() => {
                 @click="currentVersion && openCardMenu($event, currentVersion.id)"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg>
+              </button>
+              <button data-ui="HomeView:herostopbtn1" v-if="running" class="hero-stop" title="关闭正在运行的游戏" @click="stopCurrentGame">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+                关闭游戏
               </button>
             </div>
 
@@ -1107,4 +1127,8 @@ onUnmounted(() => {
 .launch-combo { border-radius: 10px; }
 .launch-main, .launch-arrow { background: var(--accent); }
 .launch-main { font-weight: 600; letter-spacing: 0; }
+/* 关闭游戏按钮 */
+.hero-stop { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border: 1px solid var(--danger-border); border-radius: 8px; background: var(--danger-soft); color: var(--danger); font-family: inherit; font-size: var(--text-sm); font-weight: 600; cursor: pointer; }
+.hero-stop:hover { background: color-mix(in srgb, var(--danger) 18%, transparent); }
+.hero-stop svg { width: 15px; height: 15px; }
 </style>

@@ -18,7 +18,7 @@ import { linuxAppTarget, linuxUpdateSupported, linuxUpdateDir, readLinuxUpdate, 
 
 const updateLog = logScope('self-update')
 
-/** 低速阈值：连续 30 秒低于 100KB/s 提示一次内测群备用下载 */
+/** 低速阈值：连续 30 秒低于 100KB/s 提示一次备用下载 */
 const SLOW_SPEED_BPS = 100 * 1024
 const SLOW_HINT_AFTER_MS = 30_000
 
@@ -266,7 +266,7 @@ let activeDownload: { version: string; handle: UpdateDownloadHandle } | null = n
 
 /**
  * 后台下载更新包：注册下载中心任务（分阶段进度/可取消/断点续传/多源换源），
- * 完成后强制 SHA256 校验。低速 30s 通过 emit 发一次内测群提示。
+ * 完成后强制 SHA256 校验。低速 30s 通过 emit 发一次低速提示。
  */
 export function startUpdateDownload(release: ReleaseInfo, settings: Pick<Settings, 'updateSource' | 'updateMirrorUrl'>, mode: 'upgrade' | 'rollback'): UpdateDownloadHandle {
   if (process.platform === 'darwin' && !macUpdateSupported()) throw new Error('请将 QueAN.app 拖入可写的应用程序目录后再更新')
