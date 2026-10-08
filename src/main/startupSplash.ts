@@ -28,7 +28,8 @@ function createElectronStartupSplash() {
   })
   splash.setIgnoreMouseEvents(true)
   splash.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
-  let revealed = false, disposed = false, fallback = false
+  let revealed = false, disposed = false, fallback = false, readySince = 0
+  let watchdog: ReturnType<typeof setInterval> | undefined
   // OS cursor coordinates keep the overlay non-activating and click-through.
   const pointerTimer = setInterval(() => {
     if (!splash || splash.isDestroyed() || revealed) return
@@ -42,6 +43,7 @@ function createElectronStartupSplash() {
     if (disposed) return
     disposed = true
     clearInterval(pointerTimer)
+    clearInterval(watchdog)
     for (const [channel, listener] of listeners) ipcMain.removeListener(channel, listener)
     if (splash && !splash.isDestroyed()) splash.destroy()
     splash = null
@@ -59,6 +61,14 @@ function createElectronStartupSplash() {
       cleanup.unref()
     } else dispose()
   }
+  // 就绪后若动画长时间不自报完成，兜底揭示主窗口，避免一直卡在启动画面。
+  watchdog = setInterval(() => {
+    if (revealed) { clearInterval(watchdog); return }
+    if (!gate.state.ready) return
+    if (!readySince) readySince = Date.now()
+    else if (Date.now() - readySince > 8000) { fallback = true; reveal() }
+  }, 500)
+  watchdog.unref()
   const animationFailure = (message: string) => {
     launcherLog(`Startup animation fallback: ${message}`)
     fallback = true

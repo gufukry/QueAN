@@ -23,7 +23,7 @@ export function showStartupWindow(window: BrowserWindow, animated = true) {
 export function createNativeStartup(signal: string, pid: number) {
   const gate = new StartupGate()
   try { launcherLog('Startup animation mode: ' + readFileSync(signal + '.motion', 'utf8')) } catch {}
-  let main: BrowserWindow | null = null, disposed = false, revealed = false, readySent = false, last = ''
+  let main: BrowserWindow | null = null, disposed = false, revealed = false, readySent = false, last = '', readySince = 0
   const send = (text: string) => { if (text === last) return; try { writeFileSync(signal, text); last = text } catch {} }
   const labels = ['读取配置…', '加载账户…', '扫描游戏实例…', '准备主界面…', '准备首帧…']
   const listeners: Array<[string, (...args: any[]) => void]> = []
@@ -46,6 +46,11 @@ export function createNativeStartup(signal: string, pid: number) {
     if (existsSync(signal + '.finished')) { cleanup(); return }
     let alive = true; try { process.kill(pid, 0) } catch { alive = false }
     if (!alive) { if (gate.state.ready) { reveal(false); cleanup() }; return }
+    // 就绪后若原生动画长时间不自报完成，兜底揭示主窗口。
+    if (gate.state.ready && !revealed) {
+      readySince ||= Date.now()
+      if (Date.now() - readySince > 8000) { reveal(false); cleanup(); return }
+    }
     if (readySent && existsSync(signal + '.assembled')) {
       let status = ''; try { status = readFileSync(signal + '.assembled', 'utf8') } catch { return }
       if (status !== 'ready' && status !== 'reduced') return
