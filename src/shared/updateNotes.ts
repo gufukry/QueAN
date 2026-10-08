@@ -11,6 +11,13 @@ export interface UpdateNote {
 /** 按版本倒序；latest 为当前版本 */
 export const updateNotes: UpdateNote[] = [
   {
+    "version": "1.0.2",
+    "date": "2026-10-08 12:09",
+    "changes": [
+      "云更新测试版：产物名不带版本号（QueAN.exe），验证自动更新链路"
+    ]
+  },
+  {
     "version": "1.0.1",
     "date": "2026-10-08 11:44",
     "changes": [
