@@ -4,12 +4,12 @@ import { windowAppearance } from '../src/main/windowAppearance'
 import { clampToWorkArea, dominantDisplay, isPhantomBounds } from '../src/main/windowState'
 import type { Display } from 'electron'
 
-test('Windows 主窗口使用真正透明背景和 DWM Acrylic 材质', () => {
+test('Windows 主窗口使用透明背景以支持界面圆角', () => {
   const options = windowAppearance('win32')
   assert.equal(options.frame, false)
-  assert.equal(options.transparent, false)
+  assert.equal(options.transparent, true)
   assert.equal(options.backgroundColor, '#00000000')
-  assert.equal(options.backgroundMaterial, 'acrylic')
+  assert.equal(options.backgroundMaterial, undefined)
   assert.equal(options.roundedCorners, true)
   assert.equal(options.thickFrame, true)
 })

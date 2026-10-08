@@ -41,9 +41,10 @@ export function windowAppearance(
     // WebContents 仍通过 backgroundColor 的 alpha 保持透明。
     // macOS 必须同时清空 NSWindow 底色，才能透出 behind-window vibrancy。
     // hiddenInset 保留系统红绿灯；不要用整个窗口 opacity 淡化界面内容。
-    transparent: platform !== 'win32',
+    // 透明窗口让界面圆角真正生效（四角透出桌面）；代价是 Windows 失去亚克力模糊。
+    transparent: true,
     backgroundColor: '#00000000',
-    backgroundMaterial: platform === 'win32' ? 'acrylic' : undefined,
+    backgroundMaterial: undefined,
     roundedCorners: true,
     hasShadow: true,
     thickFrame: true
