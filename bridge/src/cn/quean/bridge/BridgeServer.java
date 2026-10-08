@@ -1,4 +1,4 @@
-package cn.quaan.bridge;
+package cn.quean.bridge;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -23,8 +23,8 @@ import java.util.concurrent.FutureTask;
 
 /**
  * 桥接 HTTP 服务：仅监听 127.0.0.1 随机端口，启动时生成一次性 token 写入
- * 游戏目录 .quaan-bridge.json（启动器读取发现）。所有写操作必须携带
- * X-Quaan-Token 头。启动器关闭或通信断开不影响游戏运行。
+ * 游戏目录 .quean-bridge.json（启动器读取发现）。所有写操作必须携带
+ * X-Quean-Token 头。启动器关闭或通信断开不影响游戏运行。
  */
 public final class BridgeServer {
     public static final int PROTOCOL = 1;
@@ -35,22 +35,22 @@ public final class BridgeServer {
     public static void start(Path gameDir, String modVersion) throws IOException {
         String token = newToken();
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-        server.createContext("/quaan/v1/ping", exchange -> respond(exchange, null, () -> Map.of("ok", true, "protocol", PROTOCOL)));
-        server.createContext("/quaan/v1/manifest", exchange -> respond(exchange, null, BridgeServer::manifest));
-        server.createContext("/quaan/v1/set", exchange -> respond(exchange, token, () -> setParam(exchange)));
-        server.createContext("/quaan/v1/reset", exchange -> respond(exchange, token, () -> resetParam(exchange)));
+        server.createContext("/quean/v1/ping", exchange -> respond(exchange, null, () -> Map.of("ok", true, "protocol", PROTOCOL)));
+        server.createContext("/quean/v1/manifest", exchange -> respond(exchange, null, BridgeServer::manifest));
+        server.createContext("/quean/v1/set", exchange -> respond(exchange, token, () -> setParam(exchange)));
+        server.createContext("/quean/v1/reset", exchange -> respond(exchange, token, () -> resetParam(exchange)));
         // HttpServer's dispatcher inherits daemon status from the thread calling
         // start(). Starting on Fabric's render thread kept the JVM alive after
         // Minecraft returned from main (Client shutdown from post-main watchdog).
         // A shutdown hook alone cannot fix that: the JVM never reaches shutdown.
         ExecutorService requests = Executors.newSingleThreadExecutor(task -> {
-            Thread thread = new Thread(task, "quaan-bridge-request");
+            Thread thread = new Thread(task, "quean-bridge-request");
             thread.setDaemon(true);
             return thread;
         });
         server.setExecutor(requests);
         FutureTask<Void> start = new FutureTask<>(() -> { server.start(); return null; });
-        Thread bootstrap = new Thread(start, "quaan-bridge-start");
+        Thread bootstrap = new Thread(start, "quean-bridge-start");
         bootstrap.setDaemon(true);
         bootstrap.start();
         try {
@@ -68,10 +68,10 @@ public final class BridgeServer {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             requests.shutdownNow();
             server.stop(0);
-        }, "quaan-bridge-stop"));
+        }, "quean-bridge-stop"));
         int port = server.getAddress().getPort();
         writeDiscovery(gameDir, port, token, modVersion);
-        System.out.println("[QuaAN Bridge] 桥接服务已就绪，端口 " + port + "（仅本机，需 token）");
+        System.out.println("[QueAN Bridge] 桥接服务已就绪，端口 " + port + "（仅本机，需 token）");
     }
 
     private static String newToken() {
@@ -91,7 +91,7 @@ public final class BridgeServer {
         discovery.put("pid", ProcessHandle.current().pid());
         discovery.put("startedAt", System.currentTimeMillis());
         try {
-            Files.writeString(gameDir.resolve(".quaan-bridge.json"), GSON.toJson(discovery), StandardCharsets.UTF_8);
+            Files.writeString(gameDir.resolve(".quean-bridge.json"), GSON.toJson(discovery), StandardCharsets.UTF_8);
         } catch (IOException ignored) { /* 发现文件写失败时启动器无法接入，不影响游戏 */ }
     }
 
@@ -168,7 +168,7 @@ public final class BridgeServer {
                 json(exchange, 403, Map.of("ok", false, "error", "仅限本机访问"));
                 return;
             }
-            if (expectedToken != null && !expectedToken.equals(exchange.getRequestHeaders().getFirst("X-Quaan-Token"))) {
+            if (expectedToken != null && !expectedToken.equals(exchange.getRequestHeaders().getFirst("X-Quean-Token"))) {
                 json(exchange, 401, Map.of("ok", false, "error", "身份校验失败：缺少或错误的 token"));
                 return;
             }

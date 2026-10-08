@@ -31,7 +31,7 @@ const execFileAsync = promisify(execFile)
 export interface DiagnosticManifest {
   schemaVersion: 1
   exportedAt: string
-  launcher: { name: 'QuaAN'; version: string }
+  launcher: { name: 'QueAN'; version: string }
   instance: {
     id: string
     name: string
@@ -113,9 +113,9 @@ async function javaSummary(
 function summaryText(manifest: DiagnosticManifest): string {
   const m = manifest
   return [
-    '================ QuaAN 启动失败诊断摘要 ================',
+    '================ QueAN 启动失败诊断摘要 ================',
     `导出时间: ${m.exportedAt}`,
-    `QuaAN: ${m.launcher.version}`,
+    `QueAN: ${m.launcher.version}`,
     `操作系统: ${m.operatingSystem.platform} ${m.operatingSystem.release} (${m.operatingSystem.architecture})`,
     '',
     `实例: ${m.instance.name} [${m.instance.id}]`,
@@ -170,7 +170,7 @@ export async function exportLaunchLogs(
       : directoryState.path
   const isolated = directoryState.isolated
   const now = new Date()
-  const defName = `QuaAN-Diagnostic-${safeDiagnosticFilePart(item?.mcVersion || vid)}-${fmtStamp(now)}.zip`
+  const defName = `QueAN-Diagnostic-${safeDiagnosticFilePart(item?.mcVersion || vid)}-${fmtStamp(now)}.zip`
   const opts = {
     title: '导出错误日志',
     defaultPath: defName,
@@ -190,7 +190,7 @@ export async function exportLaunchLogs(
   const manifest: DiagnosticManifest = {
     schemaVersion: 1,
     exportedAt: now.toISOString(),
-    launcher: { name: 'QuaAN', version: app.getVersion() },
+    launcher: { name: 'QueAN', version: app.getVersion() },
     instance: {
       id: vid,
       name: item?.modpackName || vid,
@@ -222,7 +222,7 @@ export async function exportLaunchLogs(
   }
 
   const crash = await newestCrashReport(effectiveGameDir)
-  const launchLogDir = currentLaunch?.logDir || path.join(folder, 'quaan-logs')
+  const launchLogDir = currentLaunch?.logDir || path.join(folder, 'quean-logs')
   const sources: DiagnosticSource[] = [
     {
       archivePath: crash ? `crash-reports/${path.basename(crash)}` : 'crash-reports/latest.txt',

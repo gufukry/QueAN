@@ -1,2 +1,2 @@
-/** Public application credential registered for QuaAN; user overrides remain in settings. */
+/** Public application credential registered for QueAN; user overrides remain in settings. */
 export const CF_BUILTIN_KEY = '$2a$10$m36VLjTaHEqxr/hO3kMDE.XCDEG90rSu3iGKkoPsj0KdCPWXOASXG'

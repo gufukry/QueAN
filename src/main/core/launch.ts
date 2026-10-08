@@ -293,11 +293,11 @@ async function launchOwned(
     originalEmit(event)
   }
 
-  // 日志落盘：gameDir/quaan-logs/latest.log（每次启动覆盖）
+  // 日志落盘：gameDir/quean-logs/latest.log（每次启动覆盖）
   let logStream: fs.WriteStream | null = null
   let stdoutStream: fs.WriteStream | null = null
   let stderrStream: fs.WriteStream | null = null
-  const launchLogDir = path.join(gameDir(), 'quaan-logs', crypto.randomUUID())
+  const launchLogDir = path.join(gameDir(), 'quean-logs', crypto.randomUUID())
   const sessionStartedAt = new Date().toISOString()
   let sessionDirectory = ''
   try { sessionDirectory = instanceDirectoryState(versionId, readVersionJson(versionId)).path } catch {}
@@ -345,7 +345,7 @@ async function launchOwned(
     }
     chainBroken = true
   }
-  // 链底原版 json/jar 可能在 versions 区（独立原版）或 .quaan/base 依赖区（加载器实例的内部依赖）
+  // 链底原版 json/jar 可能在 versions 区（独立原版）或 .quean/base 依赖区（加载器实例的内部依赖）
   const baseInVersions = fs.existsSync(versionJsonPath(baseIdProbe))
   const jarProbe = baseInVersions ? versionJarPath(baseIdProbe) : baseVersionJarPath(baseIdProbe)
   if (chainBroken || !fs.existsSync(jarProbe)) {
@@ -412,7 +412,7 @@ async function launchOwned(
   const timed = async <T>(stage: string, work: () => Promise<T>): Promise<T> => {
     const started = Date.now()
     try { deadline.signal.throwIfAborted(); const result = await work(); deadline.signal.throwIfAborted(); return result }
-    finally { log(`[QuaAN] 启动准备 · ${stage}：${Date.now() - started}ms`) }
+    finally { log(`[QueAN] 启动准备 · ${stage}：${Date.now() - started}ms`) }
   }
   const [{ classpath, nativesPath, launchAssets }, [validAccount, externalAuthArgs], javaPath] = await waitForPreparation([
     () => timed('游戏文件与配置', async () => {
@@ -429,21 +429,21 @@ async function launchOwned(
       // 默认按键同步（总开关开启时覆盖实例 options.txt 的 key_* 项，其余行原样保留）
       const { syncDefaultGameOptions } = await import('./defaultGameOptions')
       const gameOptionsResult = syncDefaultGameOptions(effectiveGameDir, instanceMcVersion)
-      if (gameOptionsResult.applied.length) log(`[QuaAN] 已同步 ${gameOptionsResult.applied.length} 项默认游戏选项并校验写入`)
-      if (gameOptionsResult.unsupported.length) log(`[QuaAN] 当前版本不支持：${gameOptionsResult.unsupported.join('、')}`)
+      if (gameOptionsResult.applied.length) log(`[QueAN] 已同步 ${gameOptionsResult.applied.length} 项默认游戏选项并校验写入`)
+      if (gameOptionsResult.unsupported.length) log(`[QueAN] 当前版本不支持：${gameOptionsResult.unsupported.join('、')}`)
       if (settings.resourcePackSync) {
         const { syncDefaultResourcePacks } = await import('./defaultResourcePacks')
         const count = syncDefaultResourcePacks(effectiveGameDir, instanceMcVersion, clientJarPath(baseId))
-        if (count) log(`[QuaAN] 已装载 ${count} 个默认材质包`)
+        if (count) log(`[QueAN] 已装载 ${count} 个默认材质包`)
       }
       if (settings.keySync) {
         try {
           const { syncKeysToGameDir, keySyncSupportedForVersion } = await import('./keybindings')
           if (!keySyncSupportedForVersion(instanceMcVersion)) {
-            log(`[QuaAN] Minecraft ${instanceMcVersion} 的键位为数字 keycode 格式，跳过按键同步`)
-          } else if (syncKeysToGameDir(effectiveGameDir)) log('[QuaAN] 已同步默认按键到 options.txt')
+            log(`[QueAN] Minecraft ${instanceMcVersion} 的键位为数字 keycode 格式，跳过按键同步`)
+          } else if (syncKeysToGameDir(effectiveGameDir)) log('[QueAN] 已同步默认按键到 options.txt')
         } catch (error) {
-          log(`[QuaAN] 默认按键同步失败（不影响启动）：${error instanceof Error ? error.message : String(error)}`)
+          log(`[QueAN] 默认按键同步失败（不影响启动）：${error instanceof Error ? error.message : String(error)}`)
         }
       }
 
@@ -451,7 +451,7 @@ async function launchOwned(
       // a1) 依赖库完整性：缺失则自动补下（含 fabric/quilt 的 maven 坐标库）
       const libTasks = libraryTasks(merged)
       const reused = reuseExternalRuntimeLibraries(merged, settings.folders.map(f => f.path), librariesDir(), libTasks.map(t => t.dest))
-      if (reused) log(`[QuaAN] 已复用注册目录中 ${reused} 个运行库文件`)
+      if (reused) log(`[QueAN] 已复用注册目录中 ${reused} 个运行库文件`)
       await repairNeoRuntime(merged, clientJar, readVersionJson(baseId), emit)
       const launchFiles = launchLibraryFiles(merged)
       await mapLaunchFiles(launchFiles, file => resolveNativeIntegrity(file, deadline.signal))
@@ -519,7 +519,7 @@ async function launchOwned(
             emit({ stage: 'repair', progress: total ? done / total : 1, text: `补全游戏资源 ${done}/${total}`, bytesDone:detail.bytesDone, speed }), settings.downloadThreads, settings.mirror, deadline.signal)
         }
       )
-      log(`[QuaAN] 游戏资源：${launchAssets.root}；索引：${launchAssets.indexId}`)
+      log(`[QueAN] 游戏资源：${launchAssets.root}；索引：${launchAssets.indexId}`)
 
       return { classpath, nativesPath, launchAssets }
     }),
@@ -562,7 +562,7 @@ async function launchOwned(
 
       const selectedJavaPath = javaPath
       javaPath = await resolveJavaExecutable(javaPath)
-      if (selectedJavaPath !== javaPath) log(`[QuaAN] Java 转发入口已解析到真实运行时: ${javaPath}`)
+      if (selectedJavaPath !== javaPath) log(`[QueAN] Java 转发入口已解析到真实运行时: ${javaPath}`)
       const javaInfo = await probeJavaAsync(javaPath)
       const need = requiredMajor(merged)
       const requiredArch = gameJavaArchitecture(merged)
@@ -592,9 +592,9 @@ async function launchOwned(
     auth_xuid: '',
     user_type: validAccount.type === 'microsoft' ? 'msa' : 'mojang',
     user_properties: userProperties,
-    version_type: 'QuaAN',
+    version_type: 'QueAN',
     natives_directory: nativesPath,
-    launcher_name: 'QuaAN',
+    launcher_name: 'QueAN',
     launcher_version: app.getVersion(),
     classpath,
     library_directory: librariesDir(),
@@ -693,7 +693,7 @@ async function launchOwned(
   if (options.createCommandWorld) {
     const world = createCommandWorld(effectiveGameDir, clientJar)
     options.singleplayerWorld = world.id
-    log(`[QuaAN] 已新建允许命令的创造测试世界：${world.path}`)
+    log(`[QueAN] 已新建允许命令的创造测试世界：${world.path}`)
   }
   if (options.singleplayerWorld) {
     if (!fs.existsSync(path.join(effectiveGameDir, 'saves', options.singleplayerWorld, 'level.dat'))) throw new Error('待进入的测试世界不存在，未创建重复世界')
@@ -701,7 +701,7 @@ async function launchOwned(
   } else if (serverAddress && supportsQuickPlayMultiplayer(minecraftVersion)) {
     gameArgs.push('--quickPlayMultiplayer', serverAddress)
   } else if (serverAddress) {
-    log(`[QuaAN] Minecraft ${minecraftVersion} 不支持 Quick Play，已仅启动实例`)
+    log(`[QueAN] Minecraft ${minecraftVersion} 不支持 Quick Play，已仅启动实例`)
   }
 
   // g) 启动进程（json 自带 -cp ${classpath} 时不再重复加 -cp；forge 的 -p 是模块路径仍需 -cp）
@@ -724,12 +724,12 @@ async function launchOwned(
   })
   const commandSummary = `${javaPath} ${logArgs.map((a) => (a.includes(' ') ? `"${a}"` : a)).join(' ')}`
   log(
-    `[QuaAN] 游戏窗口: mode=${windowArgs.mode}` +
+    `[QueAN] 游戏窗口: mode=${windowArgs.mode}` +
       (windowArgs.width && windowArgs.height
         ? `, width=${windowArgs.width}, height=${windowArgs.height}`
         : ', fullscreen=true')
   )
-  log(`[QuaAN] 启动命令: ${commandSummary}`)
+  log(`[QueAN] 启动命令: ${commandSummary}`)
   launchLog.debug(`启动命令：${commandSummary}`)
   launchLog.info(`启动准备完成（耗时 ${Date.now() - pipelineStarted}ms），正在创建游戏进程`)
 
@@ -737,7 +737,7 @@ async function launchOwned(
   // 脱离式创建：游戏进程与启动器生命周期完全解耦（Windows CreateProcessW，见 gracefulClose.ts），
   // 关闭启动器时游戏继续运行；stdout/stderr 仍以管道回流，日志体验不变。
   deadline.signal.throwIfAborted()
-  for (const message of await upgradeInstalledBridge(effectiveGameDir, path.join(__dirname, 'quaan-bridge.jar').replace('app.asar', 'app.asar.unpacked'))) log('[QuaAN] ' + message)
+  for (const message of await upgradeInstalledBridge(effectiveGameDir, path.join(__dirname, 'quean-bridge.jar').replace('app.asar', 'app.asar.unpacked'))) log('[QueAN] ' + message)
   deadline.signal.throwIfAborted()
   deadline.dispose()
   const proc = await withDeadline(signal => spawnGameProcess(javaPath, args, { cwd: effectiveGameDir, signal }), 15000, '游戏进程创建超时，请检查 Java 与系统权限')
@@ -766,7 +766,7 @@ async function launchOwned(
   onState({ status: 'running', text: '游戏进程已启动' })
   // QuickPlay 直达（创建命令世界/进服）：游戏窗口出现后拉到前台，避免鼠标被锁在未聚焦窗口里
   if (options.singleplayerWorld || serverAddress) {
-    void focusGameWindow(proc).then(() => log('[QuaAN] 游戏窗口已聚焦')).catch(error => log(`[QuaAN] 自动聚焦未完成：${error.message}；请点击任务栏中的 Minecraft 窗口`))
+    void focusGameWindow(proc).then(() => log('[QueAN] 游戏窗口已聚焦')).catch(error => log(`[QueAN] 自动聚焦未完成：${error.message}；请点击任务栏中的 Minecraft 窗口`))
   }
 
   const exitEvidence = new GameExitEvidence()

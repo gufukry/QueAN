@@ -484,7 +484,7 @@ export function registerIpc(getWin: () => BrowserWindow | null): void {
   ipcMain.handle(IPC.versionsSetIcon, (_e, id: string, icon: string, folder?: string) =>
     scopedVersion(id, folder, () => versions.setVersionIcon(String(id ?? ''), String(icon ?? '')))
   )
-  // 上传自定义图标：弹窗选图 → 校验类型/大小 → 复制进 .quaan/icons 并写入版本 json
+  // 上传自定义图标：弹窗选图 → 校验类型/大小 → 复制进 .quean/icons 并写入版本 json
   ipcMain.handle(IPC.versionsUploadIcon, (_e, id: string, targetFolder?: string) => scopedVersion(id, targetFolder, async () => {
     const vid = String(id ?? '')
     const win = getWin()
@@ -933,7 +933,7 @@ export function registerIpc(getWin: () => BrowserWindow | null): void {
     const opts = {
       properties: ['openFile' as const],
       title: '选择插件（.js 文件）',
-      filters: [{ name: 'QuaAN 插件', extensions: ['js'] }]
+      filters: [{ name: 'QueAN 插件', extensions: ['js'] }]
     }
     const r = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
     if (r.canceled || !r.filePaths[0]) return plugins.listPlugins()
@@ -994,8 +994,8 @@ export function registerIpc(getWin: () => BrowserWindow | null): void {
     const win = getWin()
     const opts = {
       properties: ['openFile' as const],
-      title: '选择 QuaAN 安装包',
-      filters: [{ name: 'QuaAN 安装包', extensions: process.platform === 'linux' ? ['AppImage', 'deb', 'gz'] : [process.platform === 'darwin' ? 'zip' : 'exe'] }]
+      title: '选择 QueAN 安装包',
+      filters: [{ name: 'QueAN 安装包', extensions: process.platform === 'linux' ? ['AppImage', 'deb', 'gz'] : [process.platform === 'darwin' ? 'zip' : 'exe'] }]
     }
     const result = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
     if (result.canceled || !result.filePaths[0]) return null

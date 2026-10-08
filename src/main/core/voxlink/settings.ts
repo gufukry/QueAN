@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// QuaAN local settings; atomic replacement preserves the last valid file on failure.
+// QueAN local settings; atomic replacement preserves the last valid file on failure.
 import fs from 'node:fs'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'

@@ -23,7 +23,7 @@ async function main() {
   })
   try {
     Object.assign(runtime.getSettings(), { gameDir: game, activeFolder: game, folders: [{ path: game, isDefault: true }], defaultIsolation: true, mirror: 'official' })
-    const baseDir = path.join(game, '.quaan/base', mc)
+    const baseDir = path.join(game, '.quean/base', mc)
     fs.mkdirSync(baseDir, { recursive: true })
     fs.writeFileSync(path.join(baseDir, `${mc}.json`), JSON.stringify({ id: mc, libraries: [] }))
     fs.writeFileSync(path.join(baseDir, `${mc}.jar`), 'TEST FIXTURE — NOT A PLAYABLE GAME')

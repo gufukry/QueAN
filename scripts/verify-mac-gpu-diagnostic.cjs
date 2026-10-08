@@ -50,7 +50,7 @@ async function json(url) {
 }
 async function variant(name, angle, port) {
   const directory = path.join(proof, name); fs.mkdirSync(directory, { recursive: true })
-  const profile = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'QuaAN GPU diagnostic ')))
+  const profile = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'QueAN GPU diagnostic ')))
   fs.writeFileSync(path.join(profile, 'settings.json'), JSON.stringify({ autoUpdate: false }))
   const parameters = [`--user-data-dir=${profile}`, `--remote-debugging-port=${port}`, '--enable-logging=stderr', '--v=1', '--vmodule=gl_display=2,gl_factory=2,gpu_init=2']
   if (angle) parameters.push('--use-angle=' + angle)
@@ -58,7 +58,7 @@ async function variant(name, angle, port) {
   receipt.variants.push(row); save()
   const output = fs.openSync(path.join(directory, 'process-original.log'), 'w')
   const env = { ...process.env }; delete env.ELECTRON_RUN_AS_NODE
-  const child = spawn(path.join(app, 'Contents/MacOS/QuaAN'), parameters, { env, stdio: ['ignore', output, output] })
+  const child = spawn(path.join(app, 'Contents/MacOS/QueAN'), parameters, { env, stdio: ['ignore', output, output] })
   const track = owned.trackOwnedChild(child, 'gpu-diagnostic-' + name); active = track; row.pid = child.pid
   let operationError
   try {

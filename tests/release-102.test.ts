@@ -44,15 +44,15 @@ test('keybind table covers vanilla options.txt keys; DOM code/mouse mapping work
 })
 
 test('bridge protocol: loopback only, token required for writes, server-scope params rejected locally', () => {
-  const server = read('bridge/src/cn/quaan/bridge/BridgeServer.java')
+  const server = read('bridge/src/cn/quean/bridge/BridgeServer.java')
   assert.match(server, /InetSocketAddress\("127\.0\.0\.1", 0\)/)
-  assert.match(server, /X-Quaan-Token/)
+  assert.match(server, /X-Quean-Token/)
   assert.match(server, /def\.scope == Param\.Scope\.SERVER/)
   assert.match(server, /PROTOCOL = 1/)
   // 发现文件与配置持久化
-  assert.match(server, /\.quaan-bridge\.json/)
-  const registry = read('bridge/src/cn/quaan/bridge/ParamRegistry.java')
-  assert.match(registry, /quaan-bridge-config\.json/)
+  assert.match(server, /\.quean-bridge\.json/)
+  const registry = read('bridge/src/cn/quean/bridge/ParamRegistry.java')
+  assert.match(registry, /quean-bridge-config\.json/)
   // 启动器侧：仅本机 + 协议校验 + 进程存活校验
   const bridge = read('src/main/core/modBridge.ts')
   assert.match(bridge, /http:\/\/127\.0\.0\.1:/)
@@ -61,16 +61,16 @@ test('bridge protocol: loopback only, token required for writes, server-scope pa
   assert.match(bridge, /manifest\?\.protocol !== 1/)
   // 内置 jar 分发与 asar 解包
   const pkg = JSON.parse(read('package.json'))
-  assert.ok(pkg.build.asarUnpack.includes('out/main/quaan-bridge.jar'))
-  assert.match(read('electron.vite.config.ts'), /quaan-bridge\.jar/)
+  assert.ok(pkg.build.asarUnpack.includes('out/main/quean-bridge.jar'))
+  assert.match(read('electron.vite.config.ts'), /quean-bridge\.jar/)
 })
 
 test('portable stub unpacks next to the exe instead of random TEMP dir', () => {
   const hook = read('scripts/portable-build-hook.cjs')
-  assert.match(hook, /\$EXEDIR\\\\QuaAN-runtime/)
+  assert.match(hook, /\$EXEDIR\\\\QueAN-runtime/)
   assert.match(hook, /\$TEMP\\\\\$\{UNPACK_DIR_NAME\}/)
   const verify = read('scripts/verify-portable-path.cjs')
-  assert.match(verify, /QuaAN-runtime/)
+  assert.match(verify, /QueAN-runtime/)
 })
 
 test('keys sync integrates into launch only when the toggle is on', () => {

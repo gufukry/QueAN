@@ -10,7 +10,7 @@ export function installationKind(): InstallationKind {
   if (os === 'harmonyos') return 'hap'
   if (os === 'linux') {
     if (process.env.APPIMAGE && path.isAbsolute(process.env.APPIMAGE)) return 'appimage'
-    // electron-builder DEB installs to /opt/QuaAN; never self-replace system-owned directories.
+    // electron-builder DEB installs to /opt/QueAN; never self-replace system-owned directories.
     if (/^\/(?:usr|opt)\//.test(process.execPath)) return 'deb'
     return 'portable-directory'
   }

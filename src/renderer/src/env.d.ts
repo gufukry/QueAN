@@ -10,7 +10,7 @@ declare module '*.vue' {
 }
 
 /** preload 暴露给渲染进程的桥接 API */
-interface QuaanBridge {
+interface QueanBridge {
   invoke: (channel: string, ...args: unknown[]) => Promise<unknown>
   on: (channel: string, cb: (...args: unknown[]) => void) => () => void
   send: (channel: string, ...args: unknown[]) => void
@@ -19,8 +19,8 @@ interface QuaanBridge {
 }
 
 interface Window {
-  quaan: QuaanBridge
-  quaanSplash: {
+  quean: QueanBridge
+  queanSplash: {
     ready(): void
     assembled(): void
     finished(): void

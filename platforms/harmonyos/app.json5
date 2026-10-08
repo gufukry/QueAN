@@ -1,7 +1,7 @@
 {
   "app": {
-    "bundleName": "com.quaan.launcher",
-    "vendor": "QuaAN",
+    "bundleName": "com.quean.launcher",
+    "vendor": "QueAN",
     "versionCode": 1,
     "versionName": "0.0.0",
     "icon": "$media:app_icon",

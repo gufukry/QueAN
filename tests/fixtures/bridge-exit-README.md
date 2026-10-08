@@ -1,4 +1,4 @@
-`quaan-bridge-1.0.0.jar` is the unmodified QuaAN Bridge 1.0.0
+`quean-bridge-1.0.0.jar` is the unmodified QueAN Bridge 1.0.0
 previously distributed by this project (MIT, see the repository `LICENSE`). Its Java
 source is retained in Git at tag `v1.0.69`, under `bridge/src`.
 It is a regression fixture, never bundled or installed into player instances.

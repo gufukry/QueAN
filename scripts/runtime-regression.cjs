@@ -6,8 +6,8 @@ const path = require('node:path')
 const os = require('node:os')
 const assert = require('node:assert/strict')
 const AdmZip = require('adm-zip')
-const previous = JSON.parse(fs.readFileSync(path.join(app.getPath('appData'), 'quaan', 'settings.json'), 'utf8'))
-const qaRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'quaan-runtime-069-'))
+const previous = JSON.parse(fs.readFileSync(path.join(app.getPath('appData'), 'quean', 'settings.json'), 'utf8'))
+const qaRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'quean-runtime-069-'))
 const folder = path.join(qaRoot, 'games')
 const target = path.join(folder, 'versions', '26.2')
 fs.mkdirSync(target, { recursive: true })
@@ -30,7 +30,7 @@ app.whenReady().then(async () => {
   const paths = require('../src/main/core/paths.ts')
   const packs = require('../src/main/core/modpacks.ts')
   const versions = require('../src/main/core/versions.ts')
-  accounts.addOffline('QuaanQA')
+  accounts.addOffline('QueanQA')
   try {
     const states = []
     let lastStage = ''
@@ -54,7 +54,7 @@ app.whenReady().then(async () => {
     const zip = new AdmZip()
     zip.addFile('modrinth.index.json', Buffer.from(JSON.stringify({ formatVersion: 1, game: 'minecraft', name: 'QA Vanilla Pack', versionId: '1', dependencies: { minecraft: '26.2' }, files: [] })))
     zip.addFile('overrides/config/qa-pack-marker.txt', Buffer.from('real overrides extraction'))
-    const pack = path.join(qaRoot, 'quaan-pack-temporary-prefix.mrpack')
+    const pack = path.join(qaRoot, 'quean-pack-temporary-prefix.mrpack')
     zip.writeZip(pack)
     const id = await packs.installModpack(pack, progress, { targetFolder: folder, nameSource: 'inner' })
     assert.equal(id, 'QA Vanilla Pack')

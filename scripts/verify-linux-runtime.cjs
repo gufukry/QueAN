@@ -7,15 +7,15 @@ const ELECTRON_VERSION = '44.3.0'
 // all its actual graphics libraries, codec, sandbox and data files instead.
 // electron-builder 26.15.3 renames electron and LICENSE, removes version and
 // default_app.asar, and keeps the two explicitly configured language packs.
-const LINUX_ELECTRON_SOURCE_MAP = Object.freeze({ quaan: 'electron', 'LICENSE.electron.txt': 'LICENSE' })
+const LINUX_ELECTRON_SOURCE_MAP = Object.freeze({ quean: 'electron', 'LICENSE.electron.txt': 'LICENSE' })
 const LINUX_ELECTRON_FILES = Object.freeze([
-  'quaan', 'chrome-sandbox', 'chrome_crashpad_handler', 'libffmpeg.so',
+  'quean', 'chrome-sandbox', 'chrome_crashpad_handler', 'libffmpeg.so',
   'libvk_swiftshader.so', 'libvulkan.so.1', 'vk_swiftshader_icd.json',
   'icudtl.dat', 'resources.pak', 'chrome_100_percent.pak', 'chrome_200_percent.pak',
   'snapshot_blob.bin', 'v8_context_snapshot.bin', 'LICENSE.electron.txt', 'LICENSES.chromium.html',
   'locales/en-US.pak', 'locales/zh-CN.pak'
 ])
-const ELF_FILES = new Set(['quaan', 'chrome-sandbox', 'chrome_crashpad_handler', 'libffmpeg.so', 'libvk_swiftshader.so', 'libvulkan.so.1'])
+const ELF_FILES = new Set(['quean', 'chrome-sandbox', 'chrome_crashpad_handler', 'libffmpeg.so', 'libvk_swiftshader.so', 'libvulkan.so.1'])
 
 function assertLinuxElectronFiles(entries, arch, electronVersion) {
   assert.equal(electronVersion, ELECTRON_VERSION, 'Review the official Linux runtime inventory before changing Electron')
@@ -82,7 +82,7 @@ function linuxSourceCommit() {
 function verifyLinuxRuntime(directory, arch = process.arch, kind = 'portable-directory') {
   const root = path.resolve(directory)
   verifyLinuxElectronRuntime(root, arch)
-  for (const file of ['resources/app.asar', 'resources/app.asar.unpacked/out/main/LinuxGameWindow', 'resources/app.asar.unpacked/out/main/quaan-bridge.jar']) {
+  for (const file of ['resources/app.asar', 'resources/app.asar.unpacked/out/main/LinuxGameWindow', 'resources/app.asar.unpacked/out/main/quean-bridge.jar']) {
     const stat = fs.lstatSync(path.join(root, file))
     assert(stat.isFile() && !stat.isSymbolicLink() && stat.size > 0, 'Missing or unsafe runtime: ' + file)
   }
@@ -92,9 +92,9 @@ function verifyLinuxRuntime(directory, arch = process.arch, kind = 'portable-dir
   assert.equal(helperHeader[4], 2); assert.equal(helperHeader[5], 1)
   assert.equal(helperHeader.readUInt16LE(18), arch === 'arm64' ? 183 : 62, 'Wrong window helper architecture')
   assert(fs.lstatSync(helper).mode & 0o111, 'Window helper is not executable')
-  const observedRuntime = observeLinuxRuntime(path.join(root, 'quaan'), arch)
-  const metadata = { schemaVersion: 1, product: 'QuaAN', platform: 'linux', arch, version: require('../package.json').version, installationKind: kind, sourceCommit: linuxSourceCommit(), runtimeVersion: observedRuntime.electron }
-  fs.writeFileSync(path.join(root, 'resources/quaan-linux.json'), JSON.stringify(metadata, null, 2))
+  const observedRuntime = observeLinuxRuntime(path.join(root, 'quean'), arch)
+  const metadata = { schemaVersion: 1, product: 'QueAN', platform: 'linux', arch, version: require('../package.json').version, installationKind: kind, sourceCommit: linuxSourceCommit(), runtimeVersion: observedRuntime.electron }
+  fs.writeFileSync(path.join(root, 'resources/quean-linux.json'), JSON.stringify(metadata, null, 2))
   const archive = path.join(root, 'resources/app.asar'), names = asar.listPackage(archive).map(n => n.replaceAll('\\', '/').replace(/^\//, ''))
   for (const name of names) {
     if (asar.statFile(archive, name.split('/').join(path.sep)).files) continue

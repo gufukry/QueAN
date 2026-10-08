@@ -1,6 +1,6 @@
-# 项目规则（QuaAN）
+# 项目规则（QueAN）
 
-本仓库是 QuaAN —— 基于 KAMUCL v1.1.15 二开的 Minecraft Java 启动器（MIT）。
+本仓库是 QueAN —— 基于 KAMUCL v1.1.15 二开的 Minecraft Java 启动器（MIT）。
 原始上游：https://github.com/kamubaba-i/KAMUCL 。本仓库（发布目标）：https://github.com/gufukry/QueAN
 
 ## 交付流程

@@ -1,8 +1,8 @@
 {
-  "name": "quaan",
-  "productName": "QuaAN",
+  "name": "quean",
+  "productName": "QueAN",
   "version": "1.0.0",
-  "description": "QuaAN - 简约美观的一键式 Minecraft 启动器",
+  "description": "QueAN - 简约美观的一键式 Minecraft 启动器",
   "homepage": "https://github.com/gufukry/QueAN",
   "main": "out/main/index.js",
   "scripts": {
@@ -21,8 +21,8 @@
     "license:check": "node scripts/check-licenses.cjs"
   },
   "build": {
-    "appId": "com.quaan.launcher",
-    "productName": "QuaAN",
+    "appId": "com.quean.launcher",
+    "productName": "QueAN",
     "directories": {
       "output": "release"
     },
@@ -48,7 +48,7 @@
       "out/main/GameWindowFocus.exe",
       "out/main/MacGameWindow",
       "out/main/LinuxGameWindow",
-      "out/main/quaan-bridge.jar"
+      "out/main/quean-bridge.jar"
     ],
     "beforePack": "scripts/portable-build-hook.cjs",
     "afterPack": "scripts/verify-windows-runtime.cjs",
@@ -73,12 +73,12 @@
         "portable",
         "zip"
       ],
-      "artifactName": "QuaAN-${version}-windows-${arch}.${ext}",
+      "artifactName": "QueAN-${version}-windows-${arch}.${ext}",
       "icon": "build/icon.png"
     },
     "portable": {
       "unpackDirName": false,
-      "artifactName": "QuaAN-${version}.exe"
+      "artifactName": "QueAN-${version}.exe"
     },
     "appImage": { "executableArgs": [] },
     "mac": {
@@ -89,16 +89,16 @@
       "category": "public.app-category.games",
       "icon": "build/icon-512.png",
       "identity": null,
-      "artifactName": "QuaAN-${version}-mac-${arch}.${ext}"
+      "artifactName": "QueAN-${version}-mac-${arch}.${ext}"
     },
     "linux": {
       "maintainer": "gufukry <gufukry@users.noreply.github.com>",
       "target": ["AppImage", "deb", "tar.gz"],
       "category": "Game",
-      "executableName": "quaan",
+      "executableName": "quean",
       "icon": "build/icon-512.png",
-      "artifactName": "QuaAN-${version}-linux-${arch}.${ext}",
-      "desktop": { "entry": { "Name": "QuaAN", "Comment": "Minecraft launcher", "Categories": "Game;", "StartupWMClass": "QuaAN" } },
+      "artifactName": "QueAN-${version}-linux-${arch}.${ext}",
+      "desktop": { "entry": { "Name": "QueAN", "Comment": "Minecraft launcher", "Categories": "Game;", "StartupWMClass": "QueAN" } },
       "synopsis": "Minecraft launcher"
     }
   },

@@ -7,14 +7,14 @@
  * 提供：
  *   GET /repos/gufukry/QueAN/releases/latest  → 伪造最新版 v99.0.0（资产指向本服务器）
  *   GET /repos/gufukry/QueAN/releases         → 3 个历史版本（v99.0.0 / v1.0.0 / v0.9.9）
- *   GET /download/<file>                          → 资产下载（QuaAN-*.exe 为随机内容的测试文件）
+ *   GET /download/<file>                          → 资产下载（QueAN-*.exe 为随机内容的测试文件）
  *   GET /SHA256SUMS.txt                           → 与测试文件一致的真实校验值
  *
  * 用法：
- *   $env:QuaAN_USERDATA_DIR="C:\\Temp\\quaan-update-test\\userData"  # 必须独立数据目录
- *   $env:QuaAN_UPDATE_API_BASE="http://127.0.0.1:8310"
- *   $env:QuaAN_UPDATE_DOWNLOAD_BASE="http://127.0.0.1:8310/download"
- *   $env:QuaAN_UPDATE_TARGET_EXE="C:\\Temp\\quaan-update-test\\QuaAN-1.0.0.exe"  # 沙盒副本
+ *   $env:QueAN_USERDATA_DIR="C:\\Temp\\quean-update-test\\userData"  # 必须独立数据目录
+ *   $env:QueAN_UPDATE_API_BASE="http://127.0.0.1:8310"
+ *   $env:QueAN_UPDATE_DOWNLOAD_BASE="http://127.0.0.1:8310/download"
+ *   $env:QueAN_UPDATE_TARGET_EXE="C:\\Temp\\quean-update-test\\QueAN-1.0.0.exe"  # 沙盒副本
  *   electron .   # 仅开发模式；正式包忽略所有 mock 覆盖
  */
 const http = require('node:http')
@@ -27,14 +27,14 @@ const port = Number(process.argv[2] || 8310)
 const assets = new Map()
 const realAssetFile = process.env.MOCK_ASSET_FILE
 for (const ver of ['99.0.0', '1.0.0', '0.9.9']) {
-  const name = `QuaAN-${ver}.exe`
-  const buf = crypto.createHash('sha256').update('quaan-mock-' + ver).digest()
+  const name = `QueAN-${ver}.exe`
+  const buf = crypto.createHash('sha256').update('quean-mock-' + ver).digest()
   const file = Buffer.alloc(1024 * 1024)
   for (let i = 0; i < file.length; i += buf.length) buf.copy(file, i)
   assets.set(name, file)
 }
 if (realAssetFile && fs.existsSync(realAssetFile)) {
-  assets.set('QuaAN-99.0.0.exe', fs.readFileSync(realAssetFile))
+  assets.set('QueAN-99.0.0.exe', fs.readFileSync(realAssetFile))
 }
 const sumsText = [...assets.entries()]
   .map(([name, buf]) => `${crypto.createHash('sha256').update(buf).digest('hex')}  ${name}`)
@@ -42,16 +42,16 @@ const sumsText = [...assets.entries()]
 
 const releases = ['99.0.0', '1.0.0', '0.9.9'].map((ver, i) => ({
   tag_name: `v${ver}`,
-  name: `QuaAN v${ver}`,
+  name: `QueAN v${ver}`,
   body: `## 测试版本 v${ver}\n\n- 这是 mock 服务器生成的第 ${i + 1} 条更新日志\n- 用于验证更新弹窗 **Markdown 渲染** 与下载链路`,
   published_at: new Date(Date.now() - i * 86400000).toISOString(),
   draft: false,
   prerelease: false,
   assets: [
     {
-      name: `QuaAN-${ver}.exe`,
-      browser_download_url: `http://127.0.0.1:${port}/download/QuaAN-${ver}.exe`,
-      size: assets.get(`QuaAN-${ver}.exe`).length
+      name: `QueAN-${ver}.exe`,
+      browser_download_url: `http://127.0.0.1:${port}/download/QueAN-${ver}.exe`,
+      size: assets.get(`QueAN-${ver}.exe`).length
     },
     {
       name: 'SHA256SUMS.txt',

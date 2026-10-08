@@ -1,4 +1,4 @@
-package cn.quaan.bridge;
+package cn.quean.bridge;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -6,12 +6,12 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.nio.file.Path;
 
 /**
- * QuaAN 桥接 MOD 入口：启动桥接服务并注册演示参数。
- * 演示 MOD（quaan-demo）展示参数注册接口用法：声明元数据即出现在启动器控制面板，
+ * QueAN 桥接 MOD 入口：启动桥接服务并注册演示参数。
+ * 演示 MOD（quean-demo）展示参数注册接口用法：声明元数据即出现在启动器控制面板，
  * 支持热修改即时生效（游戏日志可观察）、保存配置与恢复默认。
  */
-public final class QuaanBridgeMod implements ModInitializer {
-    public static final String MOD_ID = "quaan-bridge";
+public final class QueanBridgeMod implements ModInitializer {
+    public static final String MOD_ID = "quean-bridge";
     public static final String VERSION = "1.0.1";
 
     @Override
@@ -22,7 +22,7 @@ public final class QuaanBridgeMod implements ModInitializer {
         try {
             BridgeServer.start(gameDir, VERSION);
         } catch (Exception e) {
-            System.out.println("[QuaAN Bridge] 桥接服务启动失败（不影响游戏）：" + e.getMessage());
+            System.out.println("[QueAN Bridge] 桥接服务启动失败（不影响游戏）：" + e.getMessage());
         }
     }
 }

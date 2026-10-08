@@ -1,14 +1,14 @@
 /**
- * 插件加载器：以 <script src="quaan-plugin://<id>/main.js"> 方式加载启用的 JS 插件。
- * 走自定义协议而非 eval/inline，页面 CSP 仅需精确放行 quaan-plugin: 脚本源。
- * 插件通过全局单例 window.quaanPlugin 使用 API：toast / 视图事件 / 样式注入 /
+ * 插件加载器：以 <script src="quean-plugin://<id>/main.js"> 方式加载启用的 JS 插件。
+ * 走自定义协议而非 eval/inline，页面 CSP 仅需精确放行 quean-plugin: 脚本源。
+ * 插件通过全局单例 window.queanPlugin 使用 API：toast / 视图事件 / 样式注入 /
  * store 引用，并可直接操作 DOM 更改 UI。仅安装可信来源的插件。
  */
 import { watch } from 'vue'
 import { listPlugins } from './api'
 import { store, toast } from './store'
 
-export interface QuaanPluginApi {
+export interface QueanPluginApi {
   /** 全局 toast 通知 */
   toast: typeof toast
   /** 注入自定义 CSS（更改界面样式） */
@@ -25,7 +25,7 @@ export interface QuaanPluginApi {
 
 declare global {
   interface Window {
-    quaanPlugin?: QuaanPluginApi
+    queanPlugin?: QueanPluginApi
   }
 }
 
@@ -37,11 +37,11 @@ function installGlobalApi(): void {
   if (apiInstalled) return
   apiInstalled = true
   const viewCallbacks = new Set<(view: string) => void>()
-  window.quaanPlugin = {
+  window.queanPlugin = {
     toast,
     addStyles(css) {
       const el = document.createElement('style')
-      el.dataset.quaanPlugin = 'true'
+      el.dataset.queanPlugin = 'true'
       el.textContent = String(css)
       document.head.appendChild(el)
     },
@@ -78,14 +78,14 @@ export async function loadEnabledPlugins(): Promise<void> {
   for (const plugin of enabled) {
     await new Promise<void>((resolve) => {
       const el = document.createElement('script')
-      el.src = `quaan-plugin://${encodeURIComponent(plugin.id)}/main.js`
-      el.dataset.quaanPlugin = plugin.id
+      el.src = `quean-plugin://${encodeURIComponent(plugin.id)}/main.js`
+      el.dataset.queanPlugin = plugin.id
       el.onload = () => {
-        console.info(`[QuaAN] 插件已加载：${plugin.id}`)
+        console.info(`[QueAN] 插件已加载：${plugin.id}`)
         resolve()
       }
       el.onerror = () => {
-        console.warn(`[QuaAN] 插件加载失败：${plugin.id}`)
+        console.warn(`[QueAN] 插件加载失败：${plugin.id}`)
         resolve()
       }
       document.head.appendChild(el)

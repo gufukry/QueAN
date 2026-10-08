@@ -1,5 +1,5 @@
 /**
- * voxlink/index.ts — VoxLink 联机模块 IPC 接线（QuaAN）
+ * voxlink/index.ts — VoxLink 联机模块 IPC 接线（QueAN）
  *
  * 通道（与 src/shared/types.ts IPC 常量一致）：
  *   invoke 'voxlink:start'   {mode:'host'|'join', code?, roomName?, isPublic?, category?}

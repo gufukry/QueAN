@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// QuaAN process/port discovery. Process arguments are inspected locally and never logged.
+// QueAN process/port discovery. Process arguments are inspected locally and never logged.
 import { execFile } from 'node:child_process'
 import net from 'node:net'
 export interface McPortEntry { port: number; pid: number }

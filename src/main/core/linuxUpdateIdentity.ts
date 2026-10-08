@@ -17,9 +17,9 @@ export function linuxTarHeader(header: Buffer): { name: string; size: number; di
   const text = (start: number, count: number) => header.toString('utf8', start, start + count).split('\0')[0]
   const prefix = text(345, 155), name = (prefix ? prefix + '/' : '') + text(0, 100)
   const kind = header[156], size = number(124, 12)
-  if (!['QuaAN', 'QuaAN/'].includes(name) && !name.startsWith('QuaAN/')) throw Error('Linux 更新包必须使用 QuaAN 根目录')
+  if (!['QueAN', 'QueAN/'].includes(name) && !name.startsWith('QueAN/')) throw Error('Linux 更新包必须使用 QueAN 根目录')
   if (name.includes('\\') || /[\x00-\x1f\x7f]/.test(name) || name.replace(/\/$/, '').split('/').some(p => !p || p === '..' || p === '.') || name.startsWith('/') || !Number.isSafeInteger(size) || size > 2 * 1024 ** 3 || ![0, 48, 53].includes(kind)) throw Error('Linux 更新 TAR 包含越界路径、链接或特殊文件')
-  if (['QuaAN', 'QuaAN/'].includes(name) && kind !== 53) throw Error('Linux TAR 根目录类型无效')
+  if (['QueAN', 'QueAN/'].includes(name) && kind !== 53) throw Error('Linux TAR 根目录类型无效')
   if (kind === 53 && size !== 0) throw Error('Linux TAR 目录大小无效')
   return { name: name.replace(/\/$/, ''), size, directory: kind === 53 }
 }
@@ -44,10 +44,10 @@ export async function validateLinuxArchive(file: string): Promise<void> {
         remaining = Math.ceil(entry.size / 512) * 512
       }
     }
-    if (remaining || pending.length || zeros < 2 || !seen.has('QuaAN/resources/app.asar') || !seen.has('QuaAN/resources/quaan-linux.json') || !seen.has('QuaAN/quaan')) throw Error('Linux 更新包被截断或缺少应用文件')
+    if (remaining || pending.length || zeros < 2 || !seen.has('QueAN/resources/app.asar') || !seen.has('QueAN/resources/quean-linux.json') || !seen.has('QueAN/quean')) throw Error('Linux 更新包被截断或缺少应用文件')
   } finally { input.destroy(); unzip.destroy() }
 }
 export function assertLinuxManifest(raw: string, version: string, kind: string, arch = process.arch): void {
   const info = JSON.parse(raw)
-  if (info.product !== 'QuaAN' || info.platform !== 'linux' || info.arch !== arch || info.version !== version || info.installationKind !== kind) throw Error('Linux 更新包身份、版本或架构不匹配')
+  if (info.product !== 'QueAN' || info.platform !== 'linux' || info.arch !== arch || info.version !== version || info.installationKind !== kind) throw Error('Linux 更新包身份、版本或架构不匹配')
 }

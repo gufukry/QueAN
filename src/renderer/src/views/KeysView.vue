@@ -36,7 +36,7 @@ async function dropPacks(event: DragEvent) {
   selectSection('packs')
   dragActive.value = false
   const files = Array.from(event.dataTransfer?.files ?? [])
-  await editPacks(() => importDefaultResourcePacks(files.map(file => window.quaan.getFilePath(file)).filter(Boolean)), true)
+  await editPacks(() => importDefaultResourcePacks(files.map(file => window.quean.getFilePath(file)).filter(Boolean)), true)
 }
 
 onMounted(() => { store.resourceDropHandler = dropPacks })

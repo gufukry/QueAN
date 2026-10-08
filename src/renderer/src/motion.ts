@@ -11,9 +11,9 @@ export function useMotion() {
   const update = () => { system.value = query.matches; pageHidden.value = document.hidden }
   onMounted(() => {
     query.addEventListener('change', update); document.addEventListener('visibilitychange', update)
-    unsubscribe = window.quaan.on('window:visibility', visible => { visibilityRevision++; nativeHidden.value = visible === false })
+    unsubscribe = window.quean.on('window:visibility', visible => { visibilityRevision++; nativeHidden.value = visible === false })
     const revision = visibilityRevision
-    void window.quaan.invoke('window:visibility').then(visible => {
+    void window.quean.invoke('window:visibility').then(visible => {
       if (alive && revision === visibilityRevision) nativeHidden.value = visible === false
     }).catch(() => {})
   })

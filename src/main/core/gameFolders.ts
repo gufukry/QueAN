@@ -119,7 +119,7 @@ export function removeGameFolder(input: string): GameFolder[] {
   // 失效/最后一个文件夹也允许解除绑定：移除后自动补回内置默认文件夹，不留死锁
   if (!folders.length) {
     const { app } = require('electron')
-    const fallback = path.join(app.getPath('appData'), '.quaan')
+    const fallback = path.join(app.getPath('appData'), '.quean')
     fs.mkdirSync(fallback, { recursive: true })
     folders = [{ path: fallback, name: '默认文件夹', isDefault: true }]
     folderLog.info(`已移除最后一个文件夹，自动重建内置默认文件夹：${fallback}`)
@@ -151,7 +151,7 @@ export function setDefaultGameFolder(input: string): GameFolder[] {
 
 function assertWritableDownloadFolder(folder: string): void {
   if (!fs.existsSync(folder) || !fs.statSync(folder).isDirectory()) throw new Error('下载文件夹已不存在，请重新选择')
-  const probe = path.join(folder, `.quaan-write-test-${crypto.randomUUID()}`)
+  const probe = path.join(folder, `.quean-write-test-${crypto.randomUUID()}`)
   try {
     fs.writeFileSync(probe, '', { flag: 'wx' })
     fs.unlinkSync(probe)
@@ -202,8 +202,8 @@ export function scanGameFolder(input: string): FolderScanResult {
       durationMs: Date.now() - started
     }
   }
-  const structure = fs.existsSync(path.join(folder.path, '.quaan'))
-    ? 'quaan'
+  const structure = fs.existsSync(path.join(folder.path, '.quean'))
+    ? 'quean'
     : fs.existsSync(path.join(folder.path, 'versions'))
       ? 'minecraft'
       : 'empty'

@@ -20,19 +20,19 @@ let mount,attached=false,nativeDisplay
  assert.equal(manifest.runtimeVersion,pkg.devDependencies.electron);assert.equal(Number(manifest.minimum.split('.')[0]),13)
  assert.equal(manifest.packageIntegrity,true);assert.equal(manifest.assets.length,2)
  for(const asset of manifest.assets){
-  assert.equal(path.basename(asset.name),asset.name);assert([`QuaAN-${pkg.version}-mac-${arch}.zip`,`QuaAN-${pkg.version}-mac-${arch}.dmg`].includes(asset.name))
+  assert.equal(path.basename(asset.name),asset.name);assert([`QueAN-${pkg.version}-mac-${arch}.zip`,`QueAN-${pkg.version}-mac-${arch}.dmg`].includes(asset.name))
   const file=path.resolve('release',asset.name);assert.equal(fs.statSync(file).size,asset.bytes);assert.equal(await sha(file),asset.sha256)
  }
  receipt.package=manifest;receipt.steps.push('original ZIP/DMG size, SHA256, commit and locked runtime verified');save()
- const clean=fs.mkdtempSync(path.join(os.tmpdir(),'QuaAN 原生验证 '))
+ const clean=fs.mkdtempSync(path.join(os.tmpdir(),'QueAN 原生验证 '))
  let appPath
  if(stage==='dmg'){
-  mount=fs.mkdtempSync(path.join(os.tmpdir(),'QuaAN DMG mount '))
-  run('hdiutil',['verify',`release/QuaAN-${pkg.version}-mac-${arch}.dmg`])
-  run('hdiutil',['attach',`release/QuaAN-${pkg.version}-mac-${arch}.dmg`,'-readonly','-nobrowse','-mountpoint',mount]);attached=true
-  appPath=path.join(mount,'QuaAN.app')
+  mount=fs.mkdtempSync(path.join(os.tmpdir(),'QueAN DMG mount '))
+  run('hdiutil',['verify',`release/QueAN-${pkg.version}-mac-${arch}.dmg`])
+  run('hdiutil',['attach',`release/QueAN-${pkg.version}-mac-${arch}.dmg`,'-readonly','-nobrowse','-mountpoint',mount]);attached=true
+  appPath=path.join(mount,'QueAN.app')
  }else{
-  run('ditto',['-x','-k',`release/QuaAN-${pkg.version}-mac-${arch}.zip`,clean]);appPath=path.join(clean,'QuaAN.app')
+  run('ditto',['-x','-k',`release/QueAN-${pkg.version}-mac-${arch}.zip`,clean]);appPath=path.join(clean,'QueAN.app')
  }
  const packageIdentity=readMacPackageIdentity(appPath,{version:pkg.version,arch,sourceCommit:receipt.commit,runtimeVersion:pkg.devDependencies.electron,minimumSystemVersion:manifest.minimum})
  assert.deepEqual(packageIdentity.identity,manifest.buildIdentity);assert.equal(packageIdentity.identitySHA256,manifest.buildIdentitySHA256)
@@ -60,11 +60,11 @@ let mount,attached=false,nativeDisplay
  for(const [name,cmd,args] of [['system.txt','/usr/bin/sw_vers',[]],['graphics.txt','/usr/sbin/system_profiler',['SPDisplaysDataType']]]){
   try{fs.writeFileSync(path.join(proof,name),execFileSync(cmd,args,{timeout:20000,maxBuffer:4*1024*1024}))}catch(diagnosticError){receipt[name+'Error']=String(diagnosticError)}
  }
- // Only this disposable runner's current QuaAN reports, never a player's files.
+ // Only this disposable runner's current QueAN reports, never a player's files.
  const crashRoot=path.join(os.homedir(),'Library/Logs/DiagnosticReports')
  if(fs.existsSync(crashRoot))for(const name of fs.readdirSync(crashRoot)){
   const file=path.join(crashRoot,name)
-  if(/^QuaAN.*\.(?:ips|crash)$/.test(name)&&fs.statSync(file).mtimeMs>=Date.parse(receipt.startedAt))fs.copyFileSync(file,path.join(proof,name))
+  if(/^QueAN.*\.(?:ips|crash)$/.test(name)&&fs.statSync(file).mtimeMs>=Date.parse(receipt.startedAt))fs.copyFileSync(file,path.join(proof,name))
  }
 }).finally(async()=>{
  if(nativeDisplay)try{await nativeDisplay.restore();receipt.nativeDisplayRestored=true}catch(error){receipt.complete=false;(receipt.cleanupErrors??=[]).push({stage:'native display restore',name:error.name,message:error.message});console.error(error);process.exitCode=1}

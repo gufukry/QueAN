@@ -1,4 +1,4 @@
-package cn.quaan.bridge;
+package cn.quean.bridge;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -12,7 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 参数注册中心：MOD 注册参数定义，值随改随存（quaan-bridge-config.json），
+ * 参数注册中心：MOD 注册参数定义，值随改随存（quean-bridge-config.json），
  * 并支持恢复默认。热修改参数立即应用到注册时提供的监听器。
  */
 public final class ParamRegistry {
@@ -25,7 +25,7 @@ public final class ParamRegistry {
     private ParamRegistry() {}
 
     public static void init(Path gameDir) {
-        configFile = gameDir.resolve("quaan-bridge-config.json");
+        configFile = gameDir.resolve("quean-bridge-config.json");
         load();
     }
 

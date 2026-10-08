@@ -1,4 +1,4 @@
-package quaantest;
+package queantest;
 
 import net.fabricmc.api.ClientModInitializer;
 import java.nio.file.Files;
@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /** Disposable CI-only client driver. Presses the real demo button on the game thread. */
 public final class MacDemoProbe implements ClientModInitializer {
     public void onInitializeClient() {
-        final String trigger = System.getProperty("quaan.nativeProofTrigger");
+        final String trigger = System.getProperty("quean.nativeProofTrigger");
         System.out.println("[native-demo-probe] Client initializer ready; trigger=" + trigger);
         if (trigger == null) return;
         final AtomicBoolean pressed = new AtomicBoolean();

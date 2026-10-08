@@ -16,16 +16,16 @@ async function load(file: string, root: string): Promise<any> {
 test('Mac updater rejects foreign roots and escaping symlinks before extraction',async t=>{
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'mac-update-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}))
   const {validateMacArchive}=await load('src/main/core/macUpdate.ts',root)
-  function archive(name:string,link?:string){const z=new AdmZip();z.addFile('QuaAN.app/Contents/Resources/app.asar',Buffer.from('test'));z.addFile(name,Buffer.from(link??'x'));if(link)z.getEntry(name)!.attr=0xa1ff0000;const file=path.join(root,'test.zip');z.writeZip(file);return file}
-  assert.doesNotThrow(()=>validateMacArchive(archive('QuaAN.app/Contents/Frameworks/Versions/Current','A')))
+  function archive(name:string,link?:string){const z=new AdmZip();z.addFile('QueAN.app/Contents/Resources/app.asar',Buffer.from('test'));z.addFile(name,Buffer.from(link??'x'));if(link)z.getEntry(name)!.attr=0xa1ff0000;const file=path.join(root,'test.zip');z.writeZip(file);return file}
+  assert.doesNotThrow(()=>validateMacArchive(archive('QueAN.app/Contents/Frameworks/Versions/Current','A')))
   assert.throws(()=>validateMacArchive(archive('Other.app/Contents/MacOS/Other')),/越界/)
-  assert.throws(()=>validateMacArchive(archive('QuaAN.app/Contents/escape','../../../outside')),/越界/)
-  assert.throws(()=>validateMacArchive(archive('QuaAN.app/Contents/escape','/tmp/outside')),/越界/)
-  const empty=new AdmZip();empty.addFile('QuaAN.app/Contents/Info.plist',Buffer.from('x'));const file=path.join(root,'empty.zip');empty.writeZip(file);assert.throws(()=>validateMacArchive(file),/缺少/)
+  assert.throws(()=>validateMacArchive(archive('QueAN.app/Contents/escape','../../../outside')),/越界/)
+  assert.throws(()=>validateMacArchive(archive('QueAN.app/Contents/escape','/tmp/outside')),/越界/)
+  const empty=new AdmZip();empty.addFile('QueAN.app/Contents/Info.plist',Buffer.from('x'));const file=path.join(root,'empty.zip');empty.writeZip(file);assert.throws(()=>validateMacArchive(file),/缺少/)
 })
 test('Mac update assets select architecture-specific ZIP while preserving Windows EXE',async()=>{
   const {updateAssetName}=await load('src/main/core/updateTrust.ts',os.tmpdir())
-  assert.equal(updateAssetName('1.1.5','darwin','arm64'),'QuaAN-1.1.5-mac-arm64.zip')
-  assert.equal(updateAssetName('1.1.5','darwin','x64'),'QuaAN-1.1.5-mac-x64.zip')
-  assert.equal(updateAssetName('1.1.5','win32','x64'),'QuaAN-1.1.5.exe')
+  assert.equal(updateAssetName('1.1.5','darwin','arm64'),'QueAN-1.1.5-mac-arm64.zip')
+  assert.equal(updateAssetName('1.1.5','darwin','x64'),'QueAN-1.1.5-mac-x64.zip')
+  assert.equal(updateAssetName('1.1.5','win32','x64'),'QueAN-1.1.5.exe')
 })

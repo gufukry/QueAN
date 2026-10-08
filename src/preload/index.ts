@@ -13,4 +13,4 @@ const api = {
   platform: process.platform
 }
 
-contextBridge.exposeInMainWorld('quaan', api)
+contextBridge.exposeInMainWorld('quean', api)

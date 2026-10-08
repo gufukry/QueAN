@@ -1,6 +1,6 @@
 # Third-party notices / 第三方声明
 
-The root MIT license covers original QuaAN contributions only. Third-party
+The root MIT license covers original QueAN contributions only. Third-party
 copyright, license and trademark rights remain with their respective holders.
 
 ## VoxLink protocol integration — LGPL-3.0-only
@@ -28,12 +28,12 @@ and src/shared/voxlinkNat.ts. Updated unmodified parameter fixtures are in
 tests/fixtures/voxlink-c475faa9. The authoritative integration contract is
 docs/launcher-integration.md at revision c475faa9.
 These files are distributed under LGPL-3.0-only. Node lifecycle,
-cancellation, HTTP fallback and UI reporting are QuaAN changes.
+cancellation, HTTP fallback and UI reporting are QueAN changes.
 The former app-desktop Go adaptations have been replaced; the Java license does
 not establish authorization for that historical Go source.
 
 Full terms: licenses/LGPL-3.0.txt and licenses/GPL-3.0.txt. Users may modify and
-rebuild these portions and recombine them with the application. QuaAN imposes no
+rebuild these portions and recombine them with the application. QueAN imposes no
 restriction on reverse engineering for debugging such modifications.
 Build instructions: docs/CORRESPONDING_SOURCE.md.
 
@@ -45,7 +45,7 @@ attribution header. Full authors and terms: licenses/skinview3d.txt.
 skinview-utils 0.7.1: https://github.com/bs-community/skinview-utils
 Provides canvas skin loading and conversion. Terms: licenses/skinview-utils.txt.
 The version and integrity are fixed in package-lock.json.
-QuaAN's preview interaction adapter is an original MIT contribution.
+QueAN's preview interaction adapter is an original MIT contribution.
 The previous HMCL/FCL-derived preview and conversion are no longer used.
 
 ## Other bundled libraries
@@ -60,14 +60,14 @@ official server data generator. No Mojang JAR is distributed in this launcher.
 
 Feature reference: PCL / 龙腾猫跃, https://github.com/Meloong-Git/PCL .
 PCL usage guidance: https://github.com/Meloong-Git/PCL/blob/main/LICENCE .
-QuaAN's implementation is independently written using Microsoft's documented
+QueAN's implementation is independently written using Microsoft's documented
 EmptyWorkingSet API: https://learn.microsoft.com/windows/win32/api/psapi/nf-psapi-emptyworkingset .
 It does not include PCL binaries or unpublished implementations, and is not a
 PCL derivative or an endorsed integration. Existing games are skipped.
 
 ## Seven-character illustrations
 
-The user supplied front/back character references. QuaAN's transparent 2D
+The user supplied front/back character references. QueAN's transparent 2D
 illustrations were generated from those references; capes were removed and
 backs were completed. Derived animation layers are included in source. Character
 and trademark rights remain with their respective holders; no affiliation is implied.
@@ -80,11 +80,11 @@ LICENSES.chromium.html. Compile-only bridge dependencies are not embedded.
 ## Optional Java runtimes
 
 Java is downloaded on demand from Eclipse Adoptium (Temurin) or Azul (Zulu),
-and is not embedded in the QuaAN release. The complete vendor distribution,
+and is not embedded in the QueAN release. The complete vendor distribution,
 including its license and notice files, is retained unchanged during extraction.
 Metadata/API references: https://api.adoptium.net/ and
 https://api.azul.com/metadata/v1/docs/swagger . Runtime download, verification
-and fallback logic are independently implemented in QuaAN.
+and fallback logic are independently implemented in QueAN.
 
 ## Referenced launcher projects
 

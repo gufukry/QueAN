@@ -5,7 +5,7 @@ const fs = require('node:fs'), path = require('node:path')
 function linuxArtifactNames(version, arch, target) {
   if (!/^\d+\.\d+\.\d+$/.test(version) || !['x64', 'arm64'].includes(arch) || !['AppImage', 'deb', 'tar.gz'].includes(target)) throw Error('Unsupported Linux package identity')
   const builderArch = arch === 'x64' ? target === 'AppImage' ? 'x86_64' : target === 'deb' ? 'amd64' : 'x64' : 'arm64'
-  return { builderName: `QuaAN-${version}-linux-${builderArch}.${target}`, releaseName: `QuaAN-${version}-linux-${arch}.${target}` }
+  return { builderName: `QueAN-${version}-linux-${builderArch}.${target}`, releaseName: `QueAN-${version}-linux-${arch}.${target}` }
 }
 
 function assertUnpublishedLinuxArtifact(directory, name) {

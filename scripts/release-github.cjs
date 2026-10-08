@@ -36,7 +36,7 @@ function latestNoteBody() {
   new Function('module', 'exports', compiled)(notesModule, notesModule.exports)
   const note = notesModule.exports.updateNotes.find(n => n.version === version)
   if (!note?.changes?.length || !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(note.date)) throw new Error('当前版本缺少完整更新日志或分钟时间，停止发布')
-  return [`QuaAN ${tag}`, note.date + '（UTC+8）', '', ...note.changes.map(i => `- ${i}`)].join('\n')
+  return [`QueAN ${tag}`, note.date + '（UTC+8）', '', ...note.changes.map(i => `- ${i}`)].join('\n')
 }
 
 /** 从 git 凭据管理器取 GitHub 令牌（推送同款凭据） */
@@ -69,7 +69,7 @@ async function api(method, url, token, body, isBinary = false) {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: 'application/vnd.github+json',
-          'User-Agent': 'QuaAN-Release-Script',
+          'User-Agent': 'QueAN-Release-Script',
           ...(isBinary ? { 'Content-Type': 'application/octet-stream' } : body ? { 'Content-Type': 'application/json' } : {})
         },
         body: isBinary ? body : body ? JSON.stringify(body) : undefined
@@ -139,7 +139,7 @@ async function main() {
   if (!masterResponse.ok || (await masterResponse.json()).commit?.sha !== commit) throw new Error('本地 HEAD 尚未同步到 origin/master，停止发布')
   const existingTag = await taggedCommit(token)
   if (existingTag && existingTag !== commit) throw new Error('版本标签已指向其他提交，保留远端标签并停止发布')
-  const binding = { tag_name: tag, target_commitish: commit, name: `QuaAN ${tag}`, body, prerelease: false }
+  const binding = { tag_name: tag, target_commitish: commit, name: `QueAN ${tag}`, body, prerelease: false }
 
   // 已存在同 tag Release 则复用（幂等）
   let release = null

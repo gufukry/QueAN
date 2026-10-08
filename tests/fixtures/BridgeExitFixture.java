@@ -1,4 +1,4 @@
-package cn.quaan.bridge;
+package cn.quean.bridge;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

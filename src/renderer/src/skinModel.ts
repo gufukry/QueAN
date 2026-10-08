@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// QuaAN adapter around the attributed MIT skinview3d model, not HMCL/FCL geometry.
+// QueAN adapter around the attributed MIT skinview3d model, not HMCL/FCL geometry.
 import { Group, Mesh, type Material, type Texture } from 'three'
 import { SkinObject, CapeObject } from './vendor/skinview3d/model'
 

@@ -16,10 +16,10 @@ test('HarmonyOS has a distinct ABI and cannot select a Linux JVM or update paylo
 
 test('Linux updates preserve CPU architecture and actual installation form', () => {
   for (const arch of ['x64', 'arm64']) {
-    assert.equal(updateArtifactName('1.1.11', 'linux', arch, 'appimage'), `QuaAN-1.1.11-linux-${arch}.AppImage`)
-    assert.equal(updateArtifactName('1.1.11', 'linux', arch, 'deb'), `QuaAN-1.1.11-linux-${arch}.deb`)
-    assert.equal(updateArtifactName('1.1.11', 'linux', arch, 'portable-directory'), `QuaAN-1.1.11-linux-${arch}.tar.gz`)
-    assert.equal(updateArtifactName('1.1.11', 'darwin', arch, 'mac-app'), `QuaAN-1.1.11-mac-${arch}.zip`)
+    assert.equal(updateArtifactName('1.1.11', 'linux', arch, 'appimage'), `QueAN-1.1.11-linux-${arch}.AppImage`)
+    assert.equal(updateArtifactName('1.1.11', 'linux', arch, 'deb'), `QueAN-1.1.11-linux-${arch}.deb`)
+    assert.equal(updateArtifactName('1.1.11', 'linux', arch, 'portable-directory'), `QueAN-1.1.11-linux-${arch}.tar.gz`)
+    assert.equal(updateArtifactName('1.1.11', 'darwin', arch, 'mac-app'), `QueAN-1.1.11-mac-${arch}.zip`)
   }
   assert.throws(() => updateArtifactName('1.1.11', 'linux', 'ia32', 'deb'), /架构/)
   assert.equal(platformInfo('linux', 'arm64', 'deb').systemMemoryOrganizing, false)

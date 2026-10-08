@@ -13,8 +13,8 @@ const owned = require('./qa-owned-process-119.cjs')
 let recorder, recordLog
 async function runHarness(theme, module, executable) {
   const start = Date.now(), logName = theme + '-' + module + '.log', descriptor = fs.openSync(path.join(proof, logName), 'w')
-  const env = { ...process.env, QuaAN_GUI_APP: executable, QuaAN_EXTENSION_GUI: '1', QuaAN_EXTENSION_ONLY: '1', QuaAN_SKIP_EXTENSION_BASE: '1', QuaAN_UI_MODULE: module, QuaAN_OBSERVER_TRACE_CONTROL119: '1' }
-  delete env.ELECTRON_RUN_AS_NODE; delete env.QuaAN_GUI_DEV; delete env.QuaAN_GUI_SOFTWARE
+  const env = { ...process.env, QueAN_GUI_APP: executable, QueAN_EXTENSION_GUI: '1', QueAN_EXTENSION_ONLY: '1', QueAN_SKIP_EXTENSION_BASE: '1', QueAN_UI_MODULE: module, QueAN_OBSERVER_TRACE_CONTROL119: '1' }
+  delete env.ELECTRON_RUN_AS_NODE; delete env.QueAN_GUI_DEV; delete env.QueAN_GUI_SOFTWARE
   const child = spawn(process.execPath, ['scripts/verify-ui-refinement.cjs', theme], { cwd: root, env, stdio: ['ignore', descriptor, descriptor] })
   const track = owned.trackOwnedChild(child, 'linux-' + theme + '-' + module)
   let timeout
@@ -41,16 +41,16 @@ async function runHarness(theme, module, executable) {
     assert(!/^(Xvfb|Xvnc|Xephyr)$/m.test(processNames), 'A virtual X server is fixture evidence, never native desktop acceptance')
     assert(!/llvmpipe|softpipe|swiftshader|software rasterizer/i.test(report.graphics), 'A software renderer cannot establish native motion acceptance')
   }
-  const prefix = 'QuaAN-' + version + '-linux-' + arch, archive = path.join(root, 'release', prefix + '.tar.gz')
+  const prefix = 'QueAN-' + version + '-linux-' + arch, archive = path.join(root, 'release', prefix + '.tar.gz')
   const receipt = JSON.parse(fs.readFileSync(path.join(root, 'release/linux-proof-' + arch + '-packages/summary.json'), 'utf8'))
   assert.equal(receipt.version, version); assert.equal(receipt.arch, arch); assert.equal(receipt.sourceCommit, report.sourceCommit)
   const asset = receipt.packages.find(p => p.name === prefix + '.tar.gz')
   assert(asset); assert.equal(fs.statSync(archive).size, asset.bytes); assert.equal(sha(archive), asset.sha256)
   report.package = asset
-  const clean = fs.mkdtempSync(path.join(os.tmpdir(), 'QuaAN Linux native 中文 '))
+  const clean = fs.mkdtempSync(path.join(os.tmpdir(), 'QueAN Linux native 中文 '))
   read('/usr/bin/tar', ['-xzf', archive, '-C', clean])
-  const application = path.join(clean, 'QuaAN'), executable = path.join(application, 'quaan')
-  const metadata = JSON.parse(fs.readFileSync(path.join(application, 'resources/quaan-linux.json'), 'utf8'))
+  const application = path.join(clean, 'QueAN'), executable = path.join(application, 'quean')
+  const metadata = JSON.parse(fs.readFileSync(path.join(application, 'resources/quean-linux.json'), 'utf8'))
   assert.equal(metadata.schemaVersion, 1, 'Unknown Linux package identity schema')
   assert.equal(metadata.version, version); assert.equal(metadata.arch, arch); assert.equal(metadata.installationKind, 'portable-directory')
   assert.equal(metadata.sourceCommit, report.sourceCommit, 'Embedded source must match this desktop test checkout')
