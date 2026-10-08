@@ -353,12 +353,24 @@ async function segmented(url: string, dest: string, expected: Integrity, signal:
       } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error }
     }
     emit()
+    const seg = Math.floor(typeof maxSegments === 'function' ? maxSegments() : maxSegments) || 1
+    const startBudget = Math.max(1, Math.min(8, downloadLimiter.maxConcurrent, seg))
+    // 慢就加：以 8 路起步，整体速度持续偏低时每秒追加一路，最高到 hardCap（不盲目堆连接）。
+    const hardCap = Math.max(startBudget, Math.min(16, downloadLimiter.maxConcurrent, seg))
+    let budget = startBudget
+    let meterBytes = received.reduce((a, b) => a + b, 0), meterAt = performance.now()
     await new Promise<void>((resolve, reject) => {
       let cursor = 0, active = 0, failure: unknown
       const pump = () => {
         if (controller.signal.aborted) failure ??= controller.signal.reason
         if (failure) { if (!active) reject(failure); return }
-        const budget = Math.max(1, Math.min(8, downloadLimiter.maxConcurrent, Math.floor(typeof maxSegments === 'function' ? maxSegments() : maxSegments) || 1))
+        const now = performance.now()
+        if (budget < hardCap && now - meterAt >= 1000) {
+          const bytes = received.reduce((a, b) => a + b, 0)
+          const speed = (bytes - meterBytes) * 1000 / (now - meterAt)
+          meterBytes = bytes; meterAt = now
+          if (speed < 256 * 1024 && cursor < count) budget++
+        }
         while (active < budget && cursor < count && !isTaskPaused(signal)) {
           const index = cursor++
           if (received[index] === Math.min(step, size - index * step)) continue
