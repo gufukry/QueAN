@@ -15,7 +15,7 @@ import { compareSemver, isNewerVersion } from '../../shared/semver'
 import type { ReleaseInfo, UpdateCheckResult } from '../../shared/types'
 import { httpFetch } from './httpClient'
 import { logScope } from './launcherLog'
-import { isolatedUpdateTest, trustedUpdateRelease, updateAssetName } from './updateTrust'
+import { isolatedUpdateTest, trustedUpdateRelease, updateAssetName, updateAssetNameList } from './updateTrust'
 
 const updateLog = logScope('self-update')
 
@@ -83,7 +83,8 @@ interface GhRelease {
 /** 从 Release JSON 提取便携 exe 资产（排除 zip 与 SHA256SUMS） */
 function pickPortableExe(assets: GhAsset[] | undefined, version: string): GhAsset | null {
   if (!Array.isArray(assets)) return null
-  return assets.find((a) => a.name === updateAssetName(version)) ?? null
+  const names = updateAssetNameList(version)
+  return assets.find((a) => typeof a.name === 'string' && names.includes(a.name)) ?? null
 }
 
 function toReleaseInfo(j: GhRelease): ReleaseInfo | null {

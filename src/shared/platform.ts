@@ -39,3 +39,10 @@ export function updateArtifactName(version: string, platform: string, arch: stri
   }
   throw new Error('当前平台的更新安装能力尚未验证')
 }
+
+/** 可接受的更新资产名：Windows 兼容带版本号与不带版本号两种命名。 */
+export function updateAssetNames(version: string, platform: string, arch: string, installation: InstallationKind): string[] {
+  const primary = updateArtifactName(version, platform, arch, installation)
+  if (platform === 'win32') return [primary, `QueAN-${version}.exe`]
+  return [primary]
+}
