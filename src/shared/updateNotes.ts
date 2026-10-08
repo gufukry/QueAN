@@ -11,6 +11,14 @@ export interface UpdateNote {
 /** 按版本倒序；latest 为当前版本 */
 export const updateNotes: UpdateNote[] = [
   {
+    "version": "1.0.3",
+    "date": "2026-10-08 12:42",
+    "changes": [
+      "更新弹窗在下载中也可关闭/隐藏，下载任务继续在下载中心进行",
+      "Windows 更新包同时接受 QueAN.exe 与 QueAN-<版本>.exe 两种命名"
+    ]
+  },
+  {
     "version": "1.0.2",
     "date": "2026-10-08 12:09",
     "changes": [
