@@ -1,7 +1,7 @@
 {
   "name": "quaan",
   "productName": "QuaAN",
-  "version": "1.1.15",
+  "version": "1.0.0",
   "description": "QuaAN - 简约美观的一键式 Minecraft 启动器",
   "homepage": "",
   "main": "out/main/index.js",
