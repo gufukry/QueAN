@@ -4,7 +4,6 @@ import { shouldReportGameCrash, signedExitCode } from '@shared/gameExit'
 const isMac = window.quean.platform === 'darwin'
 import LaunchNotice from './components/LaunchNotice.vue'
 import { pollTickets } from './voxlinkTickets'
-import CreatorMotto from './components/CreatorMotto.vue'
 import ModpackSupplement from './components/ModpackSupplement.vue'
 import { instanceCenter, openInstanceCenter } from './instanceCenter'
 import { loadExitNotices, clearNotices } from './store'
@@ -1352,7 +1351,7 @@ onUnmounted(() => {
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
         </button>
-        <div class="topbar-spacer"><CreatorMotto :disabled="store.editMode" /></div>
+        <div class="topbar-spacer"></div>
 
         <div data-ui="App:5f4d42b34aae" class="top-actions">
           <button data-ui="App:e7efd70d16b8" v-if="store.currentView !== 'home'" class="top-btn dl-toggle" @click="dlOpen = !dlOpen">
@@ -2077,7 +2076,6 @@ onUnmounted(() => {
 .topbar-spacer { flex: 1; min-width: 0; align-self: stretch; }
 @media (max-width: 1050px) {
   .topbar-spacer { overflow: hidden; }
-  .topbar-spacer > .creator-motto { visibility: hidden; }
   .top-actions { flex-shrink: 0; }
   .top-actions .top-btn { white-space: nowrap; flex-shrink: 0; padding-inline: 6px; gap: 4px; }
 }
