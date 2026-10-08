@@ -16,7 +16,7 @@ test('skin preview: pause button removed, walk/idle tabs and reset kept (指令1
 test('home: launch combo back in banner, LaunchFab gone (指令2+3)', () => {
   const home = read('src/renderer/src/views/HomeView.vue')
   // 启动组合按钮在横幅内
-  const hero = home.slice(home.indexOf('hero-card'), home.indexOf('runtime-strip'))
+  const hero = home.slice(home.indexOf('top-launch-bar'), home.indexOf('runtime-strip'))
   assert.match(hero, /class="launch-combo" data-edit="accent"/)
   assert.match(hero, /class="launch-main"/)
   assert.match(hero, /class="launch-arrow"/)

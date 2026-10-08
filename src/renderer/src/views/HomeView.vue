@@ -38,7 +38,6 @@ import {
 import Avatar from '../components/Avatar.vue'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import SkinViewer3D from '../components/SkinViewer3D.vue'
-import CreatorCard from '../components/CreatorCard.vue'
 import type {
   ImageFit,
   InstalledVersion,
@@ -489,8 +488,7 @@ onUnmounted(() => {
 
 <template>
   <div data-ui="HomeView:a32c099bc136" class="home-dashboard">
-    <div data-ui="HomeView:5fc354f9fa6d" class="home-main">
-      <section data-ui="HomeView:53555cbc5ab3" class="hero-card no-banner" data-edit="banner">
+    <section data-ui="HomeView:53555cbc5ab3" class="top-launch-bar" data-edit="banner">
         <div data-ui="HomeView:2e850cf13849" class="hero-content" data-edit="bannerText">
           <span data-ui="HomeView:13616e708e66" class="hero-kicker">当前版本</span>
           <div data-ui="HomeView:027bc7e292dc" class="hero-metadata-slot">
@@ -561,6 +559,8 @@ onUnmounted(() => {
         </button>
       </section>
 
+    <div data-ui="HomeView:homebody0001" class="home-body">
+      <main data-ui="HomeView:5fc354f9fa6d" class="home-main">
       <section data-ui="HomeView:d4eaa1c0d798" class="instances-block">
         <div data-ui="HomeView:07c360f67ff2" class="instances-head">
           <h2 data-ui="HomeView:ab67b2084be9">最近游戏</h2>
@@ -604,9 +604,8 @@ onUnmounted(() => {
           尚未安装游戏实例，点击前往版本管理
         </button>
       </section>
-    </div>
-
-    <aside data-ui="HomeView:3ce39fef1300" class="home-side">
+      </main>
+      <aside data-ui="HomeView:3ce39fef1300" class="home-side">
       <section data-ui="HomeView:1a033831e623" class="account-panel" data-edit="card">
         <template v-if="store.selectedAccount">
           <div class="account-head">
@@ -655,8 +654,8 @@ onUnmounted(() => {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 6 6 6-6 6" /></svg>
         </button>
       </section>
-      <CreatorCard class="home-creator" />
-    </aside>
+      </aside>
+    </div>
 
     <Teleport to="body">
       <div data-ui="HomeView:d64e8ccae3be" v-if="versionMenu.open" class="menu-overlay" @click="versionMenu.open = false"></div>
@@ -922,7 +921,6 @@ onUnmounted(() => {
 .empty-instances { width: 100%; min-height: 110px; border: 1px dashed var(--border-strong); border-radius: 13px; background: var(--card); color: var(--text-dim); cursor: pointer; }
 
 .home-side { display: flex; min-width: 0; flex-direction: column; gap: 12px; }
-.home-creator { margin-top: 0; border-color: color-mix(in srgb, var(--accent) 26%, var(--border)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent), var(--shadow); }
 .account-panel, .skin-panel { border: 1px solid var(--border); border-radius: 15px; background: var(--surface-content); box-shadow: var(--shadow); }
 .account-panel { min-height: 146px; padding: 18px; }
 .account-head { display: flex; align-items: center; gap: 13px; }
@@ -1040,4 +1038,39 @@ onUnmounted(() => {
 @media(max-width:1100px){.home-dashboard{grid-template-columns:minmax(0,1fr)}.home-side{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}.account-panel{border-radius:var(--radius-lg)}.skin-panel{margin-top:0;border-radius:var(--radius-lg);grid-column:2;grid-row:1/3}.home-creator{grid-column:1}.hero-card{max-height:360px}}@media(max-width:700px){.home-side{grid-template-columns:minmax(0,1fr)}.skin-panel,.home-creator{grid-column:1;grid-row:auto}.home-dashboard .instance-card{grid-template-columns:28px minmax(0,1fr) 32px 36px;gap:8px}.instance-last{grid-row:2;grid-column:2;font-size:12px}.instance-more{grid-column:3}.instance-play{grid-column:4}.hero-content{padding:16px}.launch-main{min-width:140px}.runtime-strip{flex-wrap:wrap}.runtime-item{min-width:140px}.hero-card{min-height:330px}}
 
 .home-side{align-self:start}.skin-panel{flex:none;min-height:0}.home-side .skin-stage{height:230px;min-height:0}.skin-panel .skin-tip{margin-bottom:0}.account-panel{padding:16px}.hero-card .hero-image{object-position:center 42%}
+/* ===== macOS 仪表盘：顶部整条启动栏 + 下方两栏 ===== */
+.home-dashboard { display: flex; flex-direction: column; gap: 16px; }
+.home-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 290px); gap: 16px; align-items: start; }
+.home-main { min-height: 0; }
+.top-launch-bar {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  border-radius: 18px;
+  background: radial-gradient(120% 170% at 0% 0%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 62%), var(--surface-content);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.10);
+}
+.top-launch-bar .hero-content {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 22px;
+  height: auto;
+  padding: 22px 26px;
+}
+.top-launch-bar .hero-content h1 { margin-top: 6px; font-size: clamp(24px, 2.4vw, 32px); white-space: normal; }
+.top-launch-bar .hero-content h1.long-name { font-size: clamp(20px, 2vw, 26px); }
+.top-launch-bar .hero-metadata-slot { width: auto; min-height: 0; }
+.top-launch-bar .hero-actions { width: auto; margin-top: 0; gap: 14px; flex-wrap: wrap; }
+.top-launch-bar .hero-content, .top-launch-bar .hero-content h1, .top-launch-bar .hero-game-version { color: var(--text); text-shadow: none; }
+.top-launch-bar .hero-kicker, .top-launch-bar .hero-settings, .top-launch-bar .hero-more { background: var(--card-2); color: var(--text); border-color: var(--border); backdrop-filter: none; }
+.top-launch-bar .loader-badge { color: var(--accent-2); background: var(--accent-soft); }
+@media (max-width: 1100px) {
+  .home-body { grid-template-columns: minmax(0, 1fr); }
+  .home-side { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+}
+@media (max-width: 700px) {
+  .home-side { grid-template-columns: minmax(0, 1fr); }
+}
 </style>

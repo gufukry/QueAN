@@ -5,7 +5,6 @@ import { computed, ref } from 'vue'
 import { parse, compileScript, compileTemplate } from '@vue/compiler-sfc'
 
 const home = fs.readFileSync('src/renderer/src/views/HomeView.vue', 'utf8')
-const creator = fs.readFileSync('src/renderer/src/components/CreatorCard.vue', 'utf8')
 
 test('hero naming follows selected instance while subtitle reads only real Minecraft metadata', () => {
   // Execute the production computed expressions with a reactive selected instance.
@@ -47,22 +46,16 @@ test('launch combo lives in the banner and owns the launch chain (1.0.18 还原�
   assert.ok(!fs.existsSync('src/renderer/src/components/LaunchFab.vue'), 'LaunchFab.vue must be deleted')
 })
 
-test('creator card uses theme tokens, keyboard focus and correct external Bilibili link', () => {
-  assert.match(creator, /href="https:\/\/space\.bilibili\.com\/9596327"/)
-  assert.match(creator, /target="_blank"/)
-  assert.match(creator, /rel="noopener noreferrer"/)
-  assert.match(creator, /aria-label="访问卡慕/)
-  assert.match(creator, /<button\b[^>]*class="creator-toggle"/)
-  assert.match(creator, /useMotion/)
-  assert.match(creator, /var\(--surface-content\)/)
-  assert.match(creator, /var\(--text\)/)
-  assert.ok(!/#[\da-f]{3,8}\b/i.test(creator), 'no hard-coded palette that conflicts with themes')
-  assert.match(home, /<CreatorCard class="home-creator" \/>/)
-  assert.match(home, /\.home-creator \{ margin-top: 0;/)
+test('creator card removed; launch lives in the top launch bar', () => {
+  assert.ok(!home.includes('<CreatorCard'), 'CreatorCard must be gone from HomeView')
+  assert.ok(!fs.existsSync('src/renderer/src/components/CreatorCard.vue'), 'CreatorCard.vue must be deleted')
+  assert.match(home, /class="top-launch-bar"/)
+  assert.match(home, /class="launch-main"/)
+  assert.match(home, /@click="onLaunchClick"/)
 })
 
 test('home and creator templates compile without Vue errors', () => {
-  for (const [file, source] of [['HomeView.vue', home], ['CreatorCard.vue', creator]]) {
+  for (const [file, source] of [['HomeView.vue', home]]) {
     const { descriptor, errors } = parse(source)
     assert.deepEqual(errors, [])
     const script = descriptor.scriptSetup ? compileScript(descriptor, { id: file }) : undefined
