@@ -8,7 +8,7 @@ test('portable feedback precedes extraction, cache is gated by completion and la
   const { repairPortableScript } = require('../scripts/portable-build-hook.cjs')
   const src = fs.readFileSync('node_modules/app-builder-lib/templates/nsis/portable.nsi', 'utf8')
   const script = repairPortableScript(src, { cacheKey: '1.0.33-proof' })
-  assert(script.indexOf('StartupFeedback.exe') < script.indexOf('extract_runtime:'))
+  assert(!script.includes('StartupFeedback.exe'), 'portable no longer launches the native shard feedback')
   assert(script.indexOf('cache.ready') < script.indexOf('extract_runtime:'))
   assert(script.indexOf('WaitForSingleObject') < script.indexOf('extract_runtime:'))
   assert(script.indexOf('runtime_ready:') > script.indexOf('extractEmbeddedAppPackage'))

@@ -23,14 +23,9 @@ function repairPortableScript(script, options = {}) {
   if (script.split(old).length !== 2) throw new Error('Portable NSIS template changed: review quoted launch command before release')
   script = script.replace(old, `ClearErrors\n\t${fixed}\n\tIfErrors 0 +3\n\tMessageBox MB_OK|MB_ICONSTOP 'QueAN could not start. Please extract the Windows unpacked ZIP package and run QueAN.exe.'\n\tStrCpy $0 1\n  FileOpen $R8 "$PLUGINSDIR\\startup.done" w\n  FileClose $R8`)
   const key = options.cacheKey || 'test-cache'
-  const feedback = options.feedback || require('node:path').resolve(__dirname, '../out/main/StartupFeedback.exe')
   script = `; QueAN_EARLY_FEEDBACK\n!define QueAN_CACHE_KEY "${key}"\nVar runtimeMutex\n${script}`
   script = script.replace('Function .onInit', `Function .onInit
-  InitPluginsDir
-  File /oname=$PLUGINSDIR\\StartupFeedback.exe "${feedback}"
-  System::Call 'kernel32::GetCurrentProcessId() i.r9'
-  System::Call 'kernel32::SetEnvironmentVariable(t "QueAN_BOOT_SIGNAL", t "$PLUGINSDIR\\startup.done")'
-  Exec '"$PLUGINSDIR\\StartupFeedback.exe" "$PLUGINSDIR\\startup.done" "$9"'`)
+  InitPluginsDir`)
   const remove = 'RMDir /r $INSTDIR'
   if (script.split(remove).length !== 3) throw new Error('Portable NSIS template changed: review cache cleanup')
   script = script.replace(remove, `StrCpy $INSTDIR "$INSTDIR\\\${QueAN_CACHE_KEY}"
