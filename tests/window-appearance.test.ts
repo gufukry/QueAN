@@ -7,7 +7,7 @@ import type { Display } from 'electron'
 test('Windows 主窗口使用透明背景以支持界面圆角', () => {
   const options = windowAppearance('win32')
   assert.equal(options.frame, false)
-  assert.equal(options.transparent, true)
+  assert.equal(options.transparent, false)
   assert.equal(options.backgroundColor, '#00000000')
   assert.equal(options.backgroundMaterial, undefined)
   assert.equal(options.roundedCorners, true)

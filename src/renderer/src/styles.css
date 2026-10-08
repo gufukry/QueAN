@@ -6,6 +6,11 @@
 /* Keep the native traffic lights clear of branding and editable page content. */
 html[data-platform="darwin"] .sidebar { padding-top: 38px; }
 html[data-platform="darwin"] .shell { border-radius: 0; }
+/* Windows：方角 + 铺满，配合不透明窗口底色，彻底无黑边 */
+html[data-platform="win32"] .shell { border-radius: 0; box-shadow: none; border: none; }
+html[data-platform="win32"],
+html[data-platform="win32"] body,
+html[data-platform="win32"] #app { background: var(--bg); }
 
 :root {
   --bg: #10191b;
