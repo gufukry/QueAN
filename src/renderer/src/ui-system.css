@@ -124,3 +124,17 @@ html[data-motion="reduced"] details::details-content { transition:none; }
 }
 
 .ic-tabs button { transition:background-color 180ms ease,color 180ms ease; }
+/* ===== macOS 风格控件覆盖 ===== */
+.btn { border-radius: 8px; min-height: 32px; padding: 5px 14px; }
+.btn-gold { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.btn-gold:hover:not(:disabled) { filter: brightness(1.06); box-shadow: none; }
+.btn-ghost { background: color-mix(in srgb, var(--card-solid, var(--card)) 60%, transparent); border: 1px solid var(--border); }
+.btn-ghost:hover:not(:disabled) { background: var(--card-2); border-color: var(--border-strong); }
+.btn-sm { min-height: 28px; }
+.icon-btn { border-radius: 7px; }
+.content :is(.input, .select, .select-menu-btn) { border-radius: 8px; min-height: 32px; }
+.content :is(.input, .select):focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.modal :is(.input, .select) { border-radius: 8px; }
+.card { border-radius: 12px; }
+.slider { border-radius: 999px; }
+.slider::-webkit-slider-thumb { background: #fff; border: 1px solid rgba(0,0,0,.14); box-shadow: 0 1px 3px rgba(0,0,0,.28); }

@@ -1103,4 +1103,8 @@ onUnmounted(() => {
 .qe-icon svg { width: 24px; height: 24px; }
 .qe-label { font-weight: 600; }
 @media (max-width: 700px) { .qe-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* macOS 风格：启动按钮扁平化 */
+.launch-combo { border-radius: 10px; }
+.launch-main, .launch-arrow { background: var(--accent); }
+.launch-main { font-weight: 600; letter-spacing: 0; }
 </style>
