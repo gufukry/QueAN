@@ -78,7 +78,7 @@
     },
     "portable": {
       "unpackDirName": false,
-      "artifactName": "QueAN-${version}.exe"
+      "artifactName": "QueAN.exe"
     },
     "appImage": { "executableArgs": [] },
     "mac": {
