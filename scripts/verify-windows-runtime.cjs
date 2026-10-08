@@ -4,20 +4,8 @@ const asar = require('asar')
 function verifyWindowsRuntime(appOutDir) {
   const archive = path.join(appOutDir, 'resources/app.asar')
   const names = asar.listPackage(archive).map(n => n.replaceAll('\\', '/').replace(/^\//, ''))
-  // 1.1.7 intentionally adds seven lossless user-provided illustrations (~10 MiB).
-  // Verify those exact assets separately; keep the existing 16 MiB code/dependency budget.
-  const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex')
-  let illustrationBytes = 0
-  for (const id of ['piston', 'brewer', 'cannon', 'cactus', 'farmer', 'camp', 'sunset']) {
-    const matches = names.filter(name => new RegExp('^out/renderer/assets/' + id + '-[^/]+\\.webp$').test(name))
-    assert.equal(matches.length, 1, 'Exactly one bundled illustration: ' + id)
-    const bytes = asar.extractFile(archive, matches[0].split('/').join(path.sep))
-    const source = fs.readFileSync(path.resolve(__dirname, '../src/renderer/src/assets/launch', id + '.webp'))
-    assert.equal(digest(bytes), digest(source), 'Bundled illustration changed: ' + id)
-    illustrationBytes += bytes.length
-  }
-  assert(illustrationBytes < 11 * 1024 * 1024, 'Illustrations exceed reviewed 11 MiB budget')
-  assert(fs.statSync(archive).size - illustrationBytes < 16 * 1024 * 1024, 'Application code/dependencies exceed 16 MiB: review payload growth before release')
+  // 内置启动插画已移除；仅保留代码/依赖体积预算。
+  assert(fs.statSync(archive).size < 16 * 1024 * 1024, 'Application code/dependencies exceed 16 MiB: review payload growth before release')
   for (const name of names) {
     const entry = asar.statFile(archive, name.split('/').join(path.sep))
     if (entry.files) continue

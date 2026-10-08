@@ -10,44 +10,6 @@ import { parse, compileScript, compileTemplate } from '@vue/compiler-sfc'
 import { BUILTIN_LAUNCH_IMAGES } from '../src/shared/launchImages'
 import { activeCarouselKeys, carouselImages, carouselKeys, carouselSelection, carouselTiming, MAX_CAROUSEL_IMAGES } from '../src/shared/appearancePolicy'
 
-const builtins = BUILTIN_LAUNCH_IMAGES.map(image => image.key)
-test('all seven bundled illustrations exactly preserve the pixels supplied by the user', async () => {
-  const pixels = [
-    'e8c74509e9f57c18c99df123e87bdc41752b069f2876671893b691a124b40456',
-    '30a8f343d3549ca13b6c5b69146b5e0b86e32d0d9f21b997ba5915fc2249808d',
-    'be20c272883fbeee485d09f8b033d1fbd030ba3a9df0a1cb1e2e756b5fbf1c76',
-    '0945dacc3d2c8d292c4418c19afe0e317771c1c2ebf7d926697de5112a349503',
-    '5b8bac38860c285b2abcf5361682e0671e08a62d55229afff1c647736e2c8a33',
-    '042a68cbf1faded3d6e8b3b29e12a3ee4bf4df5b74d1537e6cdfb42a84d95e4a',
-    '0fd4efc56307d9b90b4c721361f5d193c1ce464390fff5ce630177ef4af9535f'
-  ]
-  for (const [index, image] of BUILTIN_LAUNCH_IMAGES.entries()) {
-    const decoded = await sharp(path.join('src/renderer/src/assets/launch', image.file)).raw().toBuffer()
-    assert.equal(createHash('sha256').update(decoded).digest('hex'), pixels[index], image.title)
-  }
-})
-test('new gallery mixes all seven builtins and retained legacy custom pictures in stable order', () => {
-  const old = { image: 'first.png', images: ['first.png', 'second.png', 'first.png'], fit: 'crop' as const }
-  assert.deepEqual(activeCarouselKeys(old), [...builtins, 'first.png', 'second.png'])
-  assert.deepEqual(carouselImages(old), ['first.png', 'second.png'])
-  assert.equal(carouselKeys({ images: Array.from({ length: 60 }, (_, i) => 'custom-' + i) }).length, 7 + MAX_CAROUSEL_IMAGES)
-})
-test('deselection retains files and timings, empty selection never resurrects defaults', () => {
-  const custom = 'managed-custom.webp'
-  const settings = { images: [custom], disabled: [...builtins, custom], durations: { [custom]: 13, [builtins[1]]: 9, unknown: 10 } }
-  assert.deepEqual(activeCarouselKeys(settings), [])
-  assert.deepEqual(carouselImages(settings), [custom])
-  assert.deepEqual(carouselTiming(settings).durations, { [custom]: 13, [builtins[1]]: 9 })
-  assert.deepEqual(activeCarouselKeys({ ...settings, disabled: [...builtins] }), [custom])
-})
-test('mixed order rejects unknown IDs, duplicates and stale custom references, then appends new imports', () => {
-  const selection = carouselSelection({ images: ['a', 'b'], order: ['b', builtins[3], 'removed', 'b'], disabled: ['b', 'removed', builtins[0]] })
-  assert.deepEqual(selection.order, ['b', builtins[3], ...builtins.filter(key => key !== builtins[3]), 'a'])
-  assert.deepEqual(selection.disabled, ['b', builtins[0]])
-  const newer = { ...selection, images: ['a', 'b', 'new'] }
-  assert.equal(carouselKeys(newer).at(-1), 'new')
-  assert.deepEqual(carouselSelection(JSON.parse(JSON.stringify(newer))), { ...selection, order: [...selection.order, 'new'] })
-})
 test('gallery controls and external favorite buttons compile across their actual Vue templates', () => {
   for (const file of ['views/HomeView.vue', 'components/HomeLayoutEditor.vue', 'views/CommunityView.vue', 'components/FavoriteModsPicker.vue', 'components/FileManager.vue']) {
     const { descriptor, errors } = parse(fs.readFileSync('src/renderer/src/' + file, 'utf8'))
