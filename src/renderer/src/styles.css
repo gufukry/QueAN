@@ -8,6 +8,10 @@ html[data-platform="darwin"] .sidebar { padding-top: 38px; }
 html[data-platform="darwin"] .shell { border-radius: 0; }
 /* Windows：界面铺满窗口、不自画圆角，避免四个黑角；圆角由系统窗口形状负责 */
 html[data-platform="win32"] .shell { border-radius: 0; box-shadow: none; }
+/* Windows：根节点铺一层主题底色，避免窗口底色（黑）从边缘/圆角漏出 */
+html[data-platform="win32"],
+html[data-platform="win32"] body,
+html[data-platform="win32"] #app { background: var(--bg); }
 
 :root {
   --bg: #10191b;
