@@ -1745,7 +1745,7 @@ onUnmounted(() => {
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
   border-radius: var(--radius-lg);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 18px 48px rgba(0,0,0,.16);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
 }
 /* 自定义背景层：垫底铺满，不拦截交互 */
 .app-bg {

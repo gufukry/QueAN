@@ -11,7 +11,8 @@ test('Windows 主窗口使用透明背景以支持界面圆角', () => {
   assert.equal(options.backgroundColor, '#00000000')
   assert.equal(options.backgroundMaterial, undefined)
   assert.equal(options.roundedCorners, true)
-  assert.equal(options.thickFrame, true)
+  assert.equal(options.thickFrame, false)
+  assert.equal(options.hasShadow, false)
 })
 
 test('macOS 清空原生窗口底色以透出毛玻璃，保留系统红绿灯', () => {

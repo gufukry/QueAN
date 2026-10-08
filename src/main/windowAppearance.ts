@@ -46,7 +46,8 @@ export function windowAppearance(
     backgroundColor: '#00000000',
     backgroundMaterial: undefined,
     roundedCorners: true,
-    hasShadow: true,
-    thickFrame: true
+    // Windows 透明无边框窗口：关掉厚边框与阴影，消除四周原生黑边/黑角残留。
+    hasShadow: platform !== 'win32',
+    thickFrame: platform !== 'win32'
   }
 }
