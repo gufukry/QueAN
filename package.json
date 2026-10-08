@@ -74,7 +74,7 @@
         "zip"
       ],
       "artifactName": "QueAN-${version}-windows-${arch}.${ext}",
-      "icon": "build/icon.png"
+      "icon": "build/icon.ico"
     },
     "portable": {
       "unpackDirName": false,
