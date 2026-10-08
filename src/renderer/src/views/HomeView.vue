@@ -490,22 +490,7 @@ onUnmounted(() => {
 <template>
   <div data-ui="HomeView:a32c099bc136" class="home-dashboard">
     <div data-ui="HomeView:5fc354f9fa6d" class="home-main">
-      <section data-ui="HomeView:53555cbc5ab3" class="hero-card" :class="{ 'no-banner': !banners.length }" data-edit="banner">
-        <img data-ui="HomeView:1182a4262184"
-          v-for="item in bannerLayers"
-          :key="item.path"
-          :src="item.src"
-          class="hero-image"
-          :class="{ active: item.index === bannerIndex }"
-          :style="{ objectFit: item.fit }"
-          alt=""
-          aria-hidden="true"
-          @error="onBannerError(item)"
-          @load="readyBanners.add(item.src)"
-          @transitionend="finishBannerExit(item.index, $event)"
-        />
-        <div data-ui="HomeView:5838d59b9e2a" v-if="banners.length" class="hero-shade"></div>
-
+      <section data-ui="HomeView:53555cbc5ab3" class="hero-card no-banner" data-edit="banner">
         <div data-ui="HomeView:2e850cf13849" class="hero-content" data-edit="bannerText">
           <span data-ui="HomeView:13616e708e66" class="hero-kicker">当前版本</span>
           <div data-ui="HomeView:027bc7e292dc" class="hero-metadata-slot">
@@ -824,7 +809,12 @@ onUnmounted(() => {
 }
 .hero-image { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity var(--motion-carousel) ease; }
 .hero-image.active { opacity: 1; }
-.hero-card.no-banner { background: var(--surface-content); box-shadow: none; }
+.hero-card.no-banner {
+  height: auto;
+  min-height: 300px;
+  background: radial-gradient(130% 150% at 0% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 62%), var(--surface-content);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 14%, transparent), 0 12px 30px rgba(0, 0, 0, 0.10);
+}
 .no-banner .hero-content, .no-banner .hero-content h1, .no-banner .hero-game-version { color: var(--text); text-shadow: none; }
 .no-banner .hero-kicker, .no-banner .hero-settings, .no-banner .hero-more { background: var(--card-2); color: var(--text); border-color: var(--border); backdrop-filter: none; }
 .no-banner .loader-badge { color: var(--accent-2); background: var(--accent-soft); }
