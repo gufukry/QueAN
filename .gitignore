@@ -1,6 +1,7 @@
 node_modules/
 out/
 release/
+.aicode/
 素材/
 dist-win*.log
 builder-*.log
