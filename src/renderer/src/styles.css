@@ -181,6 +181,8 @@ body {
   -webkit-font-smoothing: antialiased;
   user-select: none;
 }
+/* 输入控件仍允许选择与粘贴 */
+input, textarea, [contenteditable='true'] { user-select: text; }
 
 ::selection {
   background: color-mix(in srgb, var(--accent) 30%, transparent);

@@ -15,6 +15,7 @@ import {
 } from './core/launcherLog'
 import { getSettings, migrateLegacyAppearanceAssets } from './core/settings'
 import { windowAppearance } from './windowAppearance'
+import { installContextMenu } from './contextMenu'
 import { applyNativeAppearance } from './nativeAppearance'
 import { loadWindowState, trackWindowState, applyMaximized, toggleMaximize, restoreWindowBounds } from './windowState'
 import { stopDirectHost } from './core/directConnect'
@@ -120,6 +121,7 @@ function createWindow(startup?: Awaited<ReturnType<typeof createStartupSplash>>)
   if (startup) { prepareStartupFrames(win); startup.attach(win) }
   else   win.on('ready-to-show', () => win?.show())
   win.webContents.once('did-finish-load', () => { void frpManager.restore().catch(error => launcherLogWarn('frp', '恢复隧道失败', error)) })
+  installContextMenu(win)
   applyNativeAppearance(win, getSettings())
   if (process.platform === 'win32' && windowState) restoreWindowBounds(win, windowState)
   if (windowState?.maximized) applyMaximized(win)
