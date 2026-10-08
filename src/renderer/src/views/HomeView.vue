@@ -391,6 +391,16 @@ const updateRecentWidth = () => { wideRecent.value = window.innerWidth >= 1500 }
 onMounted(() => window.addEventListener('resize', updateRecentWidth))
 onUnmounted(() => window.removeEventListener('resize', updateRecentWidth))
 const recent = computed(() => sortWithFavorite(activeInstalled.value).slice(0, wideRecent.value ? 8 : 4))
+
+/** 首页快捷入口 */
+const quickEntries = [
+  { key: 'game', label: '安装新版本', view: 'game', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M12 8v6M9 11h6"/><path d="M2 20h20"/></svg>' },
+  { key: 'accounts', label: '账号管理', view: 'accounts', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>' },
+  { key: 'skins', label: '皮肤', view: 'skins', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 4-6 3 2 5 3-1v9h8v-9l3 1 2-5-6-3a3 3 0 0 1-6 0Z"/></svg>' },
+  { key: 'community', label: '社区资源', view: 'community', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a13.5 13.5 0 0 1 0 18"/><path d="M12 3a13.5 13.5 0 0 0 0 18"/></svg>' },
+  { key: 'friends', label: '联机', view: 'friends', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="3"/><path d="M2 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M18 15a5 5 0 0 1 4 5"/></svg>' },
+  { key: 'settings', label: '设置', view: 'settings', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>' }
+] as const
 const sortedInstalled = computed(() => sortWithFavorite(store.installed))
 
 const versionMenu = reactive({ open: false, top: 0, left: 0, width: 230 })
@@ -603,6 +613,16 @@ onUnmounted(() => {
         <button data-ui="HomeView:c485ad83d7d3" v-else class="empty-instances" @click="store.currentView = 'game'">
           尚未安装游戏实例，点击前往版本管理
         </button>
+      </section>
+
+      <section data-ui="HomeView:quickentries01" class="quick-entries">
+        <div class="qe-head"><h2 data-ui="HomeView:quickhead001">快捷入口</h2></div>
+        <div class="qe-grid">
+          <button data-ui="HomeView:quickentryitem" v-for="q in quickEntries" :key="q.key" class="qe-item" @click="store.currentView = q.view">
+            <span class="qe-icon" v-html="q.icon"></span>
+            <span class="qe-label">{{ q.label }}</span>
+          </button>
+        </div>
       </section>
       </main>
       <aside data-ui="HomeView:3ce39fef1300" class="home-side">
@@ -1073,4 +1093,14 @@ onUnmounted(() => {
 @media (max-width: 700px) {
   .home-side { grid-template-columns: minmax(0, 1fr); }
 }
+.quick-entries { background: var(--surface-content); border: 1px solid var(--border); border-radius: 15px; padding: 16px; }
+.qe-head h2 { margin: 0 0 10px; font-size: var(--text-lg); }
+.qe-head h2::before { content: ''; display: inline-block; width: 4px; height: 14px; margin-right: 8px; border-radius: 2px; background: var(--accent); vertical-align: -2px; }
+.qe-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.qe-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--card-2); color: var(--text); font-family: inherit; font-size: var(--text-sm); cursor: pointer; transition: border-color .16s ease, background .16s ease, transform .16s ease; }
+.qe-item:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--card-2)); transform: translateY(-1px); }
+.qe-icon { display: flex; color: var(--accent-2); }
+.qe-icon svg { width: 24px; height: 24px; }
+.qe-label { font-weight: 600; }
+@media (max-width: 700px) { .qe-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
