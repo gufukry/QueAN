@@ -253,7 +253,14 @@ async function cfSearch(q: CommunityQuery): Promise<CommunitySearchPage> {
   if (q.loader && usesCommunityLoader(q.kind)) params.set('modLoaderType', String(CF_LOADER_TYPE[q.loader]))
   const data = (await cfFetch(`/mods/search?${params.toString()}`)) as { data?: CfMod[]; pagination?: { totalCount: number } }
   if (!Number.isFinite(data.pagination?.totalCount)) throw new Error('CurseForge 未返回结果总数，请重试')
-  const items = (data.data ?? []).map((m) => ({
+  const items = (data.data ?? []).map(cfResultItem)
+  // CurseForge 只允许访问前 10,000 个结果。
+  const total = Math.min(10000, data.pagination!.totalCount)
+  return { items, total, offset: q.offset, limit: q.limit }
+}
+
+function cfResultItem(m: CfMod): CommunityResult {
+  return {
     source: 'curseforge' as const,
     projectId: String(m.id ?? ''),
     slug: m.slug ?? '',
@@ -266,10 +273,7 @@ async function cfSearch(q: CommunityQuery): Promise<CommunitySearchPage> {
     categories: (m.categories ?? [])
       .map((c) => c.name)
       .filter((n): n is string => !!n)
-  }))
-  // CurseForge 只允许访问前 10,000 个结果。
-  const total = Math.min(10000, data.pagination!.totalCount)
-  return { items, total, offset: q.offset, limit: q.limit }
+  }
 }
 
 interface CfFile {
@@ -342,8 +346,12 @@ const hasChinese = (s: string): boolean => /[一-鿿]/.test(s)
 
 // ---------------- 中文名检索（community-zh 映射表） ----------------
 
-/** 中文关键词反查 slug：精确名 > 前缀命中 > 包含命中；精选表靠前故优先（取前 5 个 slug） */
-function zhKeywordToSlugs(keyword: string): string[] {
+/** 中文关键词命中多少个 slug 就停下（Modrinth 能批量取，CurseForge 只能逐个取） */
+const ZH_MATCH_LIMIT = 120
+const ZH_CF_LOOKUP_LIMIT = 15
+
+/** 中文关键词命中的 slug：完全同名 > 前缀命中 > 包含命中；精选表靠前故优先。 */
+function zhMatchedSlugs(keyword: string, limit = ZH_MATCH_LIMIT): string[] {
   const kw = keyword.trim().toLowerCase()
   if (!kw || !hasChinese(kw)) return []
   const rank = (zh: string): number => zh === kw ? 0 : zh.startsWith(kw) ? 1 : 2
@@ -356,9 +364,90 @@ function zhKeywordToSlugs(keyword: string): string[] {
     for (const slug of slugs) {
       if (!seen.has(slug)) { seen.add(slug); out.push(slug) }
     }
-    if (out.length >= 5) break
+    if (out.length >= limit) break
   }
-  return out.slice(0, 5)
+  return out.slice(0, limit)
+}
+
+interface MrProject {
+  id?: string
+  slug?: string
+  title?: string
+  description?: string
+  icon_url?: string | null
+  downloads?: number
+  updated?: string
+  categories?: string[]
+  game_versions?: string[]
+  loaders?: string[]
+  project_type?: string
+}
+
+/** 按 slug 批量取 Modrinth 工程（含下载量）；一次最多 50 个，失败交由另一来源兜底。 */
+async function mrProjectsBySlug(slugs: string[], filter: CommunityFileFilter): Promise<CommunityResult[]> {
+  const items: CommunityResult[] = []
+  for (let index = 0; index < slugs.length; index += 50) {
+    const ids = JSON.stringify(slugs.slice(index, index + 50))
+    let list: MrProject[]
+    try { list = await mrFetch(`/projects?ids=${encodeURIComponent(ids)}`) as MrProject[] } catch { continue }
+    for (const p of Array.isArray(list) ? list : []) {
+      if (p.project_type !== 'mod' || !p.id || !p.slug || !p.title) continue
+      if (filter.mcVersion && !(p.game_versions ?? []).includes(filter.mcVersion)) continue
+      if (filter.loader && !(p.loaders ?? []).map((l) => l.toLowerCase()).includes(filter.loader)) continue
+      items.push({
+        source: 'modrinth', projectId: String(p.id), slug: p.slug, title: p.title, author: '',
+        description: p.description ?? '', iconUrl: p.icon_url ?? '', downloads: p.downloads ?? 0,
+        updatedAt: p.updated ?? '', categories: p.categories ?? []
+      })
+    }
+  }
+  return items
+}
+
+/** 按 slug 逐个取 CurseForge 工程；镜像优先、官方兜底（与 curseForgeFilePage 同一策略）。
+ *  只查前若干个，避免一次搜索发太多请求。 */
+async function cfProjectsBySlug(slugs: string[], filter: CommunityFileFilter): Promise<CommunityResult[]> {
+  const { httpFetch } = await import('./httpClient')
+  const sources: Array<{ base: string; headers?: Record<string, string> }> = [{ base: CF_MIRROR }]
+  try {
+    const channel = cfChannel()
+    sources.push({ base: channel.base, headers: channel.official ? { 'x-api-key': channel.key } : undefined })
+  } catch { /* 读不到设置就只用镜像 */ }
+  const picked = await Promise.all(slugs.slice(0, ZH_CF_LOOKUP_LIMIT).map(async (slug) => {
+    const params = new URLSearchParams({ gameId: '432', classId: String(CF_CLASS_ID.mod), slug, pageSize: '1' })
+    if (filter.mcVersion) params.set('gameVersion', filter.mcVersion)
+    if (filter.loader) params.set('modLoaderType', String(CF_LOADER_TYPE[filter.loader]))
+    for (const source of sources) {
+      try {
+        const res = await httpFetch(`${source.base}/mods/search?${params.toString()}`, { headers: source.headers, signal: AbortSignal.timeout(6000) })
+        if (!res.ok) { await res.body?.cancel(); continue }
+        const data = await res.json() as { data?: CfMod[] }
+        const mod = (data.data ?? [])[0]
+        if (mod && String(mod.id ?? '')) return cfResultItem(mod)
+      } catch { /* 换另一个公开元数据源 */ }
+    }
+    return null
+  }))
+  return picked.filter((item): item is CommunityResult => item !== null)
+}
+
+/** 中文关键词：把命中的模组全部取回来（两来源去重），按下载量/更新时间排序后分页。 */
+async function zhDirectPage(q: CommunityQuery, slugs: string[]): Promise<CommunitySearchPage> {
+  const [modrinth, curseforge] = await Promise.all([
+    q.source === 'curseforge' ? Promise.resolve<CommunityResult[]>([]) : mrProjectsBySlug(slugs, q),
+    q.source === 'modrinth' ? Promise.resolve<CommunityResult[]>([]) : cfProjectsBySlug(slugs, q)
+  ])
+  const seen = new Set<string>()
+  const items: CommunityResult[] = []
+  for (const item of [...modrinth, ...curseforge]) {
+    const key = (item.slug || `${item.source}:${item.projectId}`).toLowerCase()
+    if (!key || seen.has(key)) continue
+    seen.add(key); items.push(item)
+  }
+  items.sort(q.sort === 'newest'
+    ? (a, b) => b.updatedAt.localeCompare(a.updatedAt)
+    : (a, b) => b.downloads - a.downloads)
+  return { items: withZhTitle(items.slice(q.offset, q.offset + q.limit)), total: items.length, offset: q.offset, limit: q.limit, warnings: [] }
 }
 
 /** 给搜索结果标题加中文名前缀（slug 命中映射表时） */
@@ -380,10 +469,13 @@ const providerSearch = (source: CommunitySource, q: CommunityQuery) => source ==
 export async function communitySearchPage(input: CommunityQuery): Promise<CommunitySearchPage> {
   const q: CommunityQuery = {
     ...input, ...effectiveCommunityFilter(input),
-    keyword: (input.kind === 'mod' ? zhKeywordToSlugs(input.keyword)[0] : undefined) ?? input.keyword.trim(),
+    keyword: input.keyword.trim(),
     offset: Math.max(0, Math.floor(input.offset || 0)),
     limit: Math.max(1, Math.min(50, Math.floor(input.limit || 20)))
   }
+  // 中文关键词：映射表命中就直接把相关模组全列出来（按下载量排序），不再拿单个 slug 做英文文本搜索。
+  const zhSlugs = input.kind === 'mod' ? zhMatchedSlugs(input.keyword) : []
+  if (zhSlugs.length) return zhDirectPage(q, zhSlugs)
   if (q.source !== 'all') {
     const page = await providerSearch(q.source, q)
     return { ...page, items: withZhTitle(page.items) }

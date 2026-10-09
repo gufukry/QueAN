@@ -15,6 +15,14 @@ async function fixture(t: any, totals = { modrinth: 45, curseforge: 7 }, failCf 
     const mr = url.pathname.startsWith('/v2') || url.pathname.includes('/modrinth/')
     if (!mr && failCf) return new Response('', { status: 503 })
     const search = url.searchParams
+    // 中文别名走批量工程接口；刻意混入不兼容工程，最终筛选必须把它们剔除。
+    if (url.pathname.endsWith('/projects')) {
+      const ids = JSON.parse(search.get('ids') || '[]') as string[]
+      return Response.json(ids.flatMap(id => [
+        { id: 'mr-' + id, slug: id, title: 'MR ' + id, project_type: 'mod', game_versions: ['26.2'], loaders: ['fabric'], downloads: 2 },
+        { id: 'mr-' + id + '-bad', slug: id + '-bad', title: 'BAD ' + id, project_type: 'mod', game_versions: ['1.20.1'], loaders: ['forge'], downloads: 99 }
+      ]))
+    }
     if (url.pathname.endsWith('/search')) {
       const total = mr ? totals.modrinth : totals.curseforge
       const offset = Number(search.get(mr ? 'offset' : 'index'))
@@ -80,12 +88,15 @@ test('all resource kinds retain version/source/sort filters; only mods and modpa
   }
 })
 
-test('Chinese mod aliases keep Fabric and Minecraft filters instead of injecting unfiltered projects', async t => {
+test('Chinese mod aliases resolve mapped projects by slug and keep version/loader filters', async t => {
   const { runtime, urls } = await fixture(t)
-  await runtime.communitySearchPage({ ...query, keyword: '钠', kind: 'mod', source: 'modrinth' })
-  assert.equal(urls.length, 1)
-  assert.equal(urls[0].searchParams.get('query'), 'sodium')
-  assert(JSON.parse(urls[0].searchParams.get('facets')!).flat().includes('categories:fabric'))
+  const page = await runtime.communitySearchPage({ ...query, keyword: '钠', kind: 'mod', source: 'modrinth' })
+  const bulk = urls.find(u => u.pathname.endsWith('/projects'))
+  assert.ok(bulk, '中文关键词应按 slug 批量取工程')
+  assert(JSON.parse(bulk!.searchParams.get('ids')!).includes('sodium'))
+  assert(page.items.some(i => i.slug === 'sodium'))
+  assert(page.items.every(i => i.slug.endsWith('-bad') === false), '不符合版本/加载器筛选的工程不得混入')
+  assert(page.items.every(i => i.source === 'modrinth' && !i.title.startsWith('BAD')), '只应返回 Modrinth 来源且筛选通过的工程')
 })
 
 test('partial provider outage reports honest totals and an explicit warning', async t => {
