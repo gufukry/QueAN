@@ -1036,6 +1036,7 @@ async function onRemovePlugin(p: PluginInfo) {
             <span data-ui="SettingsView:0447f8159ad6" class="upd-pending-text">{{ updateReadyMessage(`v${pendingUpdate.release.version} 已就绪`) }}</span>
             <button data-ui="SettingsView:5bd17b41383a" class="btn btn-gold btn-sm" @click="onApplyPending">{{ installAction }}</button>
           </div>
+          <p class="muted group-hint">QueAN 是基于 KAMUCL v1.1.15（MIT 许可）的二次开发（二开）项目，保留原始版权与许可声明；为第三方非官方版本，与上游作者无关。</p>
           <p class="muted group-hint">更新包发布在 GitHub Releases，下载自动走镜像加速。仅提供「检查更新」与「立即更新」。</p>
         </div>
       </details>

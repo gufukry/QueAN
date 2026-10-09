@@ -1,8 +1,8 @@
 {
   "name": "quean",
   "productName": "QueAN",
-  "version": "1.0.5",
-  "description": "QueAN - 简约美观的一键式 Minecraft 启动器",
+  "version": "1.0.0",
+  "description": "QueAN - 基于 KAMUCL 二次开发（二开）的 Minecraft 启动器",
   "homepage": "https://github.com/gufukry/QueAN",
   "main": "out/main/index.js",
   "scripts": {

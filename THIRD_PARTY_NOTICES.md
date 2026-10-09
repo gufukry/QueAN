@@ -3,6 +3,18 @@
 The root MIT license covers original QueAN contributions only. Third-party
 copyright, license and trademark rights remain with their respective holders.
 
+## 上游与二次开发说明 / Upstream and derivative status — MIT
+
+QueAN 是基于 **KAMUCL v1.1.15** 的**二次开发（二开）**版本，并保留上游全部版权与
+许可声明。上游项目：https://github.com/kamubaba-i/KAMUCL （MIT）。
+
+QueAN is a **secondary development (二开) derived from KAMUCL v1.1.15**, distributed
+under the same MIT terms. Original copyright notices are retained verbatim. This is
+an unofficial, third-party build: it is not affiliated with, endorsed by, or
+supported by the upstream author. QueAN's own modifications remain MIT; upstream
+MIT-licensed code and all app icon/branding differences are documented in LICENSE
+and this file.
+
 ## VoxLink protocol integration — LGPL-3.0-only
 
 Upstream: https://github.com/AUGUHDAR/VoxLink
