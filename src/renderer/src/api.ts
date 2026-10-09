@@ -352,6 +352,10 @@ export const onUpdateSlowHint = (cb: (r: { taskId: string }) => void) =>
 export const onUpdateReady = (cb: (r: { version: string }) => void) =>
   subscribe<{ version: string }>(IPC_EVENT.updateReady, cb)
 
+/** 用户重复启动启动器时触发：已有实例已把窗口拉到前台。 */
+export const onAlreadyRunning = (cb: () => void) =>
+  subscribe<undefined>(IPC_EVENT.alreadyRunning, () => cb())
+
 // ---------------- 桥接 MOD 实时配置面板 ----------------
 export const bridgeStatus = (versionId: string) =>
   invoke<import('@shared/types').BridgeStatus>(IPC.bridgeStatus, versionId)

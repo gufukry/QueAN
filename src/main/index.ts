@@ -29,6 +29,7 @@ import { getRunningGamePids } from './core/launch'
 import { exitHistory, rememberExit } from './core/exitHistory'
 import { configureRuntimeGraphics } from './runtimeGraphics'
 import { resynchronizeWindowsRestore } from './windowRestoreVisibility'
+import { IPC_EVENT } from '../shared/types'
 
 configureRuntimeGraphics(app.commandLine, process.platform, dirname(process.execPath))
 
@@ -194,7 +195,29 @@ function createWindow(startup?: Awaited<ReturnType<typeof createStartupSplash>>)
   }
 }
 
+// ---------------- 单实例：同一时间只允许一个启动器 ----------------
+// 拿不到锁说明已有实例在运行：把那个窗口拉到前台并让本次启动退出，避免「开一堆」。
+// 锁按 userData 目录生效，所以即使从不同安装目录启动也只允许一个。
+const singleInstanceLock = app.requestSingleInstanceLock()
+if (!singleInstanceLock) {
+  launcherLogInfo('main', '已有启动器实例在运行，本次启动退出')
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    const target = win ?? BrowserWindow.getAllWindows()[0]
+    launcherLogInfo('window', '检测到重复启动，已聚焦已有窗口')
+    if (!target || target.isDestroyed()) return
+    if (target.isMinimized()) target.restore()
+    if (!target.isVisible()) target.show()
+    target.focus()
+    // 告知渲染层显示一次提示，避免用户以为「点了没反应」。
+    if (!target.webContents.isDestroyed()) target.webContents.send(IPC_EVENT.alreadyRunning)
+  })
+}
+
 app.whenReady().then(async () => {
+  // 第二个实例拿到锁失败时已经请求退出：不要再建窗口，等它退干净。
+  if (!singleInstanceLock) return
   initializeLauncherLog()
   launcherLogInfo('main', `Electron 就绪（版本 ${app.getVersion()}）`)
   if (await applyUpdateOnStartup()) return

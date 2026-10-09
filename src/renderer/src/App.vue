@@ -25,6 +25,7 @@ import {
   getSettings,
   installModpack,
   onGameDirDone,
+  onAlreadyRunning,
   onInstallDone,
   onLaunchLog,
   onLaunchState,
@@ -1114,6 +1115,9 @@ onMounted(async () => {
     }),
     onUpdateReady((r) => {
       toast(updateReadyMessage(`新版本 v${r.version} 已下载完成`), 'success')
+    }),
+    onAlreadyRunning(() => {
+      toast('启动器已在运行，已切回已有窗口', 'info')
     }),
     onInstallDone((r) => {
       store.installing.delete(r.versionId)
