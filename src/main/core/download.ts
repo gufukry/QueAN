@@ -63,7 +63,22 @@ export class DownloadHttpError extends Error {
 class InvalidContent extends Error {}
 class NetworkIdle extends Error {}
 export const transferTimeouts = { inactivityMs: 15_000, alternativeHeadersMs: 2500 }
-export const slowSpeedThresholds = { largeFileBytes: 1024*1024, largeWindowMs: 8000, largeMinBps: 256*1024, smallWindowMs: 4000, smallMinBps: 32*1024, windowMs: 15000, minWindowBytes: 16*1024, warmupBytes: 1024*1024, warmupMs: 15000 }
+export const slowSpeedThresholds = {
+  largeFileBytes: 1024*1024,
+  largeWindowMs: 8000,
+  largeMinBps: 256*1024,
+  smallWindowMs: 4000,
+  smallMinBps: 32*1024,
+  // 绝对下限：4s 窗口内少于 64KB（≈16KB/s）即判过慢。
+  // 参照 PCL/Axolotl 的 absolute floor（16KB/s），而不是老版本的「12000 秒 16KB」这种近乎不判的阀值。
+  windowMs: 4000,
+  minWindowBytes: 64*1024,
+  warmupBytes: 1024*1024,
+  warmupMs: 15000,
+  // 尾巴宽限：剩余不足 256KB 时不再判慢（轴后不再抖）。
+  // 整文件下载器常取 1MB，但我们的传输单元是 1MB 分片，取 256KB 以免误杀「快下完的最后一片」。
+  minRemainingBytes: 256*1024
+}
 const failures = new Map<string, { count: number; until: number }>()
 const origin = (url: string) => { try { return new URL(url).origin } catch { return url } }
 const serverCooldowns = new Map<string, number>()
@@ -148,7 +163,8 @@ async function receive(url: string, temporary: string, expected: Integrity, sign
   while ((serverCooldowns.get(origin(url)) ?? 0) > Date.now()) {
     await abortableDelay(Math.min(1000, serverCooldowns.get(origin(url))! - Date.now()), signal)
   }
-  const release = await downloadLimiter.acquire(signal)
+  // 多源时按域名限并发（避免一个镜像吃满名额）；单源不限，保持满速。
+  const release = await downloadLimiter.acquire(signal, hasAlternative ? origin(url) : undefined)
   const controller = new AbortController()
   const abort = () => controller.abort(signal?.reason)
   signal?.addEventListener('abort', abort, { once: true })
@@ -189,10 +205,14 @@ async function receive(url: string, temporary: string, expected: Integrity, sign
         const aggressive = hasAlternative && (expected.size ?? 0) >= slow.largeFileBytes
         const ready = transferred >= slow.warmupBytes || elapsed >= slow.warmupMs
         const rate = windowBytes / (windowTime / 1000)
+        // 尾巴宽限：快下完时即使忽快忽慢也不再换源/掐断，避免最后一小段反复重来。
+        // 宽限量与本次传输量挂钩（取 256KB 与 10% 的较小值），否则小文件会被整段豁免。
+        const graceBytes = Math.min(slow.minRemainingBytes, Math.floor((typeof required === 'number' && Number.isFinite(required) ? required : 0) * 0.1))
+        const tailGrace = Number.isFinite(remainingBytes) && remainingBytes > 0 && remainingBytes < graceBytes
         // Small mods/assets used to tolerate a few KB/s indefinitely. Switch only
         // when an exact alternate exists and finishing is not already imminent.
-        const smallStalled = smallAlternative && rate < slow.smallMinBps && remainingBytes > 0 && remainingBytes / Math.max(1, rate) > slow.smallWindowMs / 1000
-        if ((aggressive && rate < slow.largeMinBps) || smallStalled || (ready && windowBytes < slow.minWindowBytes)) controller.abort(new NetworkIdle('下载速度过慢'))
+        const smallStalled = !tailGrace && smallAlternative && rate < slow.smallMinBps && remainingBytes > 0 && remainingBytes / Math.max(1, rate) > slow.smallWindowMs / 1000
+        if (!tailGrace && ((aggressive && rate < slow.largeMinBps) || smallStalled || (ready && windowBytes < slow.minWindowBytes))) controller.abort(new NetworkIdle('下载速度过慢'))
         windowTime = 0; windowBytes = 0
       }
     }, Math.max(10, Math.min(100, transferTimeouts.inactivityMs / 4)))

@@ -6,7 +6,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { once } from 'node:events'
 import { downloadAll, retryAfterTime } from '../src/main/core/download'
-import { DEFAULT_DOWNLOAD_LIMITS, downloadLimiter, DownloadLimiter, validateDownloadLimits } from '../src/main/core/downloadLimits'
+import { DEFAULT_DOWNLOAD_LIMITS, downloadLimiter, DownloadLimiter, HOST_CONNECTION_LIMIT, validateDownloadLimits } from '../src/main/core/downloadLimits'
 
 test('default pool downloads distinct files concurrently and respects the shared configured ceiling', async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'quean-many-files-'))
@@ -75,4 +75,27 @@ test('排队与限速等待均可立即取消，取消后不会泄漏并发名�
   await assert.rejects(waiting)
   assert.throws(() => validateDownloadLimits({ downloadThreads: 0, downloadSpeedKBps: 0 }))
   assert.throws(() => validateDownloadLimits({ downloadThreads: 8, downloadSpeedKBps: NaN }))
+})
+
+test('单域名并发上限：多源下载时同一域名最多 32 条连接，释放后自动补位', async () => {
+  const limiter = new DownloadLimiter()
+  limiter.configure({ downloadThreads: 64, downloadSpeedKBps: 0 })
+  let aActive = 0, bActive = 0
+  const releases: Array<() => void> = []
+  const jobs = [
+    ...Array.from({ length: 40 }, () => limiter.acquire(undefined, 'https://a.example').then((release) => { aActive++; releases.push(release) })),
+    ...Array.from({ length: 40 }, () => limiter.acquire(undefined, 'https://b.example').then((release) => { bActive++; releases.push(release) }))
+  ]
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  assert.equal(aActive, HOST_CONNECTION_LIMIT, '单域名不超过上限')
+  assert.equal(bActive, HOST_CONNECTION_LIMIT, '全局 64 用完：A 32 + B 32，两个源都被限住的队列在等')
+  // 释放一条 A 连接 → 队列里等待的 A 立即补位
+  releases[0]()
+  await new Promise((resolve) => setTimeout(resolve, 20))
+  assert.equal(aActive, HOST_CONNECTION_LIMIT + 1)
+  for (const release of [...releases]) release()
+  await Promise.allSettled(jobs)
+  await new Promise((resolve) => setTimeout(resolve, 20))
+  assert.equal(aActive, 40, '释放后全部完成')
+  assert.equal(bActive, 40)
 })
