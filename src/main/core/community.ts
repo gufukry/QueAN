@@ -342,16 +342,23 @@ const hasChinese = (s: string): boolean => /[一-鿿]/.test(s)
 
 // ---------------- 中文名检索（community-zh 映射表） ----------------
 
-/** 中文关键词反查 slug：中文名包含关键词的映射项（取前 5 个 slug） */
+/** 中文关键词反查 slug：精确名 > 前缀命中 > 包含命中；精选表靠前故优先（取前 5 个 slug） */
 function zhKeywordToSlugs(keyword: string): string[] {
   const kw = keyword.trim().toLowerCase()
   if (!kw || !hasChinese(kw)) return []
+  const rank = (zh: string): number => zh === kw ? 0 : zh.startsWith(kw) ? 1 : 2
   const out: string[] = []
-  for (const [zh, slugs] of Object.entries(ZH_TO_SLUGS)) {
-    if (zh.includes(kw)) out.push(...slugs)
+  const seen = new Set<string>()
+  const entries = Object.entries(ZH_TO_SLUGS)
+    .filter(([zh]) => zh.includes(kw))
+    .sort((a, b) => rank(a[0]) - rank(b[0]))
+  for (const [, slugs] of entries) {
+    for (const slug of slugs) {
+      if (!seen.has(slug)) { seen.add(slug); out.push(slug) }
+    }
     if (out.length >= 5) break
   }
-  return [...new Set(out)].slice(0, 5)
+  return out.slice(0, 5)
 }
 
 /** 给搜索结果标题加中文名前缀（slug 命中映射表时） */

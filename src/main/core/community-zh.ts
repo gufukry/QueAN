@@ -1,9 +1,11 @@
+import { ZH_MOD_DB } from './community-zh-db'
+
 /**
  * 热门 MOD 中文名映射（slug → 中文社区惯用名）。
  * 用于社区资源检索：中文关键词反查 slug 精确命中；结果展示「中文名 | 英文名」。
  * 表可持续扩充；slug 以 Modrinth/CurseForge 通用小写连字符形式为准。
  */
-export const MOD_ZH: Record<string, string> = {
+const CURATED_ZH: Record<string, string> = {
   // ---- 优化/性能 ----
   'sodium': '钠',
   'sodium-extra': '钠·扩展',
@@ -458,8 +460,105 @@ export const MOD_ZH: Record<string, string> = {
   'auroras': '极光',
   'better-clouds': '更好的云',
   'simple-clouds': '简单云',
-  'nocubes': '平滑地形 NoCubes'
+  'nocubes': '平滑地形 NoCubes',
+
+  // ---- 扩充：优化/性能 ----
+  'embeddium': '嵌入式优化',
+  'radium': '镭',
+  'debugify': '调试修复',
+  'ai-improvements': 'AI 性能改进',
+  'sodium-dynamic-lights': '钠：动态光源',
+
+  // ---- 扩充：辅助/工具 ----
+  'minihud': '迷你HUD',
+  'tweakeroo': '调整器',
+  'item-scroller': '物品滚轮',
+  'malilib': 'MaLiLib 库',
+  'replaymod': '回放模组',
+  'flashback': '闪回录制',
+  'natures-compass': '自然指南针',
+  'explorers-compass': '探险家指南针',
+  'comforts': '舒适睡袋',
+  'inventory-profiles-next': '物品栏配置',
+  'better-ping-display': '更好的延迟显示',
+  'legendary-tooltips': '传奇提示',
+  'held-item-info': '手持物品信息',
+  'shoulder-surfing-reloaded': '越肩视角',
+  'applied-energistics-2-wireless-terminals': 'AE2 无线终端',
+
+  // ---- 扩充：前置库 ----
+  'cristel-lib': 'Cristel 库',
+  'midnightlib': 'MidnightLib 库',
+  'supermartijn642s-config-lib': '超级马丁配置库',
+
+  // ---- 扩充：世界/地形/结构 ----
+  'geophilic': '亲自然',
+  'incendium': '炽焰 Incendium',
+  'amplified-nether': '放大的下界',
+  'structory': '结构化建筑',
+  'structory-towers': '结构塔',
+  'when-dungeons-arise': '地牢浮现之时',
+  'towns-and-towers': '城镇与高塔',
+  'dungeon-now-loading': '地牢加载中',
+  'borninchaos': '混沌降生',
+
+  // ---- 扩充：科技/能源 ----
+  'ae2': '应用能源2',
+  'mekanism-generators': '通用机械：发电机',
+  'mekanism-tools': '通用机械：工具',
+  'mekanism-additions': '通用机械：附加',
+  'immersivepetroleum': '沉浸石油',
+  'integrated-dynamics': '集成动力',
+  'integrated-tunnels': '集成隧道',
+  'computercraft': '电脑',
+  'cc-tweaked': 'CC：Tweaked',
+  'opencomputers': '开放式电脑',
+  'create-central-kitchen': '机械动力：中央厨房',
+  'create-confectionery': '机械动力：糖果工坊',
+  'create-steam-n-rails': '机械动力：蒸汽与铁轨',
+  'create-enchantment-industry': '机械动力：附魔工业',
+  'create-liquid-fuel': '机械动力：液体燃料',
+  'create-diesel-generators': '机械动力：柴油发电机',
+  'create-jetpack': '机械动力：喷气背包',
+  'create-ore-excavation': '机械动力：矿石开掘',
+  'create-mobile-packages': '机械动力：移动包裹',
+  'quark-oddities': '夸克：奇趣',
+  'enderchests': '末影箱',
+  'cooking-for-blockheads': '傻瓜式厨房',
+
+  // ---- 扩充：魔法 ----
+  'spectrum': '光谱',
+  'psi': 'Psi 法术',
+  'eidolon': '觉醒 Eidolon',
+  'hex-casting': '六角法术',
+  'irons-spells-n-spellbooks': '铁之法术与法术书',
+
+  // ---- 扩充：食物 ----
+  'farmers-respite': '农夫乐事：乐饮',
+  'delightful': '乐事：欣喜',
+  'miners-delight': '矿工乐事',
+  'nethers-delight': '下界乐事',
+  'ends-delight': '末地乐事',
+  'expanded-delight': '扩展乐事',
+  'corn-delight': '玉米乐事',
+  'brewin-and-chewin': '酿造与咀嚼',
+
+  // ---- 扩充：生物/战斗/装饰 ----
+  'creatures-and-beasts': '生灵与野兽',
+  'combat-roll': '战斗翻滚',
+  'parry-this': '格挡反击',
+  'beautify': '美化装饰',
+  'nemos-mossy-blocks': '苔藓方块',
+  'gravestone-mod': '墓碑',
+  'gravestones': '墓碑（Gravestones）',
+
+  // ---- 扩充：联机 ----
+  'lan-server-properties': '自定义局域网联机',
+  'mcwifipnp': '更高级联机设置'
 }
+
+/** 合并中文名映射：精选表在前，检索时优先级更高 */
+export const MOD_ZH: Record<string, string> = { ...CURATED_ZH, ...ZH_MOD_DB }
 
 /** 中文名 → slug 反向索引（检索用；一个中文名可命中多个 slug 的别名场景手动控制） */
 export const ZH_TO_SLUGS: Record<string, string[]> = (() => {
