@@ -273,7 +273,7 @@ async function receive(url: string, temporary: string, expected: Integrity, sign
 }
 
 /** Small resumable ranges share a live connection budget and retry independently. */
-async function segmented(url: string, dest: string, expected: Integrity, signal: AbortSignal | undefined, progress: ProgressFn | undefined, fallback: boolean, maxSegments: number | (() => number) = 8, alternatives: string[] = [], sourcePool?: DownloadSourcePool): Promise<number> {
+async function segmented(url: string, dest: string, expected: Integrity, signal: AbortSignal | undefined, progress: ProgressFn | undefined, fallback: boolean, maxSegments: number | (() => number) = () => downloadLimiter.maxConcurrent, alternatives: string[] = [], sourcePool?: DownloadSourcePool): Promise<number> {
   const cache = path.resolve(dest + '.segments-cache'), size = expected.size!
   const clear = async () => { if (path.dirname(cache) !== path.dirname(path.resolve(dest))) throw new Error('缓存路径越界'); await fs.promises.rm(cache, { recursive: true, force: true }) }
   try { const stat = await fs.promises.lstat(cache); if (stat.isSymbolicLink() || !stat.isDirectory()) throw new Error('下载缓存不是普通目录') } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error }
@@ -281,7 +281,7 @@ async function segmented(url: string, dest: string, expected: Integrity, signal:
   try { previous = JSON.parse(await fs.promises.readFile(path.join(cache, 'identity.json'), 'utf8')) } catch {}
   const compatible = previous.version === 1 && previous.size === size && previous.sha1 === expected.sha1 && previous.sha512 === expected.sha512 && previous.sha256 === expected.sha256 && Number.isSafeInteger(previous.step) && previous.step! > 0 && previous.step! <= size
   // Keep old valid fragments, including those created with a different thread setting.
-  const step = compatible ? previous.step! : Math.min(4 * 1024 * 1024, Math.max(1024 * 1024, Math.ceil(size / 16)), Math.ceil(size / 2))
+  const step = compatible ? previous.step! : Math.min(1024 * 1024, Math.ceil(size / 2))
   const count = Math.ceil(size / step)
   if (!compatible) {
     await clear(); await fs.promises.mkdir(cache, { recursive: true })
@@ -354,22 +354,24 @@ async function segmented(url: string, dest: string, expected: Integrity, signal:
     }
     emit()
     const seg = Math.floor(typeof maxSegments === 'function' ? maxSegments() : maxSegments) || 1
-    const startBudget = Math.max(1, Math.min(8, downloadLimiter.maxConcurrent, seg))
-    // 慢就加：以 8 路起步，整体速度持续偏低时每秒追加一路，最高到 hardCap（不盲目堆连接）。
-    const hardCap = Math.max(startBudget, Math.min(16, downloadLimiter.maxConcurrent, seg))
+    const startBudget = Math.max(1, Math.min(16, downloadLimiter.maxConcurrent, seg))
+    // 快就继续加：每 0.5s 评估一次，只要加速后总速度没回落就继续翻倍加路，直
+    // 到用满配置线程数或链路饱和（加路反而变慢就停手）；慢速链路持续加路到上限。
+    const hardCap = Math.max(startBudget, Math.min(downloadLimiter.maxConcurrent, seg))
     let budget = startBudget
-    let meterBytes = received.reduce((a, b) => a + b, 0), meterAt = performance.now()
+    let meterBytes = received.reduce((a, b) => a + b, 0), meterAt = performance.now(), lastSpeed = -1
     await new Promise<void>((resolve, reject) => {
       let cursor = 0, active = 0, failure: unknown
       const pump = () => {
         if (controller.signal.aborted) failure ??= controller.signal.reason
         if (failure) { if (!active) reject(failure); return }
         const now = performance.now()
-        if (budget < hardCap && now - meterAt >= 1000) {
+        if (budget < hardCap && cursor < count && now - meterAt >= 500) {
           const bytes = received.reduce((a, b) => a + b, 0)
           const speed = (bytes - meterBytes) * 1000 / (now - meterAt)
           meterBytes = bytes; meterAt = now
-          if (speed < 256 * 1024 && cursor < count) budget++
+          if (lastSpeed < 0 || speed >= lastSpeed * 0.95 || speed < 256 * 1024) budget = Math.min(hardCap, budget + Math.max(1, Math.round(budget / 4)))
+          lastSpeed = speed
         }
         while (active < budget && cursor < count && !isTaskPaused(signal)) {
           const index = cursor++
