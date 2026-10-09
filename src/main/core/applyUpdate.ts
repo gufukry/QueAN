@@ -161,7 +161,7 @@ export async function applyUpdateOnStartup(): Promise<boolean> {
     // Old pending files are upgraded only after obtaining and verifying the published checksum.
     if (!t) {
       const legacy = getPendingUpdate()
-      if (!legacy) return false
+      if (!legacy) { cleanupUpdateLeftovers(); return false }
       if (compareSemver(legacy.release.version, currentVersion()) <= 0) { clearPendingUpdate(); return false }
       const hash = (await fetchSha256Sums(legacy.release.assetUrl, undefined, updateMirrorPrefix(getSettings())))?.get(legacy.release.assetName)
       if (!hash) throw new Error('旧更新记录缺少可信校验值，请重新下载')
@@ -206,12 +206,37 @@ export async function acknowledgeUpdateStartup(): Promise<void> {
   const state = getUpdateState()
   if (state?.to === t.release.version) atomicUpdateJson(stateFile(), { ...state, result: 'ok' })
   atomicUpdateJson(claim + '.receipt.json', { id: t.id, version: currentVersion() })
+  // 更新助手收到回执后会自行退出，稍等再把桌面上的更新残留清掉。
+  setTimeout(() => { try { cleanupUpdateLeftovers() } catch { /* 忽略 */ } }, 8000)
 }
 
 /** 当前是否有更新包在下载中（防重复触发自动下载） */
 let autoDownloadingVersion: string | null = null
 export function isUpdateDownloading(): boolean {
   return !!autoDownloadingVersion || !!activeDownload
+}
+
+/**
+ * 更新成功后清理安装目录（常常是桌面）里的残留：已下载的安装包、旧版备份、更新标记文件。
+ * 与 PCL 一致：更新完只留一个 QueAN.exe，不在旁边堆文件夹。
+ * 只在收到启动回执（result=ok）后执行，且有待安装更新时不动。
+ */
+export function cleanupUpdateLeftovers(): void {
+  const exe = currentPortableExe()
+  if (!exe) return
+  if (getUpdateState()?.result !== 'ok') return
+  if (readUpdateTransaction(updateMarker(exe), exe)) return
+  const dir = path.dirname(exe)
+  for (const target of [updateDirOf(exe), backupDirOf(exe)]) {
+    try { fs.rmSync(target, { recursive: true, force: true }) } catch (e) { updateLog.warn(`清理更新残留失败：${target}`, e) }
+  }
+  const exeName = path.basename(exe)
+  try {
+    for (const name of fs.readdirSync(dir)) {
+      if (!name.startsWith('.queanupdate') && !(name.startsWith(exeName + '.') && name.endsWith('.swap'))) continue
+      try { fs.rmSync(path.join(dir, name), { recursive: true, force: true }) } catch { /* 忽略单个文件 */ }
+    }
+  } catch { /* 目录读不到就算了 */ }
 }
 
 /**

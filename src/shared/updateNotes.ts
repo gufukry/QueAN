@@ -11,6 +11,13 @@ export interface UpdateNote {
 /** 按版本倒序；latest 为当前版本 */
 export const updateNotes: UpdateNote[] = [
   {
+    "version": "1.0.5",
+    "date": "2026-10-09 09:36",
+    "changes": [
+      "更新完成后自动清理安装目录里的残留（已下载的安装包与分片缓存、旧版备份、更新标记文件），不再在桌面堆文件夹（对齐 PCL）"
+    ]
+  },
+  {
     "version": "1.0.4",
     "date": "2026-10-09 09:15",
     "changes": [

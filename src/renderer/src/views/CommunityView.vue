@@ -146,6 +146,8 @@ async function loadManifest() {
 /** 版本筛选下拉（支持输入搜索定位） */
 const versionInput = ref('')
 const versionDropdownOpen = ref(false)
+/** 实例下拉当前选中项；默认空 = 不按实例筛选（版本/加载器默认全部） */
+const instanceFilterId = ref('')
 const filteredVersionOptions = computed(() => {
   const kw = versionInput.value.trim().toLowerCase()
   if (!kw) return manifestVersions.value.slice(0, 60)
@@ -156,12 +158,19 @@ function pickVersion(v: string) {
   query.mcVersion = v
   versionInput.value = query.mcVersion
   versionDropdownOpen.value = false
+  instanceFilterId.value = ''
   onFilterChange()
 }
 
 function applyVersionInput() {
   query.mcVersion = versionInput.value.trim()
   versionDropdownOpen.value = false
+  instanceFilterId.value = ''
+  onFilterChange()
+}
+
+function onLoaderChange() {
+  instanceFilterId.value = ''
   onFilterChange()
 }
 
@@ -171,8 +180,8 @@ const query = reactive({
   keyword: '',
   kind: 'mod' as CommunityKind,
   source: 'all' as 'all' | CommunitySource,
-  mcVersion: currentInstance.value?.mcVersion === '未知' ? '' : currentInstance.value?.mcVersion ?? '',
-  loader: currentInstance.value?.loader ?? '' as '' | LoaderName,
+  mcVersion: '',
+  loader: '' as '' | LoaderName,
   sort: 'relevance' as 'relevance' | 'downloads' | 'newest'
 })
 // query 必须先初始化。过早运行 getter 会抛错，导致监听未订阅分类变化。
@@ -284,6 +293,7 @@ function useCurrentInstance() {
   query.mcVersion = currentInstance.value?.mcVersion === '未知' ? '' : currentInstance.value?.mcVersion ?? ''
   query.loader = currentInstance.value?.loader ?? ''
   versionInput.value = query.mcVersion
+  instanceFilterId.value = currentInstance.value ? instanceKey(currentInstance.value) : ''
   onFilterChange()
 }
 versionInput.value = query.mcVersion
@@ -296,6 +306,7 @@ function useInstance(id: string) {
   query.mcVersion = v.mcVersion === '未知' ? '' : v.mcVersion
   query.loader = v.loader ?? ''
   versionInput.value = query.mcVersion
+  instanceFilterId.value = id
   onFilterChange()
 }
 
@@ -312,6 +323,7 @@ function onReset() {
   query.loader = ''
   query.sort = 'relevance'
   versionInput.value = ''
+  instanceFilterId.value = ''
   void doSearch(true)
 }
 
@@ -485,7 +497,7 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
 
       <div data-ui="CommunityView:f7acd66aeb10" class="filter-row instance-row">
         <label data-ui="CommunityView:34312978e030" class="instance-label">选择版本</label>
-        <SelectMenu v-if="store.installed.length" class="filter-select instance-filter" aria-label="选择版本" :model-value="currentInstance ? instanceKey(currentInstance) : ''" placeholder="选择实例…" :options="store.installed.filter(x => !x.failed && !x.incomplete).map(v => ({value:instanceKey(v),label:versionLabel(v),description:[v.mcVersion,v.loader,v.folder].filter(Boolean).join(' · ')}))" @change="useInstance" />
+        <SelectMenu v-if="store.installed.length" class="filter-select instance-filter" aria-label="选择版本" :model-value="instanceFilterId" placeholder="选择实例…" :options="store.installed.filter(x => !x.failed && !x.incomplete).map(v => ({value:instanceKey(v),label:versionLabel(v),description:[v.mcVersion,v.loader,v.folder].filter(Boolean).join(' · ')}))" @change="useInstance" />
         <button data-ui="CommunityView:49df26abb0c5" class="btn btn-ghost btn-sm" @click="useCurrentInstance">使用当前实例</button>
       </div>
     <CommunityFavorites v-if="communityTab === 'favorites'" :keyword="favoriteSearch" @download="openDownload($event, 'mod')" @details="detailProject = $event" @browse="communityTab = 'browse'; query.kind = 'mod'; onFilterChange()" />
@@ -555,7 +567,7 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
             <div data-ui="CommunityView:6570e9d15e20" v-if="!filteredVersionOptions.length" class="ver-menu-empty">无匹配版本</div>
           </div>
         </div>
-        <SelectMenu aria-label="加载器" v-if="supportsLoader" v-model="query.loader" class="filter-select" :options="loaderOptions" @change="onFilterChange" />
+        <SelectMenu aria-label="加载器" v-if="supportsLoader" v-model="query.loader" class="filter-select" :options="loaderOptions" @change="onLoaderChange" />
         <SelectMenu aria-label="排序" v-model="query.sort" class="filter-select" :options="sortOptions" @change="onFilterChange" />
       </div>
     </div>
