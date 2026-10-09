@@ -14,6 +14,7 @@ import { finishTask, registerTask } from './tasks'
 import { currentVersion, fetchSha256Sums, sha256File } from './selfUpdate'
 import { logScope } from './launcherLog'
 import { isolatedUpdateTest, trustedUpdateRelease, updateAssetName } from './updateTrust'
+import { UPDATE_MIRRORS } from '../../shared/branding'
 import { macAppTarget, macUpdateSupported, macUpdateDir, readMacUpdate, clearMacUpdate, stageMacUpdate, blockedMacVersion, applyMacUpdateOnStartup, acknowledgeMacUpdate, stageMacBackup } from './macUpdate'
 import { linuxAppTarget, linuxUpdateSupported, linuxUpdateDir, readLinuxUpdate, clearLinuxUpdate, stageLinuxUpdate, blockedLinuxVersion, applyLinuxUpdateOnStartup, acknowledgeLinuxUpdate, stageLinuxBackup, validateLinuxPendingUpdate } from './linuxUpdate'
 
@@ -271,19 +272,23 @@ export async function applyPendingIfAny(): Promise<boolean> {
 
 // ---------------- 下载源 ----------------
 
-/** 更新镜像前缀：direct 不镜像，其余（auto/mirror）用配置或默认的 GitHub 加速前缀。 */
-function updateMirrorPrefix(settings: Pick<Settings, 'updateSource' | 'updateMirrorUrl'>): string {
-  return (settings.updateSource ?? 'auto') === 'direct' ? '' : (settings.updateMirrorUrl || 'https://ghproxy.net/').trim()
+/** 更新镜像前缀列表：自定义地址优先，其余按内置镜像顺序；direct 不使用镜像。 */
+function updateMirrorPrefixes(settings: Pick<Settings, 'updateSource' | 'updateMirrorUrl'>): string[] {
+  if ((settings.updateSource ?? 'auto') === 'direct') return []
+  const custom = (settings.updateMirrorUrl || '').trim()
+  return custom ? [custom, ...UPDATE_MIRRORS.filter((m) => m !== custom)] : [...UPDATE_MIRRORS]
 }
 
-/** 按设置构造下载候选 URL 列表（auto=直连优先镜像兜底；direct=仅直连；mirror=仅镜像） */
+/** 只需要单个前缀的场景（如取校验文件）用首选镜像。 */
+function updateMirrorPrefix(settings: Pick<Settings, 'updateSource' | 'updateMirrorUrl'>): string {
+  return updateMirrorPrefixes(settings)[0] ?? ''
+}
+
+/** 按设置构造下载候选 URL 列表（auto=镜像优先、直连兜底；direct=仅直连；mirror=仅镜像）。 */
 export function updateDownloadCandidates(assetUrl: string, settings: Pick<Settings, 'updateSource' | 'updateMirrorUrl'>): string[] {
-  const mirrorPrefix = updateMirrorPrefix(settings)
-  const mirrored = mirrorPrefix ? mirrorPrefix + assetUrl : ''
-  const source = settings.updateSource ?? 'auto'
-  if (source === 'direct') return [assetUrl]
-  if (source === 'mirror') return mirrored ? [mirrored] : [assetUrl]
-  return mirrored ? [mirrored, assetUrl] : [assetUrl]
+  const mirrored = updateMirrorPrefixes(settings).map((prefix) => prefix + assetUrl)
+  if ((settings.updateSource ?? 'auto') === 'mirror') return mirrored.length ? mirrored : [assetUrl]
+  return [...mirrored, assetUrl]
 }
 
 // ---------------- 下载（接入下载中心） ----------------
