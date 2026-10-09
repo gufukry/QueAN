@@ -121,9 +121,12 @@ function openVerifyPage() {
 let offMsDone: (() => void) | null = null
 
 // ---------------- 外置 Yggdrasil ----------------
+/** 常用外置登录提供商；默认选中第一项，免得每次手填 API Root。 */
+const PROVIDER_PRESETS = [{ name: 'LittleSkin', url: 'https://littleskin.cn/api/yggdrasil' }]
 const providers = ref<YggdrasilProvider[]>([])
 const providerModal = reactive({
   open: false,
+  preset: '' as string,
   source: '' as string,
   input: null as YggdrasilProviderInput | null,
   probing: false,
@@ -163,9 +166,11 @@ async function loadProviders() {
 }
 
 function openProviderImport(input?: YggdrasilProviderInput) {
+  const preset = input ? '' : PROVIDER_PRESETS[0].url
   Object.assign(providerModal, {
     open: true,
-    source: input?.value ?? '',
+    preset,
+    source: input?.value ?? preset,
     input: input ?? null,
     probing: false,
     saving: false,
@@ -175,6 +180,12 @@ function openProviderImport(input?: YggdrasilProviderInput) {
     candidate: null
   })
   if (input) void probeProviderInput()
+}
+
+/** 选中常用提供商时同步填入 API Root；选“自定义”则保留用户当前输入。 */
+function applyProviderPreset(url: string) {
+  providerModal.preset = url
+  if (url) providerModal.source = url
 }
 
 async function probeProviderInput() {
@@ -613,6 +624,17 @@ async function onRemove(acc: Account) {
         <div class="modal provider-modal">
           <h3 class="modal-title">添加外置登录提供商</h3>
           <p class="muted ms-tip">支持 API Root、authlib-injector 拖拽 URI，以及 QueAN 提供商 JSON/TXT 文件。</p>
+          <label class="provider-input-label">
+            <span>常用提供商</span>
+            <select
+              class="select"
+              :value="providerModal.preset"
+              @change="applyProviderPreset(($event.target as HTMLSelectElement).value)"
+            >
+              <option v-for="preset in PROVIDER_PRESETS" :key="preset.url" :value="preset.url">{{ preset.name }}</option>
+              <option value="">自定义 / 其他方式</option>
+            </select>
+          </label>
           <label class="provider-input-label">
             <span>API Root 或配置内容</span>
             <textarea
