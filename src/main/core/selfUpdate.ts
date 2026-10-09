@@ -69,7 +69,7 @@ function writeCache(cache: CheckCache): void {
   }
 }
 
-interface GhAsset { name?: string; browser_download_url?: string; size?: number }
+interface GhAsset { name?: string; browser_download_url?: string; size?: number; digest?: string }
 interface GhRelease {
   tag_name?: string
   name?: string
@@ -87,6 +87,11 @@ function pickPortableExe(assets: GhAsset[] | undefined, version: string): GhAsse
   return assets.find((a) => typeof a.name === 'string' && names.includes(a.name)) ?? null
 }
 
+/** GitHub 资产摘要 `sha256:<hex>` → 纯 hex（找不到或格式不符返回 undefined） */
+function assetDigest(digest: unknown): string | undefined {
+  return typeof digest === 'string' && /^sha256:[0-9a-f]{64}$/i.test(digest) ? digest.slice(7).toLowerCase() : undefined
+}
+
 function toReleaseInfo(j: GhRelease): ReleaseInfo | null {
   const version = String(j.tag_name ?? '').replace(/^v/i, '')
   if (!version) return null
@@ -97,7 +102,8 @@ function toReleaseInfo(j: GhRelease): ReleaseInfo | null {
     body: String(j.body ?? ''),
     assetUrl: asset?.browser_download_url ?? '',
     assetSize: Number(asset?.size ?? 0),
-    assetName: asset?.name ?? ''
+    assetName: asset?.name ?? '',
+    assetDigest: assetDigest(asset?.digest)
   }
   return trustedUpdateRelease(release) ? release : null
 }

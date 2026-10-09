@@ -296,9 +296,14 @@ export function startUpdateDownload(release: ReleaseInfo, settings: Pick<Setting
 
   const done = (async () => {
     try {
-      // 先取校验值（安全优先：取不到不开始下载）
-      const sums = await fetchSha256Sums(release.assetUrl, undefined, updateMirrorPrefix(settings))
-      const expected = sums?.get(release.assetName) ?? sums?.get(path.basename(dest)) ?? null
+      // 校验值优先用 GitHub Release 资产自带的 digest（就在已经拿到的 API 响应里，
+      // 不再为了 77 字节的 SHA256SUMS.txt 多跑一趟；国内多一次 GitHub 请求就是几十秒）。
+      // 只有 API 没给摘要时才回退去取 SHA256SUMS.txt（镜像优先）。
+      let expected = release.assetDigest ?? null
+      if (!expected) {
+        const sums = await fetchSha256Sums(release.assetUrl, undefined, updateMirrorPrefix(settings))
+        expected = sums?.get(release.assetName) ?? sums?.get(path.basename(dest)) ?? null
+      }
       if (!expected) throw new Error('无法获取更新包校验值（SHA256SUMS），已中止（安全考虑）')
       await downloadAll(
         [{ url, urls: alternates, dest, sha256: expected, size: release.assetSize || undefined }],

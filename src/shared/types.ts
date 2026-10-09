@@ -473,6 +473,8 @@ export interface ReleaseInfo {
   assetSize: number
   /** 资产文件名（QueAN-x.y.z.exe） */
   assetName: string
+  /** 资产 SHA256（GitHub Release API 的 digest 字段，hex 小写；缺失时回退 SHA256SUMS.txt） */
+  assetDigest?: string
 }
 
 /** 更新检查结果 */
