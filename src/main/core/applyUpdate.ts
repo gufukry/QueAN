@@ -9,6 +9,7 @@ import type { LocalUpdateCheck, ProgressEvent, ReleaseInfo, Settings, UpdateStat
 import { IPC_EVENT } from '../../shared/types'
 import { compareSemver } from '../../shared/semver'
 import { downloadAll } from './download'
+import { getSettings } from './settings'
 import { finishTask, registerTask } from './tasks'
 import { currentVersion, fetchSha256Sums, sha256File } from './selfUpdate'
 import { logScope } from './launcherLog'
@@ -162,7 +163,7 @@ export async function applyUpdateOnStartup(): Promise<boolean> {
       const legacy = getPendingUpdate()
       if (!legacy) return false
       if (compareSemver(legacy.release.version, currentVersion()) <= 0) { clearPendingUpdate(); return false }
-      const hash = (await fetchSha256Sums(legacy.release.assetUrl))?.get(legacy.release.assetName)
+      const hash = (await fetchSha256Sums(legacy.release.assetUrl, undefined, updateMirrorPrefix(getSettings())))?.get(legacy.release.assetName)
       if (!hash) throw new Error('旧更新记录缺少可信校验值，请重新下载')
       const dest = path.join(updateDirOf(exe), randomUUID(), legacy.release.assetName)
       fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.copyFileSync(legacy.file, dest)
@@ -245,9 +246,14 @@ export async function applyPendingIfAny(): Promise<boolean> {
 
 // ---------------- 下载源 ----------------
 
+/** 更新镜像前缀：direct 不镜像，其余（auto/mirror）用配置或默认的 GitHub 加速前缀。 */
+function updateMirrorPrefix(settings: Pick<Settings, 'updateSource' | 'updateMirrorUrl'>): string {
+  return (settings.updateSource ?? 'auto') === 'direct' ? '' : (settings.updateMirrorUrl || 'https://ghproxy.net/').trim()
+}
+
 /** 按设置构造下载候选 URL 列表（auto=直连优先镜像兜底；direct=仅直连；mirror=仅镜像） */
 export function updateDownloadCandidates(assetUrl: string, settings: Pick<Settings, 'updateSource' | 'updateMirrorUrl'>): string[] {
-  const mirrorPrefix = (settings.updateMirrorUrl || 'https://ghproxy.net/').trim()
+  const mirrorPrefix = updateMirrorPrefix(settings)
   const mirrored = mirrorPrefix ? mirrorPrefix + assetUrl : ''
   const source = settings.updateSource ?? 'auto'
   if (source === 'direct') return [assetUrl]
@@ -291,7 +297,7 @@ export function startUpdateDownload(release: ReleaseInfo, settings: Pick<Setting
   const done = (async () => {
     try {
       // 先取校验值（安全优先：取不到不开始下载）
-      const sums = await fetchSha256Sums(release.assetUrl)
+      const sums = await fetchSha256Sums(release.assetUrl, undefined, updateMirrorPrefix(settings))
       const expected = sums?.get(release.assetName) ?? sums?.get(path.basename(dest)) ?? null
       if (!expected) throw new Error('无法获取更新包校验值（SHA256SUMS），已中止（安全考虑）')
       await downloadAll(
@@ -393,7 +399,7 @@ export async function checkLocalUpdateFile(filePath: string): Promise<LocalUpdat
   let sha: LocalUpdateCheck['sha256'] = 'unknown'
   let detail = ''
   try {
-    const sums = await fetchSha256Sums()
+    const sums = await fetchSha256Sums(undefined, undefined, updateMirrorPrefix(getSettings()))
     const expected = sums?.get(fileName) ?? null
     if (expected) {
       const actual = await sha256File(filePath)

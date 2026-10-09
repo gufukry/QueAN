@@ -235,9 +235,11 @@ export function parseSha256Sums(text: string): Map<string, string> {
 }
 
 /** Resolve the requested release's checksums, never a different latest version's manifest. */
-export async function fetchSha256Sums(releaseAssetUrlHint?: string, fetcher: typeof ghFetch = ghFetch): Promise<Map<string, string> | null> {
+export async function fetchSha256Sums(releaseAssetUrlHint?: string, fetcher: typeof ghFetch = ghFetch, mirrorPrefix?: string): Promise<Map<string, string> | null> {
   const urls: string[] = []
   const expectedName = releaseAssetUrlHint?.split('/').at(-1)
+  // 国内直连 github.com 下载常常超时：与安装包用同一套候选顺序，镜像优先、直连兜底。
+  const preferMirror = (url: string): string[] => mirrorPrefix ? [mirrorPrefix + url, url] : [url]
   const read = async (url: string): Promise<Map<string, string> | null> => {
     try {
       const res = await fetcher(url)
@@ -247,8 +249,10 @@ export async function fetchSha256Sums(releaseAssetUrlHint?: string, fetcher: typ
     } catch { return null }
   }
   if (releaseAssetUrlHint) {
-    const exact = await read(releaseAssetUrlHint.replace(/[^/]+$/, 'SHA256SUMS.txt'))
-    if (exact) return exact
+    for (const url of preferMirror(releaseAssetUrlHint.replace(/[^/]+$/, 'SHA256SUMS.txt'))) {
+      const exact = await read(url)
+      if (exact) return exact
+    }
   }
   // mock/测试：下载基地址覆盖时直接从该基地址取
   const dlBase = downloadBaseOverride()
@@ -258,7 +262,7 @@ export async function fetchSha256Sums(releaseAssetUrlHint?: string, fetcher: typ
     if (res.ok) {
       const json = (await res.json()) as GhRelease
       const sums = (json.assets ?? []).find((a) => a.name === 'SHA256SUMS.txt')
-      if (sums?.browser_download_url) urls.push(sums.browser_download_url)
+      if (sums?.browser_download_url) urls.push(...preferMirror(sums.browser_download_url))
     }
   } catch { /* 继续用候选 */ }
   for (const url of urls) {
