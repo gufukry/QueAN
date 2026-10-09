@@ -581,6 +581,9 @@ input[type='number'] {
   position: fixed;
   inset: 0;
   z-index: 10000;
+  /* 弹窗会盖在 72px 顶栏之上，而顶栏是窗口拖拽区；不标 no-drag 的话
+     落在这一带的点击会被当成“拖动窗口”，按钮（如右上角关闭）就点不中。 */
+  -webkit-app-region: no-drag;
   display: flex;
   align-items: center;
   justify-content: center;

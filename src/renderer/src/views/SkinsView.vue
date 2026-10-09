@@ -37,6 +37,9 @@ const capes = computed(() => profile.value?.capes ?? [])
 /** 使用中的披风直接传给 3D 人偶渲染 */
 const activeCape = computed(() => capes.value.find((c) => c.active)?.dataUrl ?? '')
 const capeViewerError = ref('')
+watch(() => store.skinEditorRequest, (requested) => {
+  if (requested) { store.skinEditorRequest = false; editorOpen.value = true }
+})
 watch(activeCape, () => { capeViewerError.value = '' })
 
 let profileRequest = 0, historyRequest = 0
@@ -76,6 +79,8 @@ function updateAnimSegBlob() {
 watch(previewAnim, () => nextTick(updateAnimSegBlob))
 let animSegObserver: ResizeObserver | null = null
 onMounted(() => {
+  // 首页「绘制皮肤」入口跳过来时直接打开编辑器（一次性）。
+  if (store.skinEditorRequest) { store.skinEditorRequest = false; editorOpen.value = true }
   nextTick(updateAnimSegBlob)
   setTimeout(updateAnimSegBlob, 200)
   animSegObserver = new ResizeObserver(() => updateAnimSegBlob())

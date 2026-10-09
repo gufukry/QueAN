@@ -681,6 +681,7 @@ onUnmounted(() => {
       <section data-ui="HomeView:f56ae81d7b8f" class="skin-panel" data-edit="card">
         <div data-ui="HomeView:a11abb820a96" class="skin-head">
           <div><h3>皮肤预览</h3><span>{{ currentSkin ? (skinVariant === 'slim' ? '纤细模型' : '经典模型') : '动态角色' }}</span></div>
+          <button class="skin-edit" title="打开皮肤绘制编辑器" @click="store.skinEditorRequest = true; store.currentView = 'skins'">绘制皮肤</button>
           <button data-ui="HomeView:d5082937e164" class="skin-refresh" :disabled="skinLoading || !store.selectedAccount" title="联网刷新皮肤（默认使用本地缓存）" @click="reloadSkin(true)">
             <svg :class="{ spinning: skinLoading }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7v5h-5" /><path d="M4 17v-5h5" /><path d="M6.1 9A7 7 0 0 1 18 6l2 1M4 17l2 1a7 7 0 0 0 11.9-3" /></svg>
           </button>
@@ -973,6 +974,8 @@ onUnmounted(() => {
 .account-copy span i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); }
 .account-copy .offline-state { color: var(--text-dim); }
 .account-more, .skin-refresh { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--text-dim); cursor: pointer; }
+.skin-edit { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-2); color: var(--text); font: inherit; font-size: 12px; cursor: pointer; }
+.skin-edit:hover { border-color: var(--accent); color: var(--accent-2); background: var(--accent-soft); }
 .account-more:hover, .skin-refresh:hover:not(:disabled) { color: var(--text); background: var(--hover); }
 .account-more svg, .skin-refresh svg { width: 17px; height: 17px; }
 .account-placeholder { display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; border: 1px dashed var(--border-strong); border-radius: 12px; color: var(--text-dim); font-size: 20px; }

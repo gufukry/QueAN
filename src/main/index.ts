@@ -18,18 +18,18 @@ import { windowAppearance } from './windowAppearance'
 import { installContextMenu } from './contextMenu'
 import { applyNativeAppearance } from './nativeAppearance'
 import { loadWindowState, trackWindowState, applyMaximized, toggleMaximize, restoreWindowBounds } from './windowState'
-import { stopDirectHost } from './core/directConnect'
-import { stopVoxlinkOnQuit } from './core/voxlink'
-import { stopTerracottaOnQuit } from './core/terracotta'
-import { frpManager } from './core/frpService'
 import { applyUpdateOnStartup, acknowledgeUpdateStartup, blockedUpdateVersion, getPendingUpdate } from './core/applyUpdate'
-import { startMemoryTrim } from './core/memTrim'
 import type { MemoryTrimController } from './core/memTrim'
-import { getRunningGamePids } from './core/launch'
 import { exitHistory, rememberExit } from './core/exitHistory'
 import { configureRuntimeGraphics } from './runtimeGraphics'
 import { resynchronizeWindowsRestore } from './windowRestoreVisibility'
 import { IPC_EVENT } from '../shared/types'
+
+/**
+ * 启动耗时标记：从进程启动（含 Electron 自身引导）算起。
+ * 每项优化都以此量化，避免靠感觉判断「卡不卡」。
+ */
+const startupMark = (): string => '+' + Math.round(process.uptime() * 1000) + 'ms'
 
 configureRuntimeGraphics(app.commandLine, process.platform, dirname(process.execPath))
 
@@ -58,7 +58,7 @@ app.commandLine.appendSwitch('process-per-site')
 // 启动日志尽 earliest 初始化：闪退发生在 app.whenReady 之前时也有据可查
 try {
   initializeLauncherLog()
-  launcherLogInfo('main', '主进程模块加载完成，开始初始化')
+  launcherLogInfo('main', `主进程模块加载完成，开始初始化（${startupMark()}）`)
 } catch {
   /* 日志不可影响启动 */
 }
@@ -121,7 +121,7 @@ function createWindow(startup?: Awaited<ReturnType<typeof createStartupSplash>>)
   })
   if (startup) { prepareStartupFrames(win); startup.attach(win) }
   else   win.on('ready-to-show', () => win?.show())
-  win.webContents.once('did-finish-load', () => { void frpManager.restore().catch(error => launcherLogWarn('frp', '恢复隧道失败', error)) })
+  win.webContents.once('did-finish-load', () => { void import('./core/frpService').then(({ frpManager }) => frpManager.restore()).catch((error: unknown) => launcherLogWarn('frp', '恢复隧道失败', error)) })
   installContextMenu(win)
   applyNativeAppearance(win, getSettings())
   if (process.platform === 'win32' && windowState) restoreWindowBounds(win, windowState)
@@ -219,14 +219,14 @@ app.whenReady().then(async () => {
   // 第二个实例拿到锁失败时已经请求退出：不要再建窗口，等它退干净。
   if (!singleInstanceLock) return
   initializeLauncherLog()
-  launcherLogInfo('main', `Electron 就绪（版本 ${app.getVersion()}）`)
+  launcherLogInfo('main', `Electron 就绪（版本 ${app.getVersion()}，${startupMark()}）`)
   if (await applyUpdateOnStartup()) return
   // IPC 与插件模块的加载（含整棵 core 依赖树）与闪屏创建并行地跑，
   // 不串行阻塞首屏；两者建成后再 await 结果。
   const ipcModule = import('./ipc')
   const pluginsModule = import('./core/plugins')
   const startup = await createStartupSplash()
-  launcherLogInfo('main', '启动闪屏已创建')
+  launcherLogInfo('main', `启动闪屏已创建（${startupMark()}）`)
   const { registerIpc } = await ipcModule
   protocol.handle('quean-asset', (request) => {
     if (request.method !== 'GET') return new Response('Method Not Allowed', { status: 405 })
@@ -245,7 +245,7 @@ app.whenReady().then(async () => {
   const { registerPluginProtocol } = await pluginsModule
   registerPluginProtocol()
   registerIpc(() => win && !win.isDestroyed() ? win : null)
-  launcherLogInfo('main', 'IPC 通道与插件协议注册完成')
+  launcherLogInfo('main', `IPC 通道与插件协议注册完成（${startupMark()}）`)
 
   // 存量实例自包含迁移（老式 inheritsFrom 继承 → 合并进实例，幂等）：基础版本改名/删除不再波及已装实例
   void import('./core/versions').then(({ migrateFlattenedInstances }) =>
@@ -283,20 +283,20 @@ app.whenReady().then(async () => {
   ipcMain.on('window:mascotQuit',event=>{if(event.sender===win?.webContents&&!mascotPending&&!skinEditorDirty&&!skinEditorPrefsPending&&!skinEditorBusy)app.quit()})
 
   createWindow(startup)
-  launcherLogInfo('main', '主窗口创建完成')
+  launcherLogInfo('main', `主窗口创建完成（${startupMark()}）`)
 
   // 首屏之后才需要的活儿放到窗口建完之后，不挡启动：
   // - 内存压榨控制器只是定时器 + 事件转发，晚一点启动对体验无影响；
   // - 旧版外观资源迁移只影响背景/缩略图，且幂等，晚一点跑不会丢东西。
-  void startMemoryTrim(() => win, (message) => launcherLogInfo('memory', message)).then((controller) => {
+  void import('./core/memTrim').then(({ startMemoryTrim }) => startMemoryTrim(() => win, (message: string) => launcherLogInfo('memory', message))).then((controller: MemoryTrimController) => {
     memTrim = controller
     launcherLogInfo('memory', '内存压榨控制器已启动（指标日志 5 分钟/条；静默 10 分钟后低频整理）')
-  }).catch((error) => launcherLogWarn('memory', '内存压榨控制器启动失败', error))
+  }).catch((error: unknown) => launcherLogWarn('memory', '内存压榨控制器启动失败', error))
   void migrateLegacyAppearanceAssets().catch((error) => launcherLogWarn('appearance', '旧版外观资源迁移失败，不阻断启动', error))
 
   // 自动更新计时器只注册一次；游戏状态由每个窗口的 renderer-ready 重放。
   win?.webContents.once('did-finish-load', () => {
-    // 更新：启动自动检查（自动安装模式静默下载；弹窗模式才提示）；已有就绪更新则通知
+    launcherLogInfo('startup', `渲染层加载完成（${startupMark()}）`)
     const runUpdateCheck = async (force: boolean) => {
       try {
         const { checkLatest, decideUpdateAction } = await import('./core/selfUpdate')
@@ -327,8 +327,9 @@ app.whenReady().then(async () => {
         launcherLogInfo('main', `启动自动检查更新失败（静默降级）：${e instanceof Error ? e.message : String(e)}`)
       }
     }
-    // 启动即检查一次（强制刷新，不看 6 小时缓存），有新版本就弹窗询问
-    void runUpdateCheck(true)
+    // 启动即检查一次（强制刷新，不看 6 小时缓存），有新版本就弹窗询问。
+    // 延后几秒再查：不影响「启动就提示」，但避开与首屏争网络/主线程。
+    setTimeout(() => void runUpdateCheck(true), 2500)
     // 运行中每 6 小时复查一次
     setInterval(() => void runUpdateCheck(false), 6 * 3600_000)
   })
@@ -349,10 +350,11 @@ app.on('before-quit', event => {
   if((skinEditorDirty||skinEditorPrefsPending||skinEditorBusy)&&win&&!win.webContents.isDestroyed()){event.preventDefault();deferredPaletteQuit=skinEditorPrefsPending&&!skinEditorDirty&&!skinEditorBusy;win.webContents.send('window:skinEditorClose',{quit:true});return}
   if(mascotPending&&win&&!win.webContents.isDestroyed()){event.preventDefault();win.webContents.send('window:mascotClose',{quit:true});return}
   // 仅清理联机相关子进程/监听器；不影响 Minecraft 生命周期。
-  void stopDirectHost()
-  void stopVoxlinkOnQuit()
-  void stopTerracottaOnQuit()
-  void frpManager.shutdown().catch(error => launcherLogWarn('frp', '关闭隧道失败', error))
+  // 这几个模块只在退出时用得上，改成按需加载，不拖累启动解析。
+  void import('./core/directConnect').then(({ stopDirectHost }) => stopDirectHost()).catch(() => { /* 退出路径失败不阻断 */ })
+  void import('./core/voxlink').then(({ stopVoxlinkOnQuit }) => stopVoxlinkOnQuit()).catch(() => { /* 同上 */ })
+  void import('./core/terracotta').then(({ stopTerracottaOnQuit }) => stopTerracottaOnQuit()).catch(() => { /* 同上 */ })
+  void import('./core/frpService').then(({ frpManager }) => frpManager.shutdown()).catch(error => launcherLogWarn('frp', '关闭隧道失败', error))
   launcherLogInfo('main', '所有窗口已关闭，开始清理联机相关资源')
 })
 
@@ -377,8 +379,10 @@ app.on('child-process-gone', (_event, details) => {
 app.on('before-quit', () => {
   // 任务B：任何正常退出路径都不终止游戏——游戏进程以脱离方式创建（gracefulClose.spawnGameProcess），
   // 这里只记录「游戏继续运行」，绝无 taskkill/树杀。
-  const gamePids = getRunningGamePids()
-  if (gamePids.length) launcherLogInfo('exit', `启动器已退出，游戏(进程 PID ${gamePids.join('、')})继续运行`)
+  void import('./core/launch').then(({ getRunningGamePids }) => {
+    const gamePids = getRunningGamePids()
+    if (gamePids.length) launcherLogInfo('exit', `启动器已退出，游戏(进程 PID ${gamePids.join('、')})继续运行`)
+  }).catch(() => { /* 退出路径记录失败不影响退出 */ })
   // 尽早异步刷盘；quit 事件里还有同步兜底
   void flushLauncherLog()
 })

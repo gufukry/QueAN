@@ -11,8 +11,10 @@ test('Windows 主窗口使用透明背景以支持界面圆角', () => {
   assert.equal(options.backgroundColor, '#00000000')
   assert.equal(options.backgroundMaterial, undefined)
   assert.equal(options.roundedCorners, true)
-  assert.equal(options.thickFrame, false)
-  assert.equal(options.hasShadow, false)
+  // thickFrame/hasShadow 保留为 true：Electron 关掉 thickFrame 会连窗口阴影与系统窗口
+  // 最小化/还原动画一起去掉（自绘无边框窗口不需要牺牲这些）。
+  assert.equal(options.thickFrame, true)
+  assert.equal(options.hasShadow, true)
 })
 
 test('macOS 清空原生窗口底色以透出毛玻璃，保留系统红绿灯', () => {

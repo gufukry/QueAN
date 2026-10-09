@@ -75,6 +75,8 @@ export const store = reactive({
   selectedAccount: null as Account | null,
   installed: [] as InstalledVersion[],
   currentView: 'home' as ViewName,
+  /** 一次性请求：跳到皮肤页并直接打开绘制编辑器（首页入口用） */
+  skinEditorRequest: false,
   settingsSection: '' as '' | 'java' | 'memory' | 'downloads',
   /** 顶栏搜索关键字（游戏版本页版本列表联动过滤） */
   searchKeyword: '',
