@@ -20,7 +20,7 @@
     "verify:harmonyos": "node scripts/verify-harmonyos.cjs",
     "dist:all": "node scripts/dist-platform.cjs",
     "license:check": "node scripts/check-licenses.cjs",
-    "dist:win:local": "npm run build && electron-builder --win portable --x64 --publish never --config.directories.output=C:/QueanBuild && node scripts/pack-windows-zip.cjs --release-dir=C:/QueanBuild"
+    "dist:win:local": "node scripts/clean-dir.cjs C:/QueanBuild && npm run build && electron-builder --win portable --x64 --publish never --config.directories.output=C:/QueanBuild && node scripts/pack-windows-zip.cjs --release-dir=C:/QueanBuild"
   },
   "build": {
     "appId": "com.quean.launcher",
