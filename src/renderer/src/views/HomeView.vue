@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { openInstanceCenter } from '../instanceCenter'
 import { appearancePreview } from '../visualDesign'
-import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { activeCarouselKeys, carouselDuration } from '@shared/appearancePolicy'
 import { useMotion } from '../motion'
 import { CarouselPlayback } from '@shared/carouselPlayback'
@@ -38,7 +38,9 @@ import {
 } from '../store'
 import Avatar from '../components/Avatar.vue'
 import ConfirmModal from '../components/ConfirmModal.vue'
-import SkinViewer3D from '../components/SkinViewer3D.vue'
+// 3D 皮肤预览（skinview3d / three）是首屏最大的一块外部依赖：改成异步组件，
+// 首页先出，3D 视图随后到位，避免为它把 ~600KB 的 three 打进首屏包。
+const SkinViewer3D = defineAsyncComponent(() => import('../components/SkinViewer3D.vue'))
 import type {
   ImageFit,
   InstalledVersion,

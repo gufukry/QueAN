@@ -221,17 +221,13 @@ app.whenReady().then(async () => {
   initializeLauncherLog()
   launcherLogInfo('main', `Electron 就绪（版本 ${app.getVersion()}）`)
   if (await applyUpdateOnStartup()) return
+  // IPC 与插件模块的加载（含整棵 core 依赖树）与闪屏创建并行地跑，
+  // 不串行阻塞首屏；两者建成后再 await 结果。
+  const ipcModule = import('./ipc')
+  const pluginsModule = import('./core/plugins')
   const startup = await createStartupSplash()
   launcherLogInfo('main', '启动闪屏已创建')
-  // 内存压榨控制器：指标日志 + 静默期工作集整理（trim 进程清单来自 getAppMetrics，绝不触碰游戏进程）
-  memTrim = await startMemoryTrim(() => win, (message) => launcherLogInfo('memory', message))
-  launcherLogInfo('memory', '内存压榨控制器已启动（指标日志 5 分钟/条；静默 10 分钟后低频整理）')
-  const { registerIpc } = await import('./ipc')
-  try {
-    await migrateLegacyAppearanceAssets()
-  } catch (error) {
-    launcherLogWarn('appearance', '旧版外观资源迁移失败，不阻断启动', error)
-  }
+  const { registerIpc } = await ipcModule
   protocol.handle('quean-asset', (request) => {
     if (request.method !== 'GET') return new Response('Method Not Allowed', { status: 405 })
     try {
@@ -246,7 +242,7 @@ app.whenReady().then(async () => {
       return new Response('Not Found', { status: 404 })
     }
   })
-  const { registerPluginProtocol } = await import('./core/plugins')
+  const { registerPluginProtocol } = await pluginsModule
   registerPluginProtocol()
   registerIpc(() => win && !win.isDestroyed() ? win : null)
   launcherLogInfo('main', 'IPC 通道与插件协议注册完成')
@@ -288,6 +284,15 @@ app.whenReady().then(async () => {
 
   createWindow(startup)
   launcherLogInfo('main', '主窗口创建完成')
+
+  // 首屏之后才需要的活儿放到窗口建完之后，不挡启动：
+  // - 内存压榨控制器只是定时器 + 事件转发，晚一点启动对体验无影响；
+  // - 旧版外观资源迁移只影响背景/缩略图，且幂等，晚一点跑不会丢东西。
+  void startMemoryTrim(() => win, (message) => launcherLogInfo('memory', message)).then((controller) => {
+    memTrim = controller
+    launcherLogInfo('memory', '内存压榨控制器已启动（指标日志 5 分钟/条；静默 10 分钟后低频整理）')
+  }).catch((error) => launcherLogWarn('memory', '内存压榨控制器启动失败', error))
+  void migrateLegacyAppearanceAssets().catch((error) => launcherLogWarn('appearance', '旧版外观资源迁移失败，不阻断启动', error))
 
   // 自动更新计时器只注册一次；游戏状态由每个窗口的 renderer-ready 重放。
   win?.webContents.once('did-finish-load', () => {
