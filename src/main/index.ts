@@ -292,18 +292,20 @@ app.whenReady().then(async () => {
   // 自动更新计时器只注册一次；游戏状态由每个窗口的 renderer-ready 重放。
   win?.webContents.once('did-finish-load', () => {
     // 更新：启动自动检查（自动安装模式静默下载；弹窗模式才提示）；已有就绪更新则通知
-    const runUpdateCheck = async () => {
+    const runUpdateCheck = async (force: boolean) => {
       try {
         const { checkLatest, decideUpdateAction } = await import('./core/selfUpdate')
         const applyMod = await import('./core/applyUpdate')
         const { getSettings } = await import('./core/settings')
+        // 启动时自动检查可关闭（设置→关于与更新）；关掉后只有手动「检查更新」会发请求。
+        if (getSettings().autoCheckUpdate === false) return
         if (applyMod.consumeUpdateFailedFlag()) {
           win?.webContents.send('event:updatePrompt', { rollbackNotice: true })
         }
         // 已有就绪待装的更新（下载完成后等待下次启动）：提醒一次
         const pending = applyMod.getPendingUpdate()
         if (pending) win?.webContents.send('event:updateReady', { version: pending.release.version })
-        const result = await checkLatest(false)
+        const result = await checkLatest(force)
         if (!result.ok || !result.release) return
         const s = getSettings()
         const action = decideUpdateAction({
@@ -320,9 +322,10 @@ app.whenReady().then(async () => {
         launcherLogInfo('main', `启动自动检查更新失败（静默降级）：${e instanceof Error ? e.message : String(e)}`)
       }
     }
-    void runUpdateCheck()
-    // 运行中每 6 小时复查一次（与缓存 TTL 对齐；自动模式全程静默）
-    setInterval(() => void runUpdateCheck(), 6 * 3600_000)
+    // 启动即检查一次（强制刷新，不看 6 小时缓存），有新版本就弹窗询问
+    void runUpdateCheck(true)
+    // 运行中每 6 小时复查一次
+    setInterval(() => void runUpdateCheck(false), 6 * 3600_000)
   })
 
   app.on('activate', () => {

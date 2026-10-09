@@ -1027,6 +1027,20 @@ async function onRemovePlugin(p: PluginInfo) {
             </button>
             <span data-ui="SettingsView:cd41281572d3" v-if="updateCheckState === 'latest'" class="upd-latest">已是最新 ✓</span>
           </div>
+          <div class="upd-row">
+            <span class="upd-label">启动时自动检查更新</span>
+            <span class="muted">每次打开启动器检查新版本，发现更新会弹窗询问「立即更新 / 稍后 / 跳过此版本」</span>
+            <label class="switch">
+              <input
+                data-ui="SettingsView:9f1b2c3d4e5f"
+                type="checkbox"
+                aria-label="启动时自动检查更新"
+                :checked="store.settings.autoCheckUpdate !== false"
+                @change="save({ autoCheckUpdate: ($event.target as HTMLInputElement).checked })"
+              />
+              <span data-ui="SettingsView:9f1b2c3d4e60" class="switch-ui" />
+            </label>
+          </div>
           <!-- 检查失败：明确是连不上 GitHub 更新源，并提供重试入口（不再误报「无更新」） -->
           <div data-ui="SettingsView:203842d2f6d4" v-if="updateCheckState === 'failed'" class="upd-row upd-failed-row">
             <span data-ui="SettingsView:5ae61f0d3e62" class="upd-failed-text">你的网络可能无法连接 GitHub，检查更新失败</span>
@@ -1037,7 +1051,7 @@ async function onRemovePlugin(p: PluginInfo) {
             <button data-ui="SettingsView:5bd17b41383a" class="btn btn-gold btn-sm" @click="onApplyPending">{{ installAction }}</button>
           </div>
           <p class="muted group-hint">QueAN 是基于 KAMUCL v1.1.15（MIT 许可）的二次开发（二开）项目，保留原始版权与许可声明；为第三方非官方版本，与上游作者无关。</p>
-          <p class="muted group-hint">更新包发布在 GitHub Releases，下载自动走镜像加速。仅提供「检查更新」与「立即更新」。</p>
+          <p class="muted group-hint">更新包发布在 GitHub Releases，下载自动走镜像加速；启动自动检查关闭后，仍可用上方「检查更新」手动检查。仅提供「检查更新」与「立即更新」。</p>
         </div>
       </details>
 

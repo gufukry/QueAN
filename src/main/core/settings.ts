@@ -66,6 +66,7 @@ function defaults(): Settings {
     launchThumbnail: structuredClone(DEFAULT_LAUNCH_THUMBNAIL),
     skinEditorPalette: normalizeSkinPalettePreferences(undefined),
     closeAfterLaunch: false,
+    autoCheckUpdate: true,
     configVersion: 1
   }
 }

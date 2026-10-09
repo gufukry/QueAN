@@ -108,7 +108,9 @@ test('update wiring: IPC channels registered, startup auto-check, skip persisted
     assert.match(ipc, new RegExp(`IPC\\.${ch}`), ch)
   }
   const index = read('src/main/index.ts')
-  assert.match(index, /checkLatest\(false\)/)
+  // 启动时强制刷新检查（不吃 6 小时缓存），运行中每 6 小时复查才走缓存
+  assert.match(index, /void runUpdateCheck\(true\)/)
+  assert.match(index, /checkLatest\(force\)/)
   assert.match(index, /decideUpdateAction/)
   assert.match(index, /consumeUpdateFailedFlag/)
   const types = read('src/shared/types.ts')

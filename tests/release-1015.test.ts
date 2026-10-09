@@ -119,7 +119,7 @@ test('next-startup updates never intercept launcher closing', () => {
   assert.match(index, /blockedUpdateVersion/)
   assert.match(index, /acknowledgeUpdateStartup/)
   assert.match(index, /decideUpdateAction/)
-  assert.match(index, /setInterval\(\(\) => void runUpdateCheck\(\), 6 \* 3600_000\)/)
+  assert.match(index, /setInterval\(\(\) => void runUpdateCheck\(false\), 6 \* 3600_000\)/)
 })
 
 test('auto update surfaces: settings toggle, pending state IPC, ready event', () => {
@@ -136,7 +136,8 @@ test('auto update surfaces: settings toggle, pending state IPC, ready event', ()
   assert.match(kb, /await writePendingUpdate\(release, dest, expected, mode\)/)
   assert.match(kb, /updateMarker/)
   const settings = read('src/renderer/src/views/SettingsView.vue')
-  assert.match(settings, /自动安装更新/)
+  // 更新相关设置项（自动安装那份 UI 已按需求精简，保留启动自动检查开关）
+  assert.match(settings, /启动时自动检查更新/)
   assert.match(settings, /\{\{\s*installAction\s*\}\}/)
   assert.match(read('src/renderer/src/composables/usePlatformUpdate.ts'), /下次启动应用/)
   assert.match(settings, /pendingUpdate/)

@@ -447,6 +447,8 @@ export interface Settings {
   configVersion?: number
   /** 跳过提示的版本号（该版本不再弹更新提示，直到更新的版本出现） */
   skipUpdateVersion?: string
+  /** 启动时自动检查新版本（默认开启）：每次打开启动器都检查，有新版本就弹窗询问 */
+  autoCheckUpdate?: boolean
   /** 更新下载源：auto=直连优先镜像兜底；direct=仅 GitHub 直连；mirror=仅自定义镜像 */
   updateSource?: 'auto' | 'direct' | 'mirror'
   /** 自定义镜像前缀（拼接在 GitHub 文件 URL 前，如 https://ghproxy.net/） */
