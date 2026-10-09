@@ -6,10 +6,13 @@ const crypto = require('node:crypto')
 const assert = require('node:assert/strict')
 const Zip = require('adm-zip')
 
-async function packWindowsZip(root = path.resolve(__dirname, '..')) {
+async function packWindowsZip(root = path.resolve(__dirname, '..'), releaseDir = process.env.QUEAN_RELEASE_DIR || 'release') {
   const { version } = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
+  // 产物目录可换（本地构建时避开被浏览器/杀软监视的目录，见 dist:win:local）
+  const out = path.isAbsolute(releaseDir) ? releaseDir : path.join(root, releaseDir)
+  fs.mkdirSync(out, { recursive: true })
   const name = 'QueAN.exe'
-  const exe = fs.readFileSync(path.join(root, 'release', name))
+  const exe = fs.readFileSync(path.join(out, name))
   assert.equal(exe.subarray(0, 2).toString(), 'MZ', 'Portable EXE is missing or invalid')
   const zip = new Zip()
   zip.addFile(name, exe)
@@ -20,7 +23,7 @@ async function packWindowsZip(root = path.resolve(__dirname, '..')) {
     ...fs.readdirSync(path.join(root, 'licenses')).map(n => `licenses/${n}`)]) {
     zip.addFile(file, fs.readFileSync(path.join(root, file)))
   }
-  const output = path.join(root, 'release', `QueAN-${version}-windows-x64.zip`)
+  const output = path.join(out, `QueAN-${version}-windows-x64.zip`)
   zip.writeZip(output)
   const hash = data => crypto.createHash('sha256').update(data).digest('hex')
   assert.equal(hash(new Zip(output).readFile(name)), hash(exe), 'ZIP changed the portable EXE')
@@ -28,12 +31,13 @@ async function packWindowsZip(root = path.resolve(__dirname, '..')) {
   console.log(JSON.stringify(report))
   // Preserve the original direct-extraction fallback for machines where NSIS
   // self-extraction cannot run. It is explicitly named and not the compact ZIP.
-  const unpacked = path.join(root, 'release', `QueAN-${version}-windows-x64-unpacked.zip`)
-  await require('app-builder-lib/out/targets/archive').archive('zip', unpacked, path.join(root, 'release/win-unpacked'), {
+  const unpacked = path.join(out, `QueAN-${version}-windows-x64-unpacked.zip`)
+  await require('app-builder-lib/out/targets/archive').archive('zip', unpacked, path.join(out, 'win-unpacked'), {
     withoutDir: true, compression: 'maximum'
   })
   console.log(JSON.stringify({ unpacked, bytes: fs.statSync(unpacked).size }))
   return report
 }
 module.exports = { packWindowsZip }
-if (require.main === module) packWindowsZip().catch(error => { console.error(error); process.exitCode = 1 })
+const releaseDirArg = (process.argv.find((a) => a.startsWith('--release-dir=')) || '').slice('--release-dir='.length)
+if (require.main === module) packWindowsZip(undefined, releaseDirArg || undefined).catch(error => { console.error(error); process.exitCode = 1 })

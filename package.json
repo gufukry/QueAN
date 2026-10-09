@@ -19,7 +19,8 @@
     "dist:harmonyos": "node scripts/build-harmonyos.cjs",
     "verify:harmonyos": "node scripts/verify-harmonyos.cjs",
     "dist:all": "node scripts/dist-platform.cjs",
-    "license:check": "node scripts/check-licenses.cjs"
+    "license:check": "node scripts/check-licenses.cjs",
+    "dist:win:local": "npm run build && electron-builder --win portable --x64 --publish never --config.directories.output=C:/QueanBuild && node scripts/pack-windows-zip.cjs --release-dir=C:/QueanBuild"
   },
   "build": {
     "appId": "com.quean.launcher",
@@ -81,7 +82,9 @@
       "unpackDirName": false,
       "artifactName": "QueAN.exe"
     },
-    "appImage": { "executableArgs": [] },
+    "appImage": {
+      "executableArgs": []
+    },
     "mac": {
       "minimumSystemVersion": "13.0.0",
       "target": [
@@ -94,12 +97,23 @@
     },
     "linux": {
       "maintainer": "gufukry <gufukry@users.noreply.github.com>",
-      "target": ["AppImage", "deb", "tar.gz"],
+      "target": [
+        "AppImage",
+        "deb",
+        "tar.gz"
+      ],
       "category": "Game",
       "executableName": "quean",
       "icon": "build/icon-512.png",
       "artifactName": "QueAN-${version}-linux-${arch}.${ext}",
-      "desktop": { "entry": { "Name": "QueAN", "Comment": "Minecraft launcher", "Categories": "Game;", "StartupWMClass": "QueAN" } },
+      "desktop": {
+        "entry": {
+          "Name": "QueAN",
+          "Comment": "Minecraft launcher",
+          "Categories": "Game;",
+          "StartupWMClass": "QueAN"
+        }
+      },
       "synopsis": "Minecraft launcher"
     }
   },
