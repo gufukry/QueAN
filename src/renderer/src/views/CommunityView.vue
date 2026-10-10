@@ -327,7 +327,14 @@ function onReset() {
   void doSearch(true)
 }
 
-onMounted(() => { query.keyword = store.searchKeyword.trim(); void doSearch(true) })
+onMounted(() => {
+  // 记忆上次的搜索与筛选（即使页面被重建也能恢复；与 KeepAlive 双保险）
+  const saved = store.communityState
+  if (saved) Object.assign(query, saved.query, { keyword: saved.query.keyword || store.searchKeyword.trim() })
+  query.keyword = query.keyword || store.searchKeyword.trim()
+  void doSearch(true)
+})
+watch(query, () => { store.communityState = { query: { ...query } } }, { deep: true })
 
 // ---------------- 顶栏搜索联动：顶栏输入防抖驱动社区搜索 ----------------
 let topSearchTimer: ReturnType<typeof setTimeout> | null = null
