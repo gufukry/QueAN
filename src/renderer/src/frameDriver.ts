@@ -1,5 +1,5 @@
-export type MascotFrame={kind:'raf'|'watchdog';at:number;rafTimestamp?:number;gap:number;pendingAge:number;fallbacks:number}
-export type MascotFrameClock={
+export type Frame={kind:'raf'|'watchdog';at:number;rafTimestamp?:number;gap:number;pendingAge:number;fallbacks:number}
+export type FrameClock={
  now:()=>number
  requestAnimationFrame:(callback:(timestamp:number)=>void)=>number
  cancelAnimationFrame:(id:number)=>void
@@ -11,12 +11,12 @@ type PendingFrame={requestedAt:number;raf?:number;timer?:ReturnType<typeof setTi
 // rAF drives normal frames. A foreground pending frame alone owns a one-shot
 // deadline: a host that keeps timers alive but starves rAF can still draw the
 // current real pose. Token identity rejects a cancelled callback arriving late.
-export class MascotFrameDriver{
+export class FrameDriver{
  private pending?:PendingFrame
  private disposed=false
  private lastAt?:number
  private fallbackCount=0
- constructor(private readonly render:(frame:MascotFrame)=>void,private readonly clock:MascotFrameClock,private readonly deadlineMs=40){}
+ constructor(private readonly render:(frame:Frame)=>void,private readonly clock:FrameClock,private readonly deadlineMs=40){}
  get hasPending(){return!!this.pending}
  get fallbacks(){return this.fallbackCount}
  request(){
@@ -32,7 +32,7 @@ export class MascotFrameDriver{
   if(pending.raf!==undefined)this.clock.cancelAnimationFrame(pending.raf)
   if(pending.timer!==undefined)this.clock.clearTimeout(pending.timer)
  }
- private deliver(pending:PendingFrame,kind:MascotFrame['kind'],rafTimestamp?:number){
+ private deliver(pending:PendingFrame,kind:Frame['kind'],rafTimestamp?:number){
   if(this.disposed||this.pending!==pending)return
   this.pending=undefined;this.clear(pending)
   const at=this.clock.now(),gap=this.lastAt===undefined?0:at-this.lastAt;this.lastAt=at

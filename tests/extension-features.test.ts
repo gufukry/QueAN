@@ -5,7 +5,6 @@ import {packLongs,unpackLongs,readProjection,writeProjection,stateTag,stateText,
 import {analyzeProjection,convertProjection,validateState} from '../src/main/core/projectionConversion'
 import {paintSkinPixel,makeBaseOpaque,isBasePixel} from '../src/shared/skinPixels'
 import {favoriteKey} from '../src/shared/modFavorites'
-import {MascotHoverGate,sortMascots} from '../src/shared/mascots'
 import {shouldSkipMemoryProcess} from '../src/shared/memoryOrganizer'
 test('typed NBT retains every numeric width, signed long, list type and arrays',()=>{
  const root=tag(10,{byte:tag(1,-128),short:tag(2,-32768),int:tag(3,2147483647),long:tag(4,-9223372036854775808n),float:tag(5,1.25),double:tag(6,-2.5),bytes:tag(7,Buffer.from([0,255])),string:tag(8,'中文'),list:tag(9,[tag(2,1)],2),empty:tag(9,[],10),compound:tag(10,{}),ints:tag(11,[-1,2]),longs:tag(12,[-1n,9223372036854775807n])})
@@ -35,9 +34,6 @@ test('skin regional fill stops at face boundary and base erasing cannot create t
  assert.equal(isBasePixel(40,40),false)
 })
 test('favorites distinguish platforms and unknown local hashes',()=>{assert.notEqual(favoriteKey({source:'modrinth',projectId:'123'}),favoriteKey({source:'curseforge',projectId:'123'}));assert.equal(favoriteKey({sha1:'A'.repeat(40)}),'sha1:'+'a'.repeat(40));assert.throws(()=>favoriteKey({source:'invalid',projectId:'../file'}))})
-test('hover only counts true mouse entries; stationary reorder and moving targets do not count',()=>{
- const gate=new MascotHoverGate();assert.equal(gate.move(1,1,'q3',false),'q3');assert.equal(gate.move(1,1,'qiqi',false),undefined);assert.equal(gate.move(2,1,'q3',false),undefined);assert.equal(gate.move(3,1,'',false),undefined);assert.equal(gate.move(4,1,'qiqi',true),undefined);assert.equal(gate.move(5,1,'qiqi',false),undefined);assert.equal(gate.move(6,1,'',false),undefined);assert.equal(gate.move(7,1,'qiqi',false),'qiqi');assert.deepEqual(sortMascots({order:['qiqi','q3'],counts:{q3:2,qiqi:2}}),['qiqi','q3'])
-})
 test('memory organizer skips known games, Java and Windows system executables',()=>{for(const [pid,name] of [[4,'x.exe'],[100,'C:\\Games\\javaw.exe'],[100,'C:\\Windows\\System32\\foo.exe'],[22,'C:\\Game.exe']] as const)assert.equal(shouldSkipMemoryProcess(pid,name,[22],'C:\\Windows'),true);assert.equal(shouldSkipMemoryProcess(90,'C:\\Tools\\app.exe',[22],'C:\\Windows'),false)})
 import {flatten} from '../src/main/core/projectionFormats'
 import {assertProjectionEquivalent} from '../src/main/core/projectionValidation'

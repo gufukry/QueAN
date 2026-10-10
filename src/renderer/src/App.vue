@@ -11,7 +11,6 @@ import { useNavigationBubble } from './composables/useNavigationBubble'
 import { usePlatformUpdate } from './composables/usePlatformUpdate'
 const { updateReadyMessage } = usePlatformUpdate()
 import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, provide, reactive, ref, watch } from 'vue'
-import { MASCOT_INTERACTIVE } from './mascotInteraction'
 import type { Component } from 'vue'
 import { backgroundImageEffect } from '@shared/appearancePolicy'
 import { taskProgressPercent } from '@shared/taskProgress'
@@ -71,17 +70,6 @@ const GameView = defineAsyncComponent(() => import('./views/GameView.vue'))
 const ModsView = defineAsyncComponent(() => import('./views/ModsView.vue'))
 const RecordingsView = defineAsyncComponent(() => import('./views/RecordingsView.vue'))
 const ProjectionsView = defineAsyncComponent(() => import('./views/ProjectionsView.vue'))
-const MascotStage = defineAsyncComponent(() => import('./components/MascotStage.vue'))
-const mascotOpen = ref(false)
-const mascotReady = ref(false)
-const mascotBusy = ref(false)
-const mascotSoftware = ref(false)
-// Give the active logo interaction priority over decorative skin previews.
-provide(MASCOT_INTERACTIVE, computed(() => mascotOpen.value && (!mascotReady.value || mascotBusy.value)))
-const mascotRef = ref<{flush:()=>Promise<void>}>()
-const mascotKeyboard = ref(false)
-function openMascots(event:MouseEvent){if(mascotOpen.value)return;mascotKeyboard.value=event.detail===0;mascotReady.value=false;mascotSoftware.value=false;mascotOpen.value=true}
-function closeMascots(){mascotOpen.value=false;mascotBusy.value=false;void nextTick(()=>document.querySelector<HTMLButtonElement>('.brand-avatar')?.focus())}
 const PacksView = defineAsyncComponent(() => import('./views/PacksView.vue'))
 const ShadersView = defineAsyncComponent(() => import('./views/ShadersView.vue'))
 const KeysView = defineAsyncComponent(() => import('./views/KeysView.vue'))
@@ -227,7 +215,6 @@ const { navEl, bubbleStyle, selectionStyle, retarget: retargetNav, reset: resetN
 /** 关闭启动器不影响游戏：游戏在跑时点关闭先提示一次，再真正关闭 */
 let closeHintShown = false
 const win = async (action: 'minimize' | 'maximize' | 'close') => {
-  if(action==='close'&&mascotRef.value){try{await mascotRef.value.flush()}catch(error){toast('互动次数尚未保存：'+errText(error),'error');return}}
   if (action === 'close' && store.launchState?.status === 'running' && !closeHintShown) {
     closeHintShown = true
     toast('关闭启动器不影响游戏，游戏继续运行', 'info')
@@ -1238,7 +1225,7 @@ onUnmounted(() => {
   <div data-ui="App:870373af1ab7" v-if="bgStyle" class="app-bg" :style="bgStyle"></div>
   <div data-ui="App:e8c1fdc22711"
     class="shell"
-    :class="{ 'edit-mode': store.editMode, 'has-bg': !!bgStyle, 'mascots-active': mascotOpen, 'mascots-software': mascotOpen&&mascotSoftware }"
+    :class="{ 'edit-mode': store.editMode, 'has-bg': !!bgStyle }"
 
   >
     <!-- ============ 左侧边栏（宽度 --sidebar-w） ============ -->
@@ -1252,8 +1239,7 @@ onUnmounted(() => {
       <!-- Logo 区 -->
       <div data-ui="App:fc5fc8ba7e96" class="logo-area">
         <div class="brand-slot">
-        <button class="brand-avatar" :class="{'avatar-open':mascotOpen&&mascotReady,'avatar-preparing':mascotOpen&&!mascotReady}" :tabindex="mascotOpen?-1:0" aria-label="QueAN" :aria-expanded="mascotOpen" :aria-busy="mascotOpen&&!mascotReady" :title="mascotOpen&&!mascotReady?'正在准备卡慕…':'打开卡慕互动彩蛋'" @click="openMascots"><img data-ui="App:0f39bd9dbfd2" class="brand-head" :src="brandHead" alt="KaMuaMua 的 Minecraft 头像" /></button>
-        <MascotStage v-if="mascotOpen" ref="mascotRef" :focus-on-ready="mascotKeyboard" @ready="mascotReady=true" @activity="mascotBusy=$event" @render-mode="mascotSoftware=$event" @close="closeMascots"/>
+        <img data-ui="App:0f39bd9dbfd2" class="brand-head" :src="brandHead" alt="KaMuaMua 的 Minecraft 头像" />
         </div>
         <div data-ui="App:7494cda29e47" class="logo-text">
           <span data-ui="App:c396a9ff34cb" class="logo-name">QueAN</span>
@@ -1731,10 +1717,8 @@ onUnmounted(() => {
    compositor dependency graph, including native GPU paths. Defer only web blur
    while the interaction is open; theme alpha/colors and native material stay.
    The original glass rules resume immediately when the LOGO is restored. */
-.shell.mascots-active,.shell.mascots-active :deep(*){backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-.brand-slot{position:relative;z-index:5;width:48px;height:72px;flex-shrink:0;display:grid;place-items:center}.brand-avatar{display:block;background:transparent;border:0;padding:0;border-radius:12px;cursor:pointer;transition:opacity .38s,transform .38s;flex-shrink:0}.brand-avatar:focus-visible{outline:2px solid var(--accent);outline-offset:4px}.brand-avatar.avatar-preparing{opacity:.75;transform:scale(.94)}.brand-avatar.avatar-open{opacity:0;transform:translateY(-14px) scale(.65);pointer-events:none}
+.brand-slot{position:relative;z-index:5;width:48px;height:72px;flex-shrink:0;display:grid;place-items:center}
 /* 配置不兼容弹窗 */
-@media (prefers-reduced-motion: reduce) { .brand-avatar { transition-duration: .1s; } }
 .cfg-mismatch-mask { z-index: 9600; display: grid; place-items: center; }
 .cfg-mismatch-modal { width: min(460px, 90vw); padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; }
 .upd-modal-title { margin: 0; font-size: 17px; }

@@ -8,7 +8,7 @@ import { ensureDefaultGameFolder } from '../src/main/core/defaultGameFolder'
 test('首次运行创建内置目录，可重复调用且保留现有文件', () => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'quean-first-run-'))
   try {
-    const root = path.join(temp, '.quean')
+    const root = path.join(temp, '.minecraft')
     ensureDefaultGameFolder(temp, [{ path: root }])
     assert(fs.statSync(root).isDirectory())
     fs.writeFileSync(path.join(root, 'keep.txt'), 'saved')
@@ -23,6 +23,6 @@ test('不创建或替换用户缺失的外置目录，真实错误保持可见',
     const external = path.join(temp, 'missing-disk')
     ensureDefaultGameFolder(temp, [{ path: external }])
     assert.equal(fs.existsSync(external), false)
-    assert.equal(fs.existsSync(path.join(temp, '.quean')), false)
+    assert.equal(fs.existsSync(path.join(temp, '.minecraft')), false)
   } finally { fs.rmSync(temp, { recursive: true, force: true }) }
 })

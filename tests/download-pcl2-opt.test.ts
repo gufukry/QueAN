@@ -156,7 +156,7 @@ test('慢速连接在滑动窗口内字节过少时主动掐断并重试耗尽',
       downloadFile(`${base}/slow.bin`, path.join(root, 'slow.bin')),
       /速度过慢|下载失败/
     )
-    assert.equal(requests, 4, 'transient 掐断：第一轮重试 3 次 + 整体重试轮再试 1 次')
+    assert.equal(requests, 6, 'transient 掐断按默认 attempts（6）重试耗尽后整体重试轮再试一次')
   } finally {
     Object.assign(slowSpeedThresholds, original)
     await closeServer(server)
@@ -216,7 +216,8 @@ test('会话级源健康度：冷却中的 host 沉底，成功后恢复原序',
   try {
     const badBase = await listen(badServer)
     const goodBase = await listen(goodServer)
-    // 连续两次 transient 失败进入冷却：候选重排后直接从健康源开始
+    // 连续三次 transient 失败进入冷却：候选重排后直接从健康源开始
+    noteHostFailure(badBase)
     noteHostFailure(badBase)
     noteHostFailure(badBase)
     const dest = path.join(root, 'a.bin')

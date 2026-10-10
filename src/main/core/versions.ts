@@ -46,6 +46,8 @@ import {
   gameDir,
   installMarkPath,
   instanceIconsDir,
+  legacyBaseVersionJarPath,
+  legacyBaseVersionJsonPath,
   libraryPath,
   librariesDir,
   registerVersionFolder,
@@ -57,6 +59,7 @@ import {
   withGameFolder
 } from './paths'
 import { ensureInstanceThumbnail, removeInstanceThumbnail } from './appearanceAssets'
+import { privateBaseDir } from './privatePaths'
 
 export type ProgressEmit = (e: ProgressEvent) => void
 
@@ -182,11 +185,27 @@ export async function fetchVersionManifest(_mirror: MirrorPref, refresh = false,
 
 // ---------------- 版本 json ----------------
 
-/** 同步读取本地版本 json（容错 BOM 头）；versions/ 没有时回退到 .quean/base 依赖原版区 */
+/** 依赖原版 json 的实际位置：私有数据区优先，兼容迁移前留在游戏目录的旧位置 */
+export function baseVersionJsonFile(id: string): string {
+  const next = baseVersionJsonPath(id)
+  if (fs.existsSync(next)) return next
+  const legacy = legacyBaseVersionJsonPath(id)
+  return fs.existsSync(legacy) ? legacy : next
+}
+
+/** 依赖原版 jar 的实际位置（同上） */
+export function baseVersionJarFile(id: string): string {
+  const next = baseVersionJarPath(id)
+  if (fs.existsSync(next)) return next
+  const legacy = legacyBaseVersionJarPath(id)
+  return fs.existsSync(legacy) ? legacy : next
+}
+
+/** 同步读取本地版本 json（容错 BOM 头）；versions/ 没有时回退到私有数据区的 base/ 依赖原版区 */
 export function readVersionJson(id: string): VersionJson {
   if(typeof id!=='string'||!id||id==='.'||id==='..'||/[\\/:\x00]/.test(id))throw new Error('无效的版本 ID')
   let p = versionJsonPath(id)
-  if (!fs.existsSync(p) && fs.existsSync(baseVersionJsonPath(id))) p = baseVersionJsonPath(id)
+  if (!fs.existsSync(p)) p = baseVersionJsonFile(id)
   if(fs.lstatSync(p).isSymbolicLink()||fs.lstatSync(path.dirname(p)).isSymbolicLink())throw new Error('版本文件不能使用符号链接')
   const raw = fs.readFileSync(p, 'utf-8')
   return JSON.parse(raw.replace(/^﻿/, '')) as VersionJson
@@ -200,6 +219,13 @@ export async function getVersionJson(
 ): Promise<VersionJson> {
   const jsonPath = dest ?? versionJsonPath(versionId)
   if (!fs.existsSync(jsonPath)) {
+    // 本地已有该原版 json（私有数据区或迁移前的旧位置）时直接复用，不重复请求清单
+    const existing = baseVersionJsonFile(versionId)
+    if (existing !== jsonPath && fs.existsSync(existing)) {
+      fs.mkdirSync(path.dirname(jsonPath), { recursive: true })
+      fs.copyFileSync(existing, jsonPath)
+      return JSON.parse(fs.readFileSync(jsonPath, 'utf-8').replace(/^﻿/, '')) as VersionJson
+    }
     const mirror = getSettings().mirror
     let manifest = await fetchVersionManifest(mirror, false, signal)
     let entry = manifest.find((v) => v.id === versionId)
@@ -319,7 +345,7 @@ function fmtMB(bytes: number): string {
 /**
  * 安装原版（不含加载器），返回最终版本 id。已下载的文件会自动跳过。
  * dest='versions'：作为独立版本安装进 versions/（用户主动安装，支持 instanceName 自定义实例名）
- * dest='base'：作为加载器实例的内部依赖装进 .quean/base/（不进版本列表，json/jar 仅供链解析）
+ * dest='base'：作为加载器实例的内部依赖装进私有数据区 base/（不进版本列表，json/jar 仅供链解析）
  */
 export async function installVanilla(
   ...args: Parameters<typeof installVanillaUnlocked>
@@ -398,11 +424,12 @@ async function installVanillaUnlocked(
             // 2. 客户端 jar
             const client = vj.downloads?.client
             if (client?.url) {
-              // PCL2 本地复用优化：客户端 jar 优先从其他游戏文件夹的 versions 与 .quean/base
+              // PCL2 本地复用优化：客户端 jar 优先从其他游戏文件夹的 versions 与各自的私有 base 区
               // 里按 大小+sha1 查找相同文件直接复制（多文件夹/加载器依赖原版间不再重复下载）
               const versionDirs = allVersionsDirs()
               const reuseDirs = versionDirs
                 .map((v) => v.dir)
+                .concat(versionDirs.map((v) => privateBaseDir(v.folder)))
                 .concat(versionDirs.map((v) => path.join(v.folder, '.quean', 'base')))
                 .filter((dir) => path.resolve(dir) !== path.resolve(path.dirname(jarPath)))
               await downloadAll(
@@ -599,9 +626,10 @@ async function installVersionInFolder(
   return installedId
 }
 
-/** 链底客户端 jar 的实际位置（versions 区优先，缺省时取 .quean/base 依赖原版区） */
+/** 链底客户端 jar 的实际位置（versions 区优先，缺省时取私有数据区 base/ 依赖原版区） */
 export function clientJarPath(id: string): string {
-  return fs.existsSync(versionJsonPath(id)) ? versionJarPath(id) : baseVersionJarPath(id)
+  if (fs.existsSync(versionJsonPath(id))) return versionJarPath(id)
+  return baseVersionJarFile(id)
 }
 
 // ---------------- 自包含实例（flatten 继承链） ----------------
@@ -735,7 +763,7 @@ export async function installClientJarOnly(id: string, emit: ProgressEmit, signa
 }
 
 /**
- * 把「加载器安装时临时落地的原版条目」迁移进 .quean/base 依赖区：
+ * 把「加载器安装时临时落地的原版条目」迁移进私有数据区 base/ 依赖区：
  * versions/<mc>/ 下的 json+jar 移走并删除目录，版本列表不再出现多余的原版条目。
  * 安装不完整（.installing 标记在）时整个目录直接删除。
  */
@@ -804,7 +832,7 @@ export function scanInstalledFolder(folder: string, onlyId?: string): {
       const resolved = resolveInstanceMetadata(j, id => {
         try {
           const local = versionJsonInFolder(root, id)
-          return parseVersionFile(fs.existsSync(local) ? local : baseVersionJsonPath(id))
+          return parseVersionFile(fs.existsSync(local) ? local : baseVersionJsonFile(id))
         } catch { return undefined }
       })
       const item: InstalledVersion = { id: name, mcVersion: resolved.mcVersion, loader: resolved.loader, loaderVersion: resolved.loaderVersion, folder: root }
@@ -813,7 +841,10 @@ export function scanInstalledFolder(folder: string, onlyId?: string): {
       if (j._javaPath) item.javaPath = j._javaPath
       if (j._javaAuto === true) item.javaAuto = true
       if (j._resolution) item.resolution = normalizeStoredResolution(j._resolution)
-      if (j._icon) item.icon = j._icon
+      if (j._icon) {
+        item.icon = j._icon
+        if (j._icon.startsWith('file:')) item.iconPath = path.join(instanceIconsDir(), j._icon.slice(5))
+      }
       if (j._thumbnail) {
         const thumbnail = ensureInstanceThumbnail(j._thumbnail, root)
         if (thumbnail) item.thumbnail = thumbnail

@@ -215,17 +215,15 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
     if(!process.env.QueAN_SKIP_EXTENSION_BASE)await require('./verify-extension-ui.cjs')(harness);
     const selectedModule=process.env.QueAN_UI_MODULE||process.env.QueAN_117_MODULE;
     const capabilities=require('./ui-capabilities.cjs');
-    if(capabilities.singleLogo&&selectedModule==='motion119')await require('./verify-kamu-motion-diagnostic-119.cjs')({...harness,motionDiagnosticInvocation:'standalone-cold-process'});
     if(selectedModule==='native-trace')await require('./verify-kamu-native-trace-119.cjs')(harness);
     if(selectedModule==='native-recorder')await require('./verify-kamu-native-recorder-119.cjs')(harness);
     if(selectedModule==='native-video')await require('./verify-kamu-native-video-119.cjs')(harness);
     if(selectedModule==='native-compositor')await require('./verify-kamu-native-compositor-119.cjs')(harness);
     if(selectedModule==='mac-parity')await require('./verify-mac-parity-ui.cjs')({...harness,phase:parityPhase});
-    if(capabilities.singleLogo&&selectedModule==='feedback-scale')await require('./verify-kamu-feedback-scale-119-ui.cjs')(harness);
     // Run the unchanged motion gate before longer editing fixtures, so a native
     // failure yields render diagnostics without an unrelated earlier UI race.
-    const modules=[['header','verify-mascot-header-ui.cjs'],['skin118','verify-skin-editor-ui.cjs'],['palette','verify-skin-palette-ui.cjs'],['gallery','verify-gallery-favorites-ui.cjs'],['gallery118','verify-gallery-favorites-118-ui.cjs'],...(capabilities.importRouting?[['import119','verify-import-routing-119-ui.cjs']]:[]),...(capabilities.themedSelection?[['selection119','verify-selection-ui-119.cjs']]:[]),['capes115','qa-capes115.cjs'],['privacy-categories115','qa-privacy-categories115.cjs']];
-    const knownModules=new Set([...modules.map(([id])=>id),'ux110','motion119','native-trace','native-recorder','native-video','native-compositor','feedback-scale','mac-parity']);
+    const modules=[['skin118','verify-skin-editor-ui.cjs'],['palette','verify-skin-palette-ui.cjs'],['gallery','verify-gallery-favorites-ui.cjs'],['gallery118','verify-gallery-favorites-118-ui.cjs'],...(capabilities.importRouting?[['import119','verify-import-routing-119-ui.cjs']]:[]),...(capabilities.themedSelection?[['selection119','verify-selection-ui-119.cjs']]:[]),['capes115','qa-capes115.cjs'],['privacy-categories115','qa-privacy-categories115.cjs']];
+    const knownModules=new Set([...modules.map(([id])=>id),'ux110','native-trace','native-recorder','native-video','native-compositor','mac-parity']);
     if(selectedModule&&!knownModules.has(selectedModule))throw Error('Unknown required UI module: '+selectedModule);
     if(selectedModule==='privacy-categories115')assert(privacyOwned,'Run qa-privacy-categories115.cjs to own the two-process disposable profile');
     for(const [id,file] of modules){
@@ -233,17 +231,6 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
         await require('./'+file)({...harness,screenshot:name=>harness.screenshot(name.startsWith('extension-')?name:'extension-118-'+name)});
         // Full header module returns only after restoring its recorder/audio graph
         // and draw hooks. Compare the untouched native graph in this same window.
-        if(capabilities.singleLogo&&id==='header'){
-          await require('./verify-kamu-motion-diagnostic-119.cjs')({...harness,motionDiagnosticInvocation:'after-header'});
-          if(process.platform==='darwin'){
-            await require('./verify-kamu-native-recorder-119.cjs')(harness);
-            // Independent native pixels remain separate from the unchanged CDP
-            // benchmark. A capture-tool failure is recorded and never called a
-            // passing native-video acceptance or allowed to hide later core QA.
-            try{await require('./verify-kamu-native-video-119.cjs')(harness)}catch(error){console.error('INDEPENDENT NATIVE VIDEO FAILED (normal CDP/core results remain separate):',String(error))}
-            if(process.env.QueAN_NATIVE_COMPOSITOR_ABA119==='1')await require('./verify-kamu-native-compositor-119.cjs')(harness);
-          }
-        }
       }
     }
   }

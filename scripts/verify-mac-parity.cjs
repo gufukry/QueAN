@@ -27,7 +27,7 @@ function parityRoot(env,platform=process.platform){
 function assertRestartIdentity(first,restart){
  for(const field of ['version','sourceCommit','runtimeVersion','arch','executable','profile'])assert.equal(restart[field],first[field],'restart identity '+field)
  assert.notEqual(restart.pid,first.pid,'restart must be a new actual process')
- assert.equal(restart.publicAccountsPersisted,true);assert.equal(restart.mascotCountsPersisted,true)
+ assert.equal(restart.publicAccountsPersisted,true)
  assert.equal(restart.settingsPersisted,true);assert.equal(restart.favoritePersisted,true)
  assert.equal(restart.actualUserData,restart.profile)
 }

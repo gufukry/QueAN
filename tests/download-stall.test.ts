@@ -8,7 +8,7 @@ import test from 'node:test'
 import { downloadFile, transferTimeouts, slowSpeedThresholds, resetHostHealthForTest } from '../src/main/core/download'
 import { downloadLimiter, DEFAULT_DOWNLOAD_LIMITS } from '../src/main/core/downloadLimits'
 
-test('大文件持续约0.1MB/s时换源续传；最后来源较慢仍能完成', { timeout: 6000 }, async () => {
+test('大文件持续约0.02MB/s时换源续传；最后来源较慢仍能完成', { timeout: 30000 }, async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'quean-slow-source-'))
   const payload = Buffer.alloc(256 * 1024, 37)
   const previous = { ...slowSpeedThresholds }
@@ -21,7 +21,7 @@ test('大文件持续约0.1MB/s时换源续传；最后来源较慢仍能完成'
     res.writeHead(offset ? 206 : 200, { 'content-length': payload.length - offset, ...(offset ? { 'content-range': `bytes ${offset}-${payload.length - 1}/${payload.length}` } : {}) })
     if (req.url === '/fast') return res.end(payload.subarray(offset))
     const timer = setInterval(() => {
-      const end = Math.min(offset + 8192, payload.length)
+      const end = Math.min(offset + 1024, payload.length)
       res.write(payload.subarray(offset, end)); offset = end
       if (offset === payload.length) { clearInterval(timer); res.end() }
     }, 50)

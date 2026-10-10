@@ -12,7 +12,7 @@ import AdmZip from 'adm-zip'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const versionId = process.argv[2] || 'fabric-loader-0.19.5-26.2'
-const gameDir = path.join(process.env.APPDATA, '.quean')
+const gameDir = path.join(process.env.APPDATA, '.minecraft')
 const vdir = (id) => path.join(gameDir, 'versions', id)
 const vjson = (id) => JSON.parse(fs.readFileSync(path.join(vdir(id), `${id}.json`), 'utf-8'))
 

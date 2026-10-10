@@ -297,7 +297,7 @@ function tagLoaderJson(id: string, loader: LoaderName, loaderVersion: string): v
 
 /**
  * 安装加载器，返回新版本的 id。
- * 原版作为内部依赖：fabric/quilt 直接装进 .quean/base（不进版本列表）；
+ * 原版作为内部依赖：fabric/quilt 直接装进私有数据区 base/（不进版本列表）；
  * forge/neoforge 安装器强制要求 versions/ 下存在原版，先落地、装完（无论成败）再迁移进 base。
  */
 export async function installLoader(

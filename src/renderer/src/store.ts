@@ -194,6 +194,14 @@ export function stageLabel(stage: string): string {
   return STAGE_LABEL[stage] ?? stage
 }
 
+/** 任务栏进度：取运行中任务的平均进度上报给主进程（无任务时清除）。 */
+function reportTaskbarProgress(): void {
+  const active = store.tasks.filter((t) => t.status === 'running' || t.status === 'paused' || t.status === 'cancelling')
+  if (!active.length) { window.quean.send('window:progress', -1); return }
+  const fraction = active.reduce((sum, t) => sum + (Number.isFinite(t.progress) ? t.progress : 0), 0) / active.length
+  window.quean.send('window:progress', Math.max(0, Math.min(1, fraction)))
+}
+
 /** 进度事件驱动任务 upsert（无 taskId 的全局进度不入任务列表） */
 export function upsertTaskProgress(e: ProgressEvent) {
   if (!e.taskId) return
@@ -218,6 +226,7 @@ export function upsertTaskProgress(e: ProgressEvent) {
   t.indeterminate = e.indeterminate
   t.parallelStages = e.parallelStages
   t.manualFiles = e.manualFiles
+  reportTaskbarProgress()
 }
 
 /** 任务终态（成功/失败/取消），失败保留阶段与原因 */
@@ -238,6 +247,7 @@ export function finalizeTask(r: {
   t.status = r.cancelled ? 'cancelled' : r.ok ? 'done' : 'error'
   t.error = r.error
   t.progress = r.ok ? 1 : t.progress
+  reportTaskbarProgress()
   t.finishedAt = Date.now()
   if (r.ok || r.cancelled) {
     // 成功 8 秒、取消 3 秒后自动从下载中心移除
@@ -435,10 +445,8 @@ export function versionIconUrl(v: InstalledVersion): string {
   if (!icon) return ''
   if (icon.startsWith('mob:')) return `mobs/${icon.slice(4)}.png`
   if (icon.startsWith('file:')) {
-    const def =
-      store.settings?.folders.find((f) => f.isDefault)?.path ?? store.settings?.gameDir ?? ''
-    if (!def) return ''
-    const p = `${def}/.quean/icons/${icon.slice(5)}`.replace(/\\/g, '/')
+    if (!v.iconPath) return ''
+    const p = v.iconPath.replace(/\\/g, '/')
     return 'file:///' + p.replace(/^\/+/, '')
   }
   return ''

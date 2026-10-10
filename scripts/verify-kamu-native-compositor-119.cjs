@@ -86,8 +86,6 @@ function installRendererObserver() {
 }
 
 async function diagnostic(h) {
-  if(process.env.QueAN_OBSERVER_ABA119==='1')return require('./verify-kamu-observer-aba-119.cjs')(h)
-  if(process.env.QueAN_OBSERVER_TRACE_CONTROL119==='1')return require('./verify-kamu-observer-aba-119.cjs')(h,{traceControl:true})
   const {call,evaluate,main,nav,wait,version,recordScreencast,screenshot}=h
   if(await main('process.platform')!=='darwin')return
   const theme=process.env.QueAN_TEST_THEME||'black-orange',file=`out/kamu-native-compositor-diagnostic-119-${theme}.json`

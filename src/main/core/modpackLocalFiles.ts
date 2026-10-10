@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { PACK_RESOURCE_DIRS } from './modpackBundledFiles'
 import { modpackCachedFile } from './modpackDownloads'
+import { privateModpackCacheDir } from './privatePaths'
 import { verifyFile } from './download'
 import { waitIfTaskPaused } from './tasks'
 
@@ -52,7 +53,9 @@ export class LocalModpackFiles {
     }
     // Verified cache may already exist after a previous cancelled installation.
     for (const root of this.roots) {
-      const cached = modpackCachedFile(file, path.join(root, '.quean', 'modpack-cache'))
+      // 单元测试等非 Electron 进程没有 userData，私有缓存目录不存在，跳过该候选
+      let cached: string
+      try { cached = modpackCachedFile(file, privateModpackCacheDir(root)) } catch { continue }
       if (await exact(cached)) return cached
     }
     this.index ??= this.scan(signal)

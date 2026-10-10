@@ -15,7 +15,8 @@ export async function versionInstallHarness(root: string, metadataFetch: typeof 
         export { communityDownload, communitySearchPage, communityFiles } from './src/main/core/community';
         export { installModpack, extractOverrides } from './src/main/core/modpacks';
         export { supplyModpackFiles } from './src/main/core/modpackManualFiles';
-        export { closeHttpClient } from './src/main/core/httpClient';`,
+        export { closeHttpClient } from './src/main/core/httpClient';
+        export { privateFolderKey, privateGameRoot, privateBaseDir, privateIconsDir, privateModpackCacheDir } from './src/main/core/privatePaths';`,
       resolveDir: process.cwd(), loader: 'ts'
     },
     bundle: true, write: false, format: 'cjs', platform: 'node', packages: 'external', logLevel: 'silent'
@@ -49,6 +50,11 @@ export async function versionInstallHarness(root: string, metadataFetch: typeof 
     communityFiles: typeof import('../../src/main/core/community').communityFiles
     installModpack: typeof import('../../src/main/core/modpacks').installModpack
     supplyModpackFiles: typeof import('../../src/main/core/modpackManualFiles').supplyModpackFiles
+    privateFolderKey: typeof import('../../src/main/core/privatePaths').privateFolderKey
+    privateGameRoot: typeof import('../../src/main/core/privatePaths').privateGameRoot
+    privateBaseDir: typeof import('../../src/main/core/privatePaths').privateBaseDir
+    privateIconsDir: typeof import('../../src/main/core/privatePaths').privateIconsDir
+    privateModpackCacheDir: typeof import('../../src/main/core/privatePaths').privateModpackCacheDir
     closeHttpClient: () => Promise<void>
   }
 }

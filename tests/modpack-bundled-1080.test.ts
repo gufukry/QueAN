@@ -126,7 +126,7 @@ for (const outcome of ['included', 'mismatch', 'missing', 'supplied'] as const) 
       assert.deepEqual(accepted, { accepted: 1, remaining: 0, rejected: [] })
       assert.deepEqual(fs.readFileSync(good), bundled)
 
-      assert(!fs.existsSync(path.join(otherFolder, '.quean', 'modpack-cache')))
+      assert(!fs.existsSync(path.join(otherFolder, '.quean')) && !fs.existsSync(runtime!.privateModpackCacheDir(otherFolder)), '缓存不得落进其它游戏文件夹')
       runtime.getSettings().folders[0].path = game
     }
     const instance = path.join(game, 'versions', id)

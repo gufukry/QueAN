@@ -93,7 +93,6 @@ const skinEditorPrefsOwners=new Set<string>()
 let skinEditorBusy=false
 const skinEditorBusyOwners=new Set<string>()
 let deferredPaletteClose=false, deferredPaletteQuit=false
-let mascotPending=false
 /** 内存压榨控制器：whenReady 时初始化；createWindow 的窗口事件经此转发（静默瘦身） */
 let memTrim: MemoryTrimController | null = null
 
@@ -134,11 +133,9 @@ function createWindow(startup?: Awaited<ReturnType<typeof createStartupSplash>>)
   skinEditorPrefsOwners.clear()
   skinEditorBusy=false; skinEditorBusyOwners.clear()
   deferredPaletteClose=false; deferredPaletteQuit=false
-  mascotPending=false
   mainWindow.on('close',event=>{
     if (mainWindow.webContents.isDestroyed()) return
     if (skinEditorDirty || skinEditorPrefsPending || skinEditorBusy) { event.preventDefault(); deferredPaletteClose=skinEditorPrefsPending&&!skinEditorDirty&&!skinEditorBusy; mainWindow.webContents.send('window:skinEditorClose'); return }
-    if (mascotPending) { event.preventDefault(); mainWindow.webContents.send('window:mascotClose') }
   })
   mainWindow.once('closed', () => { if (win === mainWindow) win = null })
   mainWindow.webContents.on('render-process-gone', () => {
@@ -146,7 +143,7 @@ function createWindow(startup?: Awaited<ReturnType<typeof createStartupSplash>>)
     // A crashed renderer cannot acknowledge an editor close request.
     skinEditorDirty=false; skinEditorPrefsPending=false; skinEditorPrefsOwners.clear()
     skinEditorBusy=false; skinEditorBusyOwners.clear()
-    mascotPending=false; deferredPaletteClose=false; deferredPaletteQuit=false
+    deferredPaletteClose=false; deferredPaletteQuit=false
   })
   // 静默瘦身钩子：最小化/隐藏触发工作集整理 + 渲染层瘦身广播；恢复不做处理（自然回涨）
   mainWindow.on('minimize', () => memTrim?.noteHidden())
@@ -279,8 +276,12 @@ app.whenReady().then(async () => {
       if(!skinEditorDirty&&!skinEditorBusy){if(quit)app.quit();else if(close)win?.close()}
     }
   })
-  ipcMain.on('window:mascotPending',(event,value)=>{if(event.sender===win?.webContents)mascotPending=value===true})
-  ipcMain.on('window:mascotQuit',event=>{if(event.sender===win?.webContents&&!mascotPending&&!skinEditorDirty&&!skinEditorPrefsPending&&!skinEditorBusy)app.quit()})
+  ipcMain.on('window:progress',(event,value)=>{
+    if(event.sender!==win?.webContents||!win)return
+    // <0 清除；0..1 进度；>1 未知进度（任务栏循环动画）
+    const n=typeof value==='number'&&Number.isFinite(value)?value:-1
+    win.setProgressBar(n>1?2:n)
+  })
 
   createWindow(startup)
   launcherLogInfo('main', `主窗口创建完成（${startupMark()}）`)
@@ -348,7 +349,6 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', event => {
   if((skinEditorDirty||skinEditorPrefsPending||skinEditorBusy)&&win&&!win.webContents.isDestroyed()){event.preventDefault();deferredPaletteQuit=skinEditorPrefsPending&&!skinEditorDirty&&!skinEditorBusy;win.webContents.send('window:skinEditorClose',{quit:true});return}
-  if(mascotPending&&win&&!win.webContents.isDestroyed()){event.preventDefault();win.webContents.send('window:mascotClose',{quit:true});return}
   // 仅清理联机相关子进程/监听器；不影响 Minecraft 生命周期。
   // 这几个模块只在退出时用得上，改成按需加载，不拖累启动解析。
   void import('./core/directConnect').then(({ stopDirectHost }) => stopDirectHost()).catch(() => { /* 退出路径失败不阻断 */ })

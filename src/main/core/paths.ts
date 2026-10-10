@@ -9,6 +9,7 @@ import fs from 'node:fs'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { getSettings } from './settings'
 import { samePath } from './folderPaths'
+import { privateBaseDir, privateIconsDir } from './privatePaths'
 const launchFolder = new AsyncLocalStorage<{ active: string; shared: string }>()
 /** Freeze an accepted launch's directory across async authentication/downloads and UI folder changes. */
 export function withGameFolder<T>(folder: string, action: () => T): T {
@@ -123,13 +124,13 @@ export function runtimesDir(): string {
   return path.join(defaultFolderPath(), 'runtimes')
 }
 
-// ---------------- 依赖原版区（.quean/base，不进入版本列表） ----------------
+// ---------------- 依赖原版区（私有目录 base/，不进入版本列表） ----------------
 // 加载器实例依赖的原版 json/jar 统一放这里（默认文件夹下共享），
-// 不再在 versions/ 生成独立原版条目
+// 不再在 versions/ 生成独立原版条目；目录在 <userData>/game/<key>/base，游戏目录保持标准结构
 
-/** 依赖原版目录：<默认文件夹>/.quean/base/<id> */
+/** 依赖原版目录：<私有数据>/game/<文件夹 key>/base/<id> */
 export function baseVersionDir(id: string): string {
-  return path.join(defaultFolderPath(), '.quean', 'base', id)
+  return path.join(privateBaseDir(defaultFolderPath()), id)
 }
 
 export function baseVersionJsonPath(id: string): string {
@@ -140,7 +141,16 @@ export function baseVersionJarPath(id: string): string {
   return path.join(baseVersionDir(id), `${id}.jar`)
 }
 
-/** 自定义实例图标目录：<默认文件夹>/.quean/icons（文件名随机，版本 json 以 file:<名> 引用） */
+/** 迁移前遗留的旧依赖原版区（<默认文件夹>/.quean/base），只读兼容 */
+export function legacyBaseVersionJsonPath(id: string): string {
+  return path.join(defaultFolderPath(), '.quean', 'base', id, `${id}.json`)
+}
+
+export function legacyBaseVersionJarPath(id: string): string {
+  return path.join(defaultFolderPath(), '.quean', 'base', id, `${id}.jar`)
+}
+
+/** 自定义实例图标目录：<私有数据>/game/<文件夹 key>/icons（文件名随机，版本 json 以 file:<名> 引用） */
 export function instanceIconsDir(): string {
-  return path.join(defaultFolderPath(), '.quean', 'icons')
+  return privateIconsDir(defaultFolderPath())
 }

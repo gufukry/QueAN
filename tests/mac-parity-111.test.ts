@@ -110,7 +110,7 @@ test('Mac click observer cannot use another Event to finish a captured input and
 })
 test('Mac restart requires a different actual PID with the same profile, signed source, runtime, version and executable', () => {
   const first = { version: 'synthetic', sourceCommit: 'b'.repeat(40), runtimeVersion: 'synthetic-runtime', arch: 'arm64', executable: '/private/app/QueAN', profile: '/private/qa/profile', pid: 500 }
-  const restart = { ...first, pid: 501, actualUserData: first.profile, publicAccountsPersisted: true, mascotCountsPersisted: true, settingsPersisted: true, favoritePersisted: true }
+  const restart = { ...first, pid: 501, actualUserData: first.profile, publicAccountsPersisted: true, settingsPersisted: true, favoritePersisted: true }
   assertRestartIdentity(first, restart)
   for (const field of ['sourceCommit', 'runtimeVersion', 'executable', 'profile', 'arch', 'version']) assert.throws(() => assertRestartIdentity(first, { ...restart, [field]: 'foreign' }))
   assert.throws(() => assertRestartIdentity(first, { ...restart, pid: first.pid }))

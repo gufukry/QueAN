@@ -178,7 +178,7 @@ ownedQA.preservingCleanup(async()=>{
   requiredProofs.push('skin-palette-state-119-black-orange.json')
   proofNames.push('skin-palette-state-119-black-orange.json','kamu-native-compositor-trace-119.json','kamu-native-compositor-trace-119-events.json','kamu-native-compositor-trace-action.json','kamu-native-compositor-trace-observations.json','kamu-native-compositor-trace-preflight.json','kamu-motion-diagnostic-119-native-trace-black-orange.json')
  }
- let extensionError,complete=false,performanceBenchmark=null,nativeVideoEvidence=null,observerABA119=null
+ let extensionError,complete=false,performanceBenchmark=null,nativeVideoEvidence=null
  try{
   // Explicit opt-in diagnostic-only preflight. It uses a separate process/profile and
   // can never supply acceptance success. Preserve its receipt even if tracing
@@ -267,28 +267,8 @@ ownedQA.preservingCleanup(async()=>{
    const nativeReceipt=path.join('out',nativeName+'.json');if(fresh(nativeReceipt)){assert(fs.lstatSync(nativeReceipt).isFile(),'native walking receipt must be a regular file');const target=path.join(extensionProof,'current-themes',theme);fs.mkdirSync(target,{recursive:true});fs.copyFileSync(nativeReceipt,path.join(target,path.basename(nativeReceipt)),fs.constants.COPYFILE_EXCL);copied.push('current-themes/'+theme+'/'+path.basename(nativeReceipt))}
   }
   const nativeAccepted=complete&&performanceBenchmark?.passed===true&&nativeVideoEvidence?.complete===true&&nativeVideoEvidence.nativeDeliveryBenchmark?.passed===true
-  fs.writeFileSync(path.join(extensionProof,'attempt.json'),JSON.stringify({version,arch,stage,complete,functionalComplete:complete,nativeAccepted,performanceBenchmark,performancePassed:performanceBenchmark?.passed??null,nativeVideoEvidence,observerABA119,acceptance:'functional and both original capture benchmarks required; independent visual, interaction and motion review is separate',error:extensionError||null,startedAt:new Date(attemptStarted).toISOString(),executable:exe,copied},null,2))
+  fs.writeFileSync(path.join(extensionProof,'attempt.json'),JSON.stringify({version,arch,stage,complete,functionalComplete:complete,nativeAccepted,performanceBenchmark,performancePassed:performanceBenchmark?.passed??null,nativeVideoEvidence,acceptance:'functional and both original capture benchmarks required; independent visual, interaction and motion review is separate',error:extensionError||null,startedAt:new Date(attemptStarted).toISOString(),executable:exe,copied},null,2))
   for(const name of fs.readdirSync('out').filter(n=>/^qa-owned-process-119-[0-9a-f-]{36}\.json$/.test(n)))if(fresh(path.join('out',name))){const target=path.join(extensionProof,'owned-process-ledgers',name);fs.mkdirSync(path.dirname(target),{recursive:true});fs.copyFileSync(path.join('out',name),target)}
-  // One separate, disposable Intel APP diagnostic after archiving the normal
-  // result, including its original failure. Diagnostics cannot replace it.
-  // Keep workflow permissions/budget and all formal capture assertions intact.
-  if(process.env.QueAN_MAC_DIAGNOSTICS==='1'&&arch==='x64'&&stage==='app'&&process.env.CI==='true'){
-   const began=Date.now();observerABA119={classification:'Independent instrumentation-only observer A/B/A; not formal acceptance',startedAt:new Date(began).toISOString(),timeoutMs:180000,complete:false,normalAcceptanceChanged:false}
-   console.log('DIAGNOSTIC observer ABA start '+observerABA119.startedAt)
-   try{execFileSync(process.execPath,['scripts/verify-ui-refinement.cjs'],{env:{...env,QueAN_GUI_APP:exe,QueAN_EXTENSION_GUI:'1',QueAN_EXTENSION_ONLY:'1',QueAN_SKIP_EXTENSION_BASE:'1',QueAN_UI_MODULE:'native-compositor',QueAN_OBSERVER_ABA119:'1',QueAN_TEST_THEME:'black-orange'},stdio:'inherit',timeout:observerABA119.timeoutMs});observerABA119.processExitCode=0}
-   catch(error){observerABA119.error={name:error.name,code:error.code??null,status:error.status??null,signal:error.signal??null};console.warn('DIAGNOSTIC observer ABA failed; original formal results remain unchanged',observerABA119.error)}
-   finally{
-    observerABA119.finishedAt=new Date().toISOString();observerABA119.elapsedMs=Date.now()-began;observerABA119.directories=[]
-    try{for(const name of fs.readdirSync('out').filter(name=>/^kamu-observer-aba-119-[0-9a-f-]{36}-black-orange$/.test(name))){
-     const source=path.join('out',name),ledger=path.join(source,'observer-aba.json');if(!fresh(ledger))continue
-     const result=JSON.parse(fs.readFileSync(ledger));if(Date.parse(result.startedAt)<began)continue
-     const target=path.join(extensionProof,name),copy=(from,to)=>{fs.mkdirSync(to,{recursive:true});for(const entry of fs.readdirSync(from,{withFileTypes:true})){assert(!entry.isSymbolicLink(),'no symlink in diagnostic evidence');const src=path.join(from,entry.name),dst=path.join(to,entry.name);if(entry.isDirectory())copy(src,dst);else if(/\.(?:json|bgra|png|log)$/.test(entry.name))fs.copyFileSync(src,dst)}}
-     copy(source,target);observerABA119.directories.push({name,complete:result.complete===true,source:'Original independent UUID directory; compiled helper digest retained in compile ledger, helper binary and request marker text excluded'})
-    }}catch(error){observerABA119.collectionError=String(error);console.warn('DIAGNOSTIC evidence collection failed; original formal result remains unchanged',observerABA119.collectionError)}
-    observerABA119.complete=!observerABA119.collectionError&&observerABA119.processExitCode===0&&observerABA119.directories.length===1&&observerABA119.directories.every(entry=>entry.complete)
-    try{fs.writeFileSync(path.join(extensionProof,'observer-aba-preflight.json'),JSON.stringify(observerABA119,null,2))}catch(error){console.warn('DIAGNOSTIC summary write failed; original formal result remains unchanged',String(error))}console.log('DIAGNOSTIC observer ABA end '+observerABA119.finishedAt+' elapsedMs='+observerABA119.elapsedMs)
-   }
-  }
   // Only after DMG formal proofs are archived, in a separate owned process.
   // The helper bounds 85s execution + 5s cleanup and excludes private CPU data.
   if(process.env.QueAN_MAC_DIAGNOSTICS==='1')require('./native-trace-control-preflight-119.cjs').run({version,arch,stage,ci:process.env.CI,env,exe,extensionProof})

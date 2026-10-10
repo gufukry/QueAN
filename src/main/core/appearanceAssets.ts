@@ -9,6 +9,7 @@ import {
 } from './imageAssetPolicy'
 import { encodeManagedImage, inspectImageFile, validateManagedImageSnapshot, type EncodedManagedImage } from './imageAssetProcessor'
 import { sniffImageFormat } from './imageAssetPolicy'
+import { privateThumbnailsDir } from './privatePaths'
 
 export interface ManagedImage {
   path: string
@@ -26,7 +27,7 @@ export function globalAppearanceDir(purpose: 'background' | 'launch-thumbnail'):
 }
 
 export function instanceThumbnailDir(folder: string): string {
-  return path.join(path.resolve(folder), '.quean', 'thumbnails')
+  return privateThumbnailsDir(path.resolve(folder))
 }
 
 async function importImage(

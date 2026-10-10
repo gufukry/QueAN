@@ -8,7 +8,6 @@ import { registerVersionCategoriesIpc } from './core/versionCategories'
 import { normalizeVersionCategoryState, renameCategoryAssignment } from '../shared/versionCategories'
 import { registerMemoryOrganizerIpc } from './core/memoryOrganizer'
 import { registerProjectionsIpc } from './core/projectionsIpc'
-import { registerMascotsIpc } from './core/mascots'
 import { activeLaunchStates, rememberLaunchState } from './core/launchUiState'
 import { startNativeFileDrag } from './core/nativeFileDrag'
 import { dragResourceFilesSync } from './core/resourceDragPaths'
@@ -113,7 +112,6 @@ export function registerIpc(getWin: () => BrowserWindow | null): void {
   registerVersionCategoriesIpc()
   registerMemoryOrganizerIpc()
   registerProjectionsIpc(getWin)
-  registerMascotsIpc()
   registerInstanceCenterIpc(getWin)
   registerRecordingsIpc(getWin)
   ipcMain.handle("recordings:modVersions", (_e, kind, mc, loader) => recordingModVersions(kind, mc, loader))
@@ -484,7 +482,7 @@ export function registerIpc(getWin: () => BrowserWindow | null): void {
   ipcMain.handle(IPC.versionsSetIcon, (_e, id: string, icon: string, folder?: string) =>
     scopedVersion(id, folder, () => versions.setVersionIcon(String(id ?? ''), String(icon ?? '')))
   )
-  // 上传自定义图标：弹窗选图 → 校验类型/大小 → 复制进 .quean/icons 并写入版本 json
+  // 上传自定义图标：弹窗选图 → 校验类型/大小 → 复制进私有数据区 icons/ 并写入版本 json
   ipcMain.handle(IPC.versionsUploadIcon, (_e, id: string, targetFolder?: string) => scopedVersion(id, targetFolder, async () => {
     const vid = String(id ?? '')
     const win = getWin()

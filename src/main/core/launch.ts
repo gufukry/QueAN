@@ -32,7 +32,6 @@ import {
   assetsDir,
   allFolders,
   folderOfVersion,
-  baseVersionJarPath,
   gameDir,
   librariesDir,
   nativesDir,
@@ -41,6 +40,7 @@ import {
 } from './paths'
 import { withGameFolder } from './paths'
 import {
+  baseVersionJarFile,
   clientJarPath,
   installClientJarOnly,
   installVanilla,
@@ -345,9 +345,9 @@ async function launchOwned(
     }
     chainBroken = true
   }
-  // 链底原版 json/jar 可能在 versions 区（独立原版）或 .quean/base 依赖区（加载器实例的内部依赖）
+  // 链底原版 json/jar 可能在 versions 区（独立原版）或私有数据区 base/（加载器实例的内部依赖）
   const baseInVersions = fs.existsSync(versionJsonPath(baseIdProbe))
-  const jarProbe = baseInVersions ? versionJarPath(baseIdProbe) : baseVersionJarPath(baseIdProbe)
+  const jarProbe = baseInVersions ? versionJarPath(baseIdProbe) : baseVersionJarFile(baseIdProbe)
   if (chainBroken || !fs.existsSync(jarProbe)) {
     launchLog.info(`检测到实例 ${versionId} 依赖的游戏文件缺失（chainBroken=${chainBroken}），开始自动补全`)
     // 自包含实例（flatten 后）：json 不缺，仅补客户端 jar，绝不重写合并后的 json

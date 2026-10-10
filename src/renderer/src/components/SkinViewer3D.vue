@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: MIT
 // QueAN preview lifecycle and interaction; geometry is skinview3d v3.4.2 (MIT).
 import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
-import { MASCOT_INTERACTIVE } from '../mascotInteraction'
 import { AmbientLight, DirectionalLight, Mesh, NearestFilter, PerspectiveCamera, Raycaster, Scene, SRGBColorSpace, Texture, Vector2, WebGLRenderer } from 'three'
 import type { SkinFace } from '@shared/skinPixels'
 import { useMotion } from '../motion'
@@ -11,12 +10,10 @@ import { loadImage, migrateLegacySkin, detectSkinVariant, normalizeCape } from '
 import { beginBootTask } from '../bootTasks'
 import { createFallbackSkin } from '../fallbackSkin'
 import { SkinGestureOwner } from '../skinEditorInteraction'
-import { MascotFrameDriver } from '../mascotFrameDriver'
+import { FrameDriver } from '../frameDriver'
 const props = withDefaults(defineProps<{ src?: string; cape?: string; variant?: 'classic' | 'slim'; animation?: 'walk' | 'idle'; paused?: boolean; editCanvas?: HTMLCanvasElement; revision?: number; editMode?: 'draw' | 'rotate'; editDisabled?: boolean; layer?: 'inner' | 'outer'; hiddenParts?: string[] }>(), { src:'', cape:'', variant:'classic', animation:'walk', paused:false })
 const emit = defineEmits<{ stroke: [active: boolean]; pixel: [x: number, y: number, face: SkinFace]; gap: []; rotate: []; capeError: [message: string] }>()
-const interactive = inject(MASCOT_INTERACTIVE, undefined)
-// Editing and camera gestures continue; only decorative walking yields priority.
-const effectivePaused = computed(() => props.paused || (!!interactive?.value && !props.editCanvas))
+const effectivePaused = computed(() => props.paused)
 const gestures = new SkinGestureOwner()
 const raycaster = new Raycaster()
 const { decorativeActive, hidden } = useMotion()
@@ -25,7 +22,7 @@ watch(hidden, value => { if (value) { finishGesture(); frames.cancel() } else wa
 const container = ref<HTMLDivElement | null>(null), supported = ref(true), dragging = ref(false)
 let gl: WebGLRenderer | undefined, world: Scene, camera: PerspectiveCamera, player: PreviewPlayer
 let resize: ResizeObserver | undefined, closed = false, skinRequest = 0, capeRequest = 0
-const frames = new MascotFrameDriver(frame => render(frame.at), {
+const frames = new FrameDriver(frame => render(frame.at), {
   now: () => performance.now(), requestAnimationFrame: callback => requestAnimationFrame(callback),
   cancelAnimationFrame: id => cancelAnimationFrame(id), setTimeout: (callback, delay) => setTimeout(callback, delay), clearTimeout: id => clearTimeout(id)
 })

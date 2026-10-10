@@ -100,6 +100,7 @@ export interface GameFolder {
 
 export interface FolderScanResult {
   folder: GameFolder
+  /** quean = 迁移前遗留的旧目录结构（仅识别用，新文件夹不会再出现） */
   structure: 'minecraft' | 'quean' | 'empty' | 'missing'
   status: 'ready' | 'warning' | 'error'
   versions: InstalledVersion[]
@@ -134,6 +135,8 @@ export interface InstalledVersion {
   resolution?: GameResolution
   /** 实例图标：'mob:<内置生物头像id>' | 'file:<自定义图标文件名>'（空 = 默认图标） */
   icon?: string
+  /** 'file:…' 图标的绝对路径（主进程解析，渲染层直接拼 file:// 使用） */
+  iconPath?: string
   /** 首页启动卡专属缩略图；主进程只返回已验证的 QueAN 受管文件路径。 */
   thumbnail?: string
   /** 专属缩略图显示方式。 */

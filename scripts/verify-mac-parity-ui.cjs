@@ -364,17 +364,16 @@ module.exports=async function verifyMacParity(h){
   const data=Buffer.from((await call('Page.captureScreenshot',{format:'png',fromSurface:true,captureBeyondViewport:false})).data,'base64')
   fs.writeFileSync(file,data,{flag:'wx'});const row={screenshot:name+'.png',bytes:data.length,sha256:crypto.createHash('sha256').update(data).digest('hex')};proof.screenshots.push(row);save();return row
  }
- const accounts=()=>evaluate("window.quean.invoke('accounts:list')"),selected=()=>evaluate("window.quean.invoke('accounts:selected')"),state=()=>evaluate("window.quean.invoke('mascots:state')")
+ const accounts=()=>evaluate("window.quean.invoke('accounts:list')"),selected=()=>evaluate("window.quean.invoke('accounts:selected')")
  const firstFile=path.resolve('out/mac-parity-first.json')
  try{
   if(phase==='restart'){
    const first=JSON.parse(fs.readFileSync(firstFile,'utf8'));assert.equal(first.complete,true)
-   proof.restart={publicAccountsPersisted:false,mascotCountsPersisted:false,settingsPersisted:false,favoritePersisted:false}
-   const actualAccounts=(await accounts()).map(publicAccount),actualSelected=publicAccount(await selected()),actualState=await state(),settings=await evaluate("window.quean.invoke('settings:get')"),favorites=await evaluate("window.quean.invoke('mods:favorites')")
+   proof.restart={publicAccountsPersisted:false,settingsPersisted:false,favoritePersisted:false}
+   const actualAccounts=(await accounts()).map(publicAccount),actualSelected=publicAccount(await selected()),settings=await evaluate("window.quean.invoke('settings:get')"),favorites=await evaluate("window.quean.invoke('mods:favorites')")
    assert.deepEqual(actualAccounts,first.persisted.accounts);assert.deepEqual(actualSelected,first.persisted.selected)
-   assert.deepEqual(actualState.counts,first.persisted.mascots.counts);assert.deepEqual(actualState.sound,first.persisted.mascots.sound)
    assert.equal(settings.theme,first.persisted.theme);assert.equal(stableHash(settings),first.persisted.settingsSHA256,'all actual settings must survive the native process restart');assert.deepEqual(favorites,first.persisted.favorites)
-   Object.assign(proof.restart,{publicAccountsPersisted:true,mascotCountsPersisted:true,settingsPersisted:true,favoritePersisted:true,actualPublicAccounts:actualAccounts,actualSelectedAccount:actualSelected,actualMascotState:actualState,actualTheme:settings.theme})
+   Object.assign(proof.restart,{publicAccountsPersisted:true,settingsPersisted:true,favoritePersisted:true,actualPublicAccounts:actualAccounts,actualSelectedAccount:actualSelected,actualTheme:settings.theme})
    require('./verify-mac-parity.cjs').assertRestartIdentity(first.identity,{...proof.identity,...proof.restart})
    await route('accounts');await until('restart selected UI account',()=>evaluate(`({names:[...document.querySelectorAll('.account-name')].map(e=>e.textContent.trim()),selected:document.querySelector('.account-row.selected .account-name')?.textContent.trim()})`),r=>r.selected?.startsWith(first.persisted.selected.username))
    await coordinate('.account-row:not(.selected) .remove-btn')
@@ -430,32 +429,6 @@ module.exports=async function verifyMacParity(h){
     for(const label of labels){await textCoordinate('.settings-categories',label);const actual=await until('actual settings category '+label,()=>evaluate(`({label:document.querySelector('.settings-categories [aria-current=page]')?.textContent.trim(),scope:document.querySelector('.settings-scopes [aria-current=page]')?.textContent.trim(),body:document.querySelector('.settings-body')?.innerText})`),r=>r.label===label&&r.scope===scope&&!!r.body);proof.settingsCategories.push({...actual,...await screenshot('mac-parity-first-settings-category-'+proof.settingsCategories.length)});save()}
    }
    await route('home')
-   await evaluate("window.quean.invoke('mascots:sound',{muted:false,volume:.5})")
-   const legacySeed={batchId:'mac-parity-history-'+crypto.randomUUID(),hits:['q3','qiqi','biyuehu','hongshu','milo','muchuanbei']};await evaluate(`window.quean.invoke('mascots:batch',${JSON.stringify(legacySeed)})`);proof.legacySeed={classification:'Disposable historical-data fixture via real product increment IPC, not retired characters rendered or clicked',batch:legacySeed}
-   const baseline=await state();proof.mascotBaseline=baseline
-   // Original sources and DOM contacts are observed, never delayed or changed.
-   await evaluate(`(()=>{const p=window.__macParityQueue={clicks:[],contacts:[],audio:[],contexts:[],busyVisible:false};p.originalContext=window.AudioContext;p.originalStart=AudioBufferSourceNode.prototype.start;window.AudioContext=new Proxy(p.originalContext,{construct(t,a){const c=new t(...a);p.contexts.push(c);return c}});AudioBufferSourceNode.prototype.start=function(...args){const role=this.queanInitialization?.role==='silent-slap-buffer'?'initialization':'palm',values=this.buffer?.getChannelData(0);let peak=0;if(values)for(const value of values)peak=Math.max(peak,Math.abs(value));p.audio.push({at:performance.now(),audioTime:this.context.currentTime,scheduledAt:args[0]??0,role,duration:this.buffer?.duration,peak});return p.originalStart.apply(this,args)};p.clickObserver=(${createQueueClickObserver.toString()})(p,()=>document.querySelector('.mascot-stage').dataset,()=>performance.now());document.addEventListener('click',p.clickObserver.before,true);document.addEventListener('click',p.clickObserver.after,false);p.observer=new MutationObserver(()=>{const e=document.querySelector('.mascot-stage');if(e){const contacts=Number(e.dataset.contacts);if(contacts>0&&contacts!==p.contacts.at(-1)?.contacts)p.contacts.push({at:performance.now(),contacts,contactAt:Number(e.dataset.contactAt),cycleId:Number(e.dataset.cycleId)})}if(document.body.innerText.includes('拍打队列已满，请稍候'))p.busyVisible=true});p.observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['data-contacts','data-contact-at'],childList:true})})()`)
-   try{
-    await coordinate('.brand-avatar')
-    const before=await until('model and feedback really ready',()=>evaluate(`(()=>{const e=document.querySelector('.mascot-stage'),b=document.querySelector('[data-hit=kamu]');return{ready:!!e&&!b.disabled&&Number(e.dataset.readyAt)>0&&e.dataset.feedbackPreparation==='decoded',phase:e?.dataset.phase,queue:Number(e?.dataset.queue),contacts:Number(e?.dataset.contacts),count:Number(b?.getAttribute('aria-label')?.match(/累计 (\\d+) 次/)?.[1]),accepted:Number(e?.dataset.acceptedClicks||0),rejected:Number(e?.dataset.rejectedClicks||0)}})()`),r=>r.ready&&r.phase==='front')
-    assert.equal(before.count,baseline.counts.kamu||0,'first activation never counts')
-    const position=await coordinatePosition(evaluate,'[data-hit=kamu]')
-    proof.queueDispatches=[]
-    assert(!fs.existsSync(path.resolve('out/mac-parity-queue-burst-black-orange')),'original queue recording directory must be new')
-    let dispatchError
-    const recording=await recordScreencast('mac-parity-queue-burst',async()=>{
-     const pending=[]
-     for(let i=0;i<40;i++)for(const[type,buttons]of[['mousePressed',1],['mouseReleased',0]]){const args={type,...position,button:'left',buttons,clickCount:1};proof.queueDispatches.push({index:proof.queueDispatches.length,at:performance.now(),args});pending.push(call('Input.dispatchMouseEvent',args))}
-     try{await Promise.all(pending)}catch(error){dispatchError=error;proof.queueDispatchFailure={name:error.name,message:error.message}}
-    },7000)
-    proof.queueRecording=recording;save();if(dispatchError)throw dispatchError
-    const after=await until('every accepted click contacts and persists then returns front',()=>evaluate(`(async()=>{const e=document.querySelector('.mascot-stage'),b=document.querySelector('[data-hit=kamu]'),saved=await window.quean.invoke('mascots:state');return{phase:e.dataset.phase,queue:Number(e.dataset.queue),contacts:Number(e.dataset.contacts),count:Number(b.getAttribute('aria-label').match(/累计 (\\d+) 次/)[1]),persistedCount:saved.counts.kamu}})()`),r=>r.phase==='front'&&r.queue===0&&r.persistedCount===r.count,20000)
-    const ledger=await evaluate(`(()=>{const p=window.__macParityQueue;return{clicks:p.clicks,contacts:p.contacts,audio:p.audio,busyVisible:p.busyVisible}})()`)
-    proof.queue={before,after,ledger,recording,classification:'Actual original trusted input queue and synchronous product acceptance/rejection counters, original contact/audio timeline. CDP wall-clock recording is retained diagnostically and is not used as formal presented-FPS evidence.'};save()
-    proof.queue.result=assertQueueLedger(ledger,before,after)
-    await coordinate('.menu-tool');await textCoordinate('.sound-panel','恢复 LOGO')
-    await until('queue close actually releases contexts and renderer',()=>evaluate(`({stage:!!document.querySelector('.mascot-stage'),audio:window.__macParityQueue.contexts.map(c=>c.state),avatarFocused:document.activeElement===document.querySelector('.brand-avatar')})`),r=>!r.stage&&r.audio.length>0&&r.audio.every(x=>x==='closed')&&r.avatarFocused)
-   }finally{await evaluate(`(()=>{const p=window.__macParityQueue;p.observer.disconnect();document.removeEventListener('click',p.clickObserver.before,true);document.removeEventListener('click',p.clickObserver.after,false);AudioBufferSourceNode.prototype.start=p.originalStart;window.AudioContext=p.originalContext})()`);save()}
    // A real project is fetched from the public service; no search/files/plan
    // handler is substituted. Only the target instance metadata is synthetic.
    proof.realService={source:'modrinth',projectId:'P7dR8mSH',classification:'Actual native UI / real public API and CDN / real prepared dependency plan and commit; synthetic MC1.20.1 Fabric target, not a game-launch claim',complete:false};save()
@@ -521,7 +494,7 @@ module.exports=async function verifyMacParity(h){
    await screenshot('mac-parity-first-real-install-complete')
    },()=>collectAndRestoreInstallObserver(main,proof.realService),proof.realService,save)
    const finalSettings=await evaluate("window.quean.invoke('settings:get')")
-   proof.persisted={accounts:(await accounts()).map(publicAccount),selected:publicAccount(await selected()),mascots:await state(),favorites:await evaluate("window.quean.invoke('mods:favorites')"),theme:finalSettings.theme,settingsSHA256:stableHash(finalSettings)}
+   proof.persisted={accounts:(await accounts()).map(publicAccount),selected:publicAccount(await selected()),favorites:await evaluate("window.quean.invoke('mods:favorites')"),theme:finalSettings.theme,settingsSHA256:stableHash(finalSettings)}
    assert.equal(proof.persisted.accounts.length,2);assert.equal(proof.persisted.theme,'black-orange')
   }
   proof.complete=true;proof.finishedAt=new Date().toISOString();save()

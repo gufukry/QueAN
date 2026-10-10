@@ -65,18 +65,18 @@ class NetworkIdle extends Error {}
 export const transferTimeouts = { inactivityMs: 15_000, alternativeHeadersMs: 2500 }
 export const slowSpeedThresholds = {
   largeFileBytes: 1024*1024,
+  // 有备用源 + 大文件时，低于该速率才考虑换源（原先是 256KB/s，在网络差的国内链路上会
+  // 把多镜像下载抖成反复断线重连）。
   largeWindowMs: 8000,
-  largeMinBps: 256*1024,
+  largeMinBps: 32*1024,
   smallWindowMs: 4000,
   smallMinBps: 32*1024,
-  // 绝对下限：4s 窗口内少于 64KB（≈16KB/s）即判过慢。
-  // 参照 PCL/Axolotl 的 absolute floor（16KB/s），而不是老版本的「12000 秒 16KB」这种近乎不判的阀值。
-  windowMs: 4000,
-  minWindowBytes: 64*1024,
+  // 绝对下限对齐 PCL：窗口 ≥5s 且速率 <1KB/s（≈只在真停滞时）才判“过慢断开”。
+  windowMs: 5000,
+  minWindowBytes: 5*1024,
   warmupBytes: 1024*1024,
   warmupMs: 15000,
-  // 尾巴宽限：剩余不足 256KB 时不再判慢（轴后不再抖）。
-  // 整文件下载器常取 1MB，但我们的传输单元是 1MB 分片，取 256KB 以免误杀「快下完的最后一片」。
+  // 尾巴宽限：剩余不足 256KB 与本次传输量 10% 的较小值时不再判慢。
   minRemainingBytes: 256*1024
 }
 const failures = new Map<string, { count: number; until: number }>()
@@ -90,7 +90,9 @@ export function retryAfterTime(value: string | null, now = Date.now()): number {
 }
 export function noteHostFailure(url: string): void {
   const key = origin(url), count = (failures.get(key)?.count ?? 0) + 1
-  failures.set(key, { count, until: count < 2 ? 0 : Date.now() + Math.min(count * 60_000, 600_000) })
+  // 国内链路抖动多：要连续失败 3 次才冷却，且最长只冷 60s（原为 2 次 / 最长 10 分钟，
+  // 会把一个只是抖了一下的镜像长时间踢出候选）。
+  failures.set(key, { count, until: count < 3 ? 0 : Date.now() + Math.min((count - 2) * 30_000, 60_000) })
 }
 export function noteHostSuccess(url: string): void { failures.delete(origin(url)) }
 export function noteHostsRecovered(): void { failures.clear() }
@@ -436,7 +438,7 @@ async function segmented(url: string, dest: string, expected: Integrity, signal:
 export async function downloadFile(url: string, dest: string, progress?: ProgressFn, sha1?: string, mirror: MirrorPref = 'official', signal?: AbortSignal, alternatives: string[] = [], integrity: { sha512?: string; sha256?: string; size?: number; reuseDirs?: string[]; reuseFiles?: string[]; systemProxy?: boolean; maxAttempts?: number; maxSegments?: number | (() => number); sourcePool?: DownloadSourcePool } = {}): Promise<void> {
   return withFileJob(dest, signal, async () => {
     const expected = { sha1, sha512: integrity.sha512, sha256: integrity.sha256, size: integrity.size, systemProxy: integrity.systemProxy }, temporary = dest + '.part'
-    const attempts = Math.max(1, Math.min(4, integrity.maxAttempts ?? 4))
+    const attempts = Math.max(1, Math.min(8, integrity.maxAttempts ?? 6))
     await fs.promises.mkdir(path.dirname(dest), { recursive: true })
     try {
       if (!await verifyFile(dest, expected, signal)) { const size = (await fs.promises.stat(dest)).size; progress?.(size, size); return }

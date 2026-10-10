@@ -11,6 +11,7 @@ import type { Settings } from '../../shared/types'
 import { carouselImages, carouselSelection, carouselTiming } from '../../shared/appearancePolicy'
 import { normalizeSkinPalettePreferences } from '../../shared/skinPalettePreferences'
 import { DEFAULT_DOWNLOAD_LIMITS, downloadLimiter, validateDownloadLimits } from './downloadLimits'
+import { migrateLegacyFolders } from './privateDataMigration'
 import {
   DEFAULT_BACKGROUND,
   DEFAULT_CUSTOM_THEME,
@@ -37,7 +38,8 @@ function settingsFile(): string {
 }
 
 function defaults(): Settings {
-  const gameDir = path.join(app.getPath('appData'), '.quean')
+  // 与官方启动器 / PCL 同目录，游戏数据（versions/mods/saves…）可被其它启动器共用
+  const gameDir = path.join(app.getPath('appData'), '.minecraft')
   return {
     gameDir,
     folders: [{ path: gameDir, name: '默认文件夹', isDefault: true }],
@@ -149,6 +151,20 @@ export function getSettings(): Settings {
     }
     c.gameDir = c.activeFolder
     cached = c
+    // 一次性迁移：私有数据移出游戏目录 + 老默认目录 .quean → .minecraft（幂等，失败则保持原样）
+    try {
+      const migration = migrateLegacyFolders(c.folders, c.activeFolder, app.getPath('appData'))
+      if (migration.changed) {
+        c.folders = migration.folders
+        c.activeFolder = migration.activeFolder
+        c.gameDir = migration.activeFolder
+        fs.mkdirSync(path.dirname(settingsFile()), { recursive: true })
+        fs.writeFileSync(settingsFile(), JSON.stringify(c, null, 2), 'utf-8')
+      }
+    } catch (error) {
+      // 迁移失败不能影响设置加载：保持现有目录继续可用
+      console.error('[QueAN] 目录迁移写入失败:', error)
+    }
     // 将旧主题 key、旧外部背景路径和损坏资源回退一次性落盘，避免每次启动重复迁移。
     if (
       c.theme !== raw.theme ||
