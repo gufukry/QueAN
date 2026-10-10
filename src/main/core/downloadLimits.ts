@@ -11,9 +11,26 @@ export function validateDownloadLimits(value: DownloadLimits): void {
 
 /**
  * 同一域名最多同时占用的连接数；多个镜像并存时避免其中一个吃满全局名额。
- * 参照 Axolotl/Theseus 的 per-authority 上限（32）；单源下载不传 origin，不受此限。
+ * 参照 Axolotl/Theseus 的 per-authority 上限（32）。
  */
 export const HOST_CONNECTION_LIMIT = 32
+
+/**
+ * 国内镜像（BMCLAPI）对高频请求会返 403/429 甚至直接卡住，参照 PCL 的做法：
+ * 单域名并发压到 8，并让每次新建连接至少间隔 100ms（PCL: "减少 BMCLAPI 请求频率"）。
+ */
+export const MIRROR_HOST_CONNECTION_LIMIT = 8
+export const MIRROR_REQUEST_INTERVAL_MS = 100
+const MIRROR_HOST_PATTERN = /(^|\.)bangbang93\.com$/i
+
+export function isMirrorHost(origin: string): boolean {
+  try { return MIRROR_HOST_PATTERN.test(new URL(origin).hostname) } catch { return false }
+}
+
+/** 某域名的并发上限（镜像域名更小） */
+export function hostConnectionLimit(origin?: string): number {
+  return origin && isMirrorHost(origin) ? MIRROR_HOST_CONNECTION_LIMIT : HOST_CONNECTION_LIMIT
+}
 
 /** 所有下载共用一个并发闸门与字节预算，跨安装任务也不会叠加突破限制。 */
 export class DownloadLimiter {
@@ -41,14 +58,27 @@ export class DownloadLimiter {
     for (const start of this.queue) {
       if (this.active >= this.limits.downloadThreads) { remaining.push(start); continue }
       const origin = this.queuedOrigins.get(start)
-      if (origin && (this.hostActive.get(origin) ?? 0) >= HOST_CONNECTION_LIMIT) { remaining.push(start); continue }
+      if (origin && (this.hostActive.get(origin) ?? 0) >= hostConnectionLimit(origin)) { remaining.push(start); continue }
       start()
     }
     this.queue = remaining
   }
   private queuedOrigins = new Map<() => void, string>()
+  private nextMirrorSlot = 0
+
+  /** 镜像错峰：保证每次新建连接之间至少间隔 MIRROR_REQUEST_INTERVAL_MS */
+  private async staggerMirror(origin: string | undefined, signal?: AbortSignal): Promise<void> {
+    if (!origin || !isMirrorHost(origin)) return
+    const now = performance.now()
+    const slot = Math.max(now, this.nextMirrorSlot)
+    this.nextMirrorSlot = slot + MIRROR_REQUEST_INTERVAL_MS
+    if (slot > now) await abortableDelay(slot - now, signal)
+  }
 
   async acquire(signal?: AbortSignal, origin?: string): Promise<() => void> {
+    signal?.throwIfAborted()
+    await this.staggerMirror(origin, signal)
+    // 错峰等待期间可能已被取消：此时信号已 abort，监听器不会再触发，必须提前抛。
     signal?.throwIfAborted()
     return new Promise((resolve, reject) => {
       const cancel = () => {

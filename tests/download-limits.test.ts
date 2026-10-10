@@ -6,7 +6,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { once } from 'node:events'
 import { downloadAll, retryAfterTime } from '../src/main/core/download'
-import { DEFAULT_DOWNLOAD_LIMITS, downloadLimiter, DownloadLimiter, HOST_CONNECTION_LIMIT, validateDownloadLimits } from '../src/main/core/downloadLimits'
+import { DEFAULT_DOWNLOAD_LIMITS, downloadLimiter, DownloadLimiter, HOST_CONNECTION_LIMIT, MIRROR_HOST_CONNECTION_LIMIT, hostConnectionLimit, validateDownloadLimits } from '../src/main/core/downloadLimits'
 
 test('default pool downloads distinct files concurrently and respects the shared configured ceiling', async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'quean-many-files-'))
@@ -98,4 +98,30 @@ test('单域名并发上限：多源下载时同一域名最多 32 条连接，�
   await new Promise((resolve) => setTimeout(resolve, 20))
   assert.equal(aActive, 40, '释放后全部完成')
   assert.equal(bActive, 40)
+})
+
+test('镜像域名（BMCLAPI）并发压到 8：避免高频请求被 403/429 限频', async () => {
+  // 上限判定：镜像域名更紧，普通域名保持 32
+  assert.equal(hostConnectionLimit('https://bmclapi2.bangbang93.com'), MIRROR_HOST_CONNECTION_LIMIT)
+  assert.equal(hostConnectionLimit('https://libraries.minecraft.net'), HOST_CONNECTION_LIMIT)
+  assert.equal(hostConnectionLimit(undefined), HOST_CONNECTION_LIMIT)
+  const limiter = new DownloadLimiter()
+  limiter.configure({ downloadThreads: 64, downloadSpeedKBps: 0 })
+  let active = 0
+  const releases: Array<() => void> = []
+  const jobs = Array.from({ length: 32 }, () =>
+    limiter.acquire(undefined, 'https://bmclapi2.bangbang93.com').then((release) => { active++; releases.push(release) })
+  )
+  // 错峰 100ms/条：约 1.5s 足够放满 8 条，但绝不会到 32
+  await new Promise((resolve) => setTimeout(resolve, 1500))
+  assert.equal(active, MIRROR_HOST_CONNECTION_LIMIT, '镜像域名并发不超过 8')
+  // 分批释放直至排空，避免把未释放的连接挂在队列上
+  for (let round = 0; round < 8; round++) {
+    const batch = releases.splice(0)
+    if (!batch.length) break
+    for (const release of batch) release()
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  }
+  await Promise.allSettled(jobs)
+  assert.equal(active, 32, '全部连接最终都拿到过名额')
 })

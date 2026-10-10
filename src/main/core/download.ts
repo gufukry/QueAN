@@ -47,7 +47,12 @@ export function downloadCandidates(urls: string[], mirror: MirrorPref): string[]
         u.hostname = 'edge.forgecdn.net'; variants.push(u.href)
       }
     } catch { /* Keep URL validation in the transfer. */ }
-    return [...(mirror === 'official' ? [] : [mirrorUrl(url, mirror)]), ...variants]
+    const candidates = [...(mirror === 'official' ? [] : [mirrorUrl(url, mirror)]), ...variants]
+    // 即使是官方源也保留 BMCLAPI 作为最后一档兜底：maven.neoforged.net 这类主机在部分网络下
+    // 完全不通，而镜像只是同一份不可变对象的代理，仍按 sha1/sha512 校验，不会降低安全性。
+    const fallback = mirror === 'official' ? mirrorUrl(url, 'bmclapi') : ''
+    if (fallback && fallback !== url && !candidates.includes(fallback)) candidates.push(fallback)
+    return candidates
   }))]
 }
 export type HttpFailureKind = 'unavailable' | 'transient' | 'fatal'
@@ -62,7 +67,7 @@ export class DownloadHttpError extends Error {
 }
 class InvalidContent extends Error {}
 class NetworkIdle extends Error {}
-export const transferTimeouts = { inactivityMs: 15_000, alternativeHeadersMs: 2500 }
+export const transferTimeouts = { inactivityMs: 30_000, alternativeHeadersMs: 2500 }
 export const slowSpeedThresholds = {
   largeFileBytes: 1024*1024,
   // 有备用源 + 大文件时，低于该速率才考虑换源（原先是 256KB/s，在网络差的国内链路上会
@@ -165,8 +170,8 @@ async function receive(url: string, temporary: string, expected: Integrity, sign
   while ((serverCooldowns.get(origin(url)) ?? 0) > Date.now()) {
     await abortableDelay(Math.min(1000, serverCooldowns.get(origin(url))! - Date.now()), signal)
   }
-  // 多源时按域名限并发（避免一个镜像吃满名额）；单源不限，保持满速。
-  const release = await downloadLimiter.acquire(signal, hasAlternative ? origin(url) : undefined)
+  // 每个域名都限并发（镜像 BMCLAPI 更紧并额外错峰，避免被 403/429 限频）。
+  const release = await downloadLimiter.acquire(signal, origin(url))
   const controller = new AbortController()
   const abort = () => controller.abort(signal?.reason)
   signal?.addEventListener('abort', abort, { once: true })

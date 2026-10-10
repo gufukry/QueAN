@@ -106,3 +106,25 @@ test('installer dependency preparation downloads concurrently, verifies cached b
     await assert.rejects(downloadFile(base + '/failure', path.join(f.root, 'failure.jar'), undefined, undefined, 'official', AbortSignal.abort(new Error('cancelled'))), /cancelled/)
   } finally { server.closeAllConnections(); await new Promise<void>(r => server.close(() => r())); fs.rmSync(f.root, { recursive: true, force: true }) }
 })
+
+test('安装器依赖可从游戏目录 libraries 复用相同内容：其它启动器装过的文件不再重下', { timeout: 15000 }, async () => {
+  const f = fixture(), bytes = Buffer.from('reusable installer artifact')
+  const sha1 = crypto.createHash('sha1').update(bytes).digest('hex')
+  let requests = 0
+  const server = http.createServer((_req, res) => { requests++; res.end(bytes) })
+  await new Promise<void>(r => server.listen(0, '127.0.0.1', r))
+  try {
+    const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`
+    const relative = 'net/neoforged/installertools/cli-utils/2.1.2/cli-utils-2.1.2.jar'
+    const libraries = [{ downloads: { artifact: { path: relative, url: base + '/cli-utils.jar', sha1, size: bytes.length } } }]
+    const zip = new AdmZip(); zip.addFile('install_profile.json', Buffer.from(JSON.stringify({ libraries })))
+    const jar = path.join(f.root, 'installer.jar'); zip.writeZip(jar)
+    // 其它启动器（PCL/HMCL）已把同一份文件下进游戏目录的 libraries
+    const reuse = path.join(f.root, 'game', 'libraries'), reuseFile = path.join(reuse, relative)
+    fs.mkdirSync(path.dirname(reuseFile), { recursive: true }); fs.writeFileSync(reuseFile, bytes)
+    assert.deepEqual(installerDependencyTasks(jar, f.root, [reuse])[0].reuseDirs, [reuse])
+    await prepareInstallerDependencies(jar, f.root, 'official', () => {}, undefined, [reuse])
+    assert.equal(requests, 0, '已有相同 sha1+size 的文件时不发请求')
+    assert.deepEqual(fs.readFileSync(path.join(f.root, 'libraries', relative)), bytes)
+  } finally { server.closeAllConnections(); await new Promise<void>(r => server.close(() => r())); fs.rmSync(f.root, { recursive: true, force: true }) }
+})

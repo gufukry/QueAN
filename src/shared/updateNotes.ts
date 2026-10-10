@@ -12,8 +12,12 @@ export interface UpdateNote {
 export const updateNotes: UpdateNote[] = [
   {
     "version": "1.0.0",
-    "date": "2026-10-10 02:51",
+    "date": "2026-10-10 03:36",
     "changes": [
+      "镜像不再被自己限频：BMCLAPI 并发压到 8 并错峰 100ms（对齐 PCL 的「减少 BMCLAPI 请求频率」），高频请求的 403/429 不再把安装拖死",
+      "安装器依赖（NeoForge 的 cli-utils 等）可复用游戏目录 libraries 里已有的相同文件：先用 PCL/HMCL 装过的话，本启动器不再重下",
+      "差网络不再卡死：官方源失败后自动回退 BMCLAPI 镜像（同一份文件、仍校验哈希），maven.neoforged.net 这类国内不通的主机也能下",
+      "停滞判定放宽到 30 秒无数据才断开（对齐 PCL，原先 15 秒），与「慢但不断」的连接共存",
       "游戏目录改为 PCL 风格：默认位置变为 %APPDATA%\\.minecraft，可与官方启动器 / PCL 共用同一份游戏数据",
       "启动器私有数据（依赖原版、自定义图标、实例缩略图、整合包缓存）移到 %APPDATA%\\QueAN\\game\\ 下，游戏目录只保留标准结构",
       "老数据首次启动自动迁移：原 .quean 目录整体改名为 .minecraft，已装版本/模组/存档原样保留；若已有 .minecraft 则不覆盖，旧目录继续登记在列表中",

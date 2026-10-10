@@ -21,7 +21,7 @@ import { logScope } from './launcherLog'
 
 const loaderLog = logScope('loader')
 import { getSettings } from './settings'
-import { gameDir, librariesDir, registerVersionFolder, versionDir, versionJsonPath, versionsDir } from './paths'
+import { allFolders, gameDir, librariesDir, registerVersionFolder, versionDir, versionJsonPath, versionsDir } from './paths'
 import { ensureJava } from './java'
 import {
   installVanilla,
@@ -34,6 +34,11 @@ import {
 } from './versions'
 
 export type ProgressEmit = (e: ProgressEvent) => void
+
+/** 安装器依赖的复用目录：默认文件夹与其他已登记文件夹的 libraries（其它启动器装过的同一份文件直接复用） */
+function installerReuseRoots(): string[] {
+  return [...new Set([librariesDir(), ...allFolders().map(folder => path.join(folder, 'libraries'))])]
+}
 
 async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
   const res = await fetch(url, { signal: fetchSignal(signal) })
@@ -262,7 +267,7 @@ export async function repairNeoRuntime(json: VersionJson, clientJar: string, bas
     await downloadLoaderInstaller(`https://maven.neoforged.net/releases/net/neoforged/neoforge/${neo}/neoforge-${neo}-installer.jar`, jar, mirror,
       (done,total)=>repairEmit({stage:'repair',progress:total?done/total:0,text:'下载安装器 '+(done/1024/1024).toFixed(1)+'MB',bytesDone:done,bytesTotal:total||undefined}))
     const java = await ensureJava(baseJson, emit)
-    await prepareInstallerDependencies(jar, staging, mirror, repairEmit)
+    await prepareInstallerDependencies(jar, staging, mirror, repairEmit, undefined, installerReuseRoots())
     await runInstaller(java, jar, repairEmit, undefined, staging)
     reuseExternalRuntimeLibraries(json, [staging], librariesDir(), tasks.map(t => t.dest))
     const missing = missingNeoRuntime(json, librariesDir())
@@ -462,7 +467,7 @@ async function installLoaderInternal(
             }, signal)
 
 
-            await prepareInstallerDependencies(jarPath, gameDir(), getSettings().mirror, loaderEmit, signal)
+            await prepareInstallerDependencies(jarPath, gameDir(), getSettings().mirror, loaderEmit, signal, installerReuseRoots())
             parallel.done('installer')
             prepared.resolve()
           } catch (error) { prepared.reject(error); throw error }

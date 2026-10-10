@@ -53,9 +53,18 @@ test('下载源遵循用户选择，已知镜像优先并保留官方回退', ()
     'https://bmclapi2.bangbang93.com/maven/com/example/a.jar',
     official
   ])
-  assert.deepEqual(downloadCandidates([official], 'official'), [official])
+  assert.deepEqual(downloadCandidates([official], 'official'), [
+    official,
+    'https://bmclapi2.bangbang93.com/maven/com/example/a.jar'
+  ])
   assert.deepEqual(downloadCandidates(['https://example.com/a.jar'], 'bmclapi'), [
     'https://example.com/a.jar'
+  ])
+  // 官方源下同样保留镜像兜底（主机在国内部分网络完全不通时的唯一生路）
+  const neo = 'https://maven.neoforged.net/releases/net/neoforged/installertools/cli-utils/2.1.2/cli-utils-2.1.2.jar'
+  assert.deepEqual(downloadCandidates([neo], 'official'), [
+    neo,
+    'https://bmclapi2.bangbang93.com/maven/net/neoforged/installertools/cli-utils/2.1.2/cli-utils-2.1.2.jar'
   ])
 })
 

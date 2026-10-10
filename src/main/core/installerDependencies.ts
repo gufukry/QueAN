@@ -6,8 +6,9 @@ import { downloadLimiter } from './downloadLimits'
 import type { ProgressEvent } from '../../shared/types'
 
 /** Read declared remote artifacts only. Empty URLs belong to embedded/generated files. */
-export function installerDependencyTasks(jar: string, target: string): DownloadTask[] {
+export function installerDependencyTasks(jar: string, target: string, reuseRoots: readonly string[] = []): DownloadTask[] {
   const zip = new AdmZip(jar), tasks = new Map<string, DownloadTask>()
+  const reuseDirs = [...new Set(reuseRoots)]
   const root = path.resolve(target, 'libraries')
   for (const name of ['install_profile.json', 'version.json']) {
     const entry = zip.getEntry(name)
@@ -26,7 +27,8 @@ export function installerDependencyTasks(jar: string, target: string): DownloadT
         if (fs.existsSync(dir) && fs.lstatSync(dir).isSymbolicLink()) throw new Error('安装器依赖目录不能是链接')
         if (dir === root) break
       }
-      const task = { url: artifact.url, dest, sha1: artifact.sha1, size: artifact.size }
+      // 同一份 sha1+size 已在游戏目录 libraries/ 时直接复用（PCL/HMCL 装过的同一份文件不再重下）
+      const task = { url: artifact.url, dest, sha1: artifact.sha1, size: artifact.size, ...(reuseDirs.length ? { reuseDirs } : {}) }
       const previous = tasks.get(dest)
       if (previous && (previous.sha1 !== task.sha1 || previous.size !== task.size)) throw new Error('安装器包含冲突的依赖声明')
       tasks.set(dest, task)
@@ -35,8 +37,8 @@ export function installerDependencyTasks(jar: string, target: string): DownloadT
   return [...tasks.values()]
 }
 
-export async function prepareInstallerDependencies(jar: string, target: string, mirror: MirrorPref, emit: (event: ProgressEvent) => void, signal?: AbortSignal): Promise<void> {
-  const tasks = installerDependencyTasks(jar, target)
+export async function prepareInstallerDependencies(jar: string, target: string, mirror: MirrorPref, emit: (event: ProgressEvent) => void, signal?: AbortSignal, reuseRoots: readonly string[] = []): Promise<void> {
+  const tasks = installerDependencyTasks(jar, target, reuseRoots)
   if (!tasks.length) return
   await downloadAll(tasks, (done, total, speed, detail) => emit({ stage: 'loader-dependencies', progress: detail.fraction ?? 0,
     text: `下载加载器依赖 ${done}/${total}`, speed, bytesDone: detail.bytesDone, bytesTotal: detail.bytesTotal ?? undefined,
