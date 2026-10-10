@@ -23,14 +23,15 @@ const ARCHIVE_PATTERN = /^launcher-(\d{8}-\d{6})(?:-(\d+))?\.log$/
 
 // ---------------- 可纯测核心 ----------------
 
-/** 级别过滤：达到最低级别才写。环境变量 QueAN_LOG_LEVEL 可调，默认 debug 全量。 */
+/** 级别过滤：达到最低级别才写。环境变量 QueAN_LOG_LEVEL 可调；默认 info，
+ * 避免游戏运行时启动器持续写 debug 日志抢磁盘 I/O（排查问题时设 QueAN_LOG_LEVEL=debug）。 */
 export function levelAtLeast(level: LauncherLogLevel, minimum: LauncherLogLevel): boolean {
   return LEVEL_ORDER[level] >= LEVEL_ORDER[minimum]
 }
 
 export function minimumLevelFromEnv(env: Record<string, string | undefined> = process.env): LauncherLogLevel {
   const raw = (env.QueAN_LOG_LEVEL ?? '').trim().toLowerCase()
-  return raw === 'info' || raw === 'warn' || raw === 'error' ? raw : 'debug'
+  return raw === 'debug' || raw === 'warn' || raw === 'error' ? raw : 'info'
 }
 
 /** 归档文件名：launcher-YYYYMMDD-HHMMSS.log */
