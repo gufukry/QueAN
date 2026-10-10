@@ -710,6 +710,10 @@ export interface ProgressEvent {
   taskId?: string
   /** 任务展示名（随首条进度事件下发） */
   taskTitle?: string
+  /** 多文件任务的逐文件进度（下载中心文件清单） */
+  files?: Array<{ label: string; done: number; total?: number | null; complete?: boolean }>
+  /** 本次批次的文件总数（files 可能只带前若干条） */
+  filesTotal?: number
 }
 
 export interface LaunchState {

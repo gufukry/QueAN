@@ -1476,6 +1476,13 @@ onUnmounted(() => {
                     失败于「{{ stageLabel(t.stage || 'error') }}」阶段：{{ t.error }}
                   </template>
                 </div>
+                <div v-if="t.files && t.files.length > 1" class="dl-files">
+                  <div v-for="(f, i) in t.files.slice(0, 12)" :key="i" class="dl-file" :class="{ 'is-done': f.complete }">
+                    <span class="dl-file-name" :title="f.label">{{ f.label }}</span>
+                    <span class="dl-file-bar"><i :style="{ width: (f.complete ? 100 : (f.total ? Math.round(f.done / f.total * 100) : 0)) + '%' }"></i></span>
+                  </div>
+                  <p v-if="(t.filesTotal ?? t.files.length) > 12" class="muted dl-file-more">…还有 {{ (t.filesTotal ?? t.files.length) - 12 }} 个文件</p>
+                </div>
                 <ModpackSupplement v-if="t.manualFiles && (t.status === 'running' || t.status === 'paused')" :request="t.manualFiles" :paused="t.status === 'paused'" />
                 <div data-ui="App:c299fc9739a0" v-if="t.status === 'running' || t.status === 'paused' || t.status === 'cancelling'" class="dl-bar" :class="{ 'is-indeterminate': t.indeterminate && t.status === 'running' }">
                   <div data-ui="App:21050ee2a501" class="dl-bar-fill" :style="{ width: t.indeterminate ? '35%' : taskProgressPercent(t) + '%' }"></div>
@@ -2645,4 +2652,15 @@ onUnmounted(() => {
   gap: var(--space-3);
   margin-top: var(--space-5);
 }
+</style>
+
+<!-- 下载中心：逐文件清单（模组/资源文件等） -->
+<style scoped>
+.dl-files { margin: 6px 0 2px; max-height: 168px; overflow-y: auto; }
+.dl-file { display: flex; align-items: center; gap: 8px; font-size: var(--text-xs, 11px); line-height: 1.6; }
+.dl-file-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dl-file-bar { flex: 0 0 64px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.14); overflow: hidden; }
+.dl-file-bar > i { display: block; height: 100%; background: var(--accent, #d8a657); }
+.dl-file.is-done .dl-file-name { opacity: .55; }
+.dl-file-more { margin: 4px 0 0; font-size: var(--text-xs, 11px); }
 </style>

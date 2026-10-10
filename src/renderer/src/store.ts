@@ -156,6 +156,8 @@ export function openSettings(section: 'java' | 'memory' | 'downloads'): void {
 // ---------------- 后台任务（下载中心） ----------------
 export interface TaskItem {
   manualFiles?: ProgressEvent['manualFiles']
+  files?: ProgressEvent['files']
+  filesTotal?: number
   parallelStages?: ProgressEvent['parallelStages']
   id: string
   title: string

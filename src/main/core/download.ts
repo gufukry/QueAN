@@ -483,6 +483,7 @@ export async function downloadFile(url: string, dest: string, progress?: Progres
 }
 export async function downloadAll(tasks: DownloadTask[], progress?: AllProgressFn, concurrency = downloadLimiter.maxConcurrent, mirror: MirrorPref = 'official', signal?: AbortSignal): Promise<void> {
   const tracker = new DownloadProgressTracker(), speed = new SmoothedSpeedEstimator(), active = new Map<number,string>()
+  let lastFilesAt = 0
   const sourcePool = new DownloadSourcePool()
   // Most workers start large files early; reserve one in four for small files.
   // Overlap per-file latency with bulk transfer instead of deferring thousands
@@ -497,14 +498,20 @@ export async function downloadAll(tasks: DownloadTask[], progress?: AllProgressF
     if (mixed && worker % 4 === 3 && smallCursor < small.length) return small[smallCursor++]
     return largeCursor < large.length ? large[largeCursor++] : small[smallCursor++]
   }
-  tasks.forEach(task => tracker.add(task.size)); tracker.seal()
+  tasks.forEach(task => tracker.add(task.size, task.label ?? path.basename(task.dest))); tracker.seal()
   const controller = new AbortController(), abort = () => controller.abort(signal?.reason)
   signal?.addEventListener('abort', abort, { once: true }); inheritTaskControl(signal, controller.signal)
   let firstError: unknown, networkBytes = 0
   const report = () => {
     const snapshot = tracker.snapshot(), paused = isTaskPaused(signal)
     const sampled = speed.sample(networkBytes, snapshot.bytesTotal == null ? null : Math.max(0, snapshot.bytesTotal - snapshot.bytesDone), performance.now(), paused)
-    progress?.(snapshot.completedFiles, tasks.length, sampled.speedBps, { ...snapshot, ...sampled, paused, activeFiles: [...active.values()] })
+    // 文件清单每 500ms 上报一次：够实时，也不会在大任务里刷爆 IPC
+    const withFiles = tasks.length > 1 && Date.now() - lastFilesAt >= 500
+    if (withFiles) lastFilesAt = Date.now()
+    progress?.(snapshot.completedFiles, tasks.length, sampled.speedBps, {
+      ...snapshot, ...sampled, paused, activeFiles: [...active.values()],
+      ...(withFiles ? { files: tracker.files().slice(0, 120), filesTotal: tasks.length } : {})
+    })
   }
   report()
   const timer = setInterval(report, 250)

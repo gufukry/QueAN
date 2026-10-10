@@ -1,4 +1,6 @@
 export interface DownloadProgressSnapshot {
+  /** 逐文件进度（仅多文件任务填充，供 UI 列出文件清单） */
+  files?: Array<{ label: string; done: number; total: number | null; complete: boolean }>
   completedFiles: number
   totalFiles: number
   bytesDone: number
@@ -13,6 +15,8 @@ interface ProgressEntry {
   expected: number | null
   transferred: number
   complete: boolean
+  /** 文件名（供下载中心列出文件清单） */
+  label?: string
 }
 
 const validSize = (value: unknown): value is number =>
@@ -32,7 +36,7 @@ export class DownloadProgressTracker {
   private anchorRemaining: number | null = null
   private hasDeterminateEpoch = false
 
-  add(expected?: number): number {
+  add(expected?: number, label?: string): number {
     if (this.lastFraction >= 1) throw new Error('已完成的进度任务不能再添加文件')
     const wasDeterminate = this.isDeterminate()
     const doneBefore = this.sealed ? this.bytesDone() : 0
@@ -40,7 +44,8 @@ export class DownloadProgressTracker {
     const index = this.entries.push({
       expected: validSize(expected) ? expected : null,
       transferred: 0,
-      complete: false
+      complete: false,
+      label
     }) - 1
     if (this.sealed && wasDeterminate) {
       this.anchorFraction = this.lastFraction
@@ -87,6 +92,13 @@ export class DownloadProgressTracker {
     if (entry.expected != null) entry.transferred = Math.max(entry.transferred, entry.expected)
     else if (validSize(actualSize)) entry.transferred = Math.max(entry.transferred, actualSize)
     entry.complete = true
+  }
+
+  /** 逐文件快照（供下载中心展示文件清单）；没有标签的条目不返回。 */
+  files(): NonNullable<DownloadProgressSnapshot['files']> {
+    return this.entries
+      .filter(entry => entry.label)
+      .map(entry => ({ label: entry.label as string, done: entry.transferred, total: entry.expected, complete: entry.complete }))
   }
 
   snapshot(): DownloadProgressSnapshot {
