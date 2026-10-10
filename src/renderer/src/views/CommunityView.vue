@@ -551,6 +551,16 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
             @change="applyVersionInput"
             @keydown.enter.prevent="applyVersionInput"
           />
+          <button
+            data-ui="CommunityView:ver-filter-toggle"
+            class="ver-filter-toggle"
+            type="button"
+            aria-label="展开版本列表"
+            :aria-expanded="versionDropdownOpen"
+            @click="versionDropdownOpen = !versionDropdownOpen"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
           <div data-ui="CommunityView:c262110ba1ea" v-if="versionDropdownOpen" class="menu-overlay" @click="versionDropdownOpen = false"></div>
           <div data-ui="CommunityView:8e1248a50470" v-if="versionDropdownOpen" class="float-menu ver-filter-menu">
             <button data-ui="CommunityView:45317b5bff2e" class="menu-item" :class="{ active: !query.mcVersion }" @mousedown.prevent @click="pickVersion('')">
@@ -1141,4 +1151,30 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
 <style scoped>
 .download-only { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0 2px; font-size: var(--text-sm); line-height: 1.5; cursor: pointer; }
 .download-only input { margin-top: 3px; flex-shrink: 0; }
+</style>
+
+<!-- 版本筛选：浮层必须盖住后面的卡片，并给输入框一个可点的下拉按钮 -->
+<style scoped>
+.filter-row { position: relative; z-index: 20; }
+.ver-filter-menu { z-index: 200; }
+.ver-filter-input { padding-right: 30px; }
+.ver-filter-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--text-dim, currentColor);
+  cursor: pointer;
+}
+.ver-filter-toggle:hover { background: rgba(255,255,255,.1); }
+.ver-filter-toggle svg { width: 16px; height: 16px; }
 </style>
