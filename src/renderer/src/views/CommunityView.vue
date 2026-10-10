@@ -1178,3 +1178,7 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
 .ver-filter-toggle:hover { background: rgba(255,255,255,.1); }
 .ver-filter-toggle svg { width: 16px; height: 16px; }
 </style>
+/* 版本筛选浮层：结果卡片不得盖住它；占位文字用正常前景色（原来像禁用态） */
+.result-card { position: relative; z-index: 0; }
+.results, .result-list, .community-results { position: relative; z-index: 0; }
+.ver-filter-input::placeholder { color: var(--text, #1c1c1e); opacity: .9; }
