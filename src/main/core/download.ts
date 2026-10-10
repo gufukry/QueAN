@@ -47,10 +47,21 @@ export function downloadCandidates(urls: string[], mirror: MirrorPref): string[]
         u.hostname = 'edge.forgecdn.net'; variants.push(u.href)
       }
     } catch { /* Keep URL validation in the transfer. */ }
-    const candidates = [...(mirror === 'official' ? [] : [mirrorUrl(url, mirror)]), ...variants]
+    // 内容 CDN（Modrinth / CurseForge）直连原站就能跑满并发（美西螈正是直连 18MB/s），
+    // 镜像作为兜底排在后面；其余主机仍按「镜像优先」。
+    const hosted = (() => {
+      try {
+        const host = new URL(url).hostname
+        return host === 'cdn.modrinth.com' || host === 'edge.forgecdn.net' || host === 'mediafilez.forgecdn.net'
+      } catch { return false }
+    })()
+    const mirrored = mirrorUrl(url, mirror)
+    const candidates = hosted
+      ? [url, ...(mirrored !== url ? [mirrored] : [])]
+      : [...(mirror === 'official' ? [] : [mirrored]), ...variants]
     // 即使是官方源也保留 BMCLAPI 作为最后一档兜底：maven.neoforged.net 这类主机在部分网络下
     // 完全不通，而镜像只是同一份不可变对象的代理，仍按 sha1/sha512 校验，不会降低安全性。
-    const fallback = mirror === 'official' ? mirrorUrl(url, 'bmclapi') : ''
+    const fallback = mirror === 'official' ? mirrorUrl(url, 'bmclapi') : (hosted ? mirrorUrl(url, 'bmclapi') : '')
     if (fallback && fallback !== url && !candidates.includes(fallback)) candidates.push(fallback)
     return candidates
   }))]
