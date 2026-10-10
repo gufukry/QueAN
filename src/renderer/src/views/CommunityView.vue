@@ -469,6 +469,7 @@ async function confirmDownload() {
   const label = kindLabel[modal.kind] ?? '资源'
   modal.open = false
   toast(`开始下载${label} ${file.fileName || ''}…`.replace(' …', '…'), 'info')
+  store.downloadPanelRequest++   // 展开下载中心：可见当前文件、总量与速度
   modal.downloading = true
   void communityDownload(file, { versionId: target?.id ?? '', kind: modal.kind })
     .then(res => { toast(res || `${label}已下载`, 'success') })

@@ -777,6 +777,8 @@ async function onCancelTask(id: string) {
 }
 
 /** 任务副标题：阶段标签与进度文本重复时只显示一次 */
+watch(() => store.downloadPanelRequest, () => { if (store.downloadPanelRequest) dlOpen.value = true })
+
 function taskSubText(t: { stage: string; text: string }): string {
   if (t.stage === 'parallel') return ''
   const label = stageLabel(t.stage)

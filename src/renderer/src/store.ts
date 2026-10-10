@@ -77,6 +77,8 @@ export const store = reactive({
   currentView: 'home' as ViewName,
   /** 一次性请求：跳到皮肤页并直接打开绘制编辑器（首页入口用） */
   skinEditorRequest: false,
+  /** 递增即请求展开下载中心（社区资源点下载后立刻看到当前文件/速度） */
+  downloadPanelRequest: 0,
   settingsSection: '' as '' | 'java' | 'memory' | 'downloads',
   /** 顶栏搜索关键字（游戏版本页版本列表联动过滤） */
   searchKeyword: '',
