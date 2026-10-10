@@ -20,11 +20,16 @@ onUnmounted(() => { disposed = true; if (plan.value) void discardModInstall(plan
 async function install() {
   if (!plan.value || busy.value) return
   busy.value = true; error.value = ''
-  try {
-    const message = await commitModInstall(plan.value.id, true)
-    toast(message, 'success'); store.fsRefreshTick++; emit('installed')
-  } catch (e) { error.value = errText(e); plan.value = undefined }
-  finally { busy.value = false }
+  const id = plan.value.id
+  // 与导入/社区下载一致：确认后收起弹窗，进度看下载中心，完成与失败用右上角通知
+  plan.value = undefined   // 先清空，避免卸载时把正在提交的计划丢弃
+  toast('开始下载并安装 MOD 与前置…', 'info')
+  store.downloadPanelRequest++
+  emit('installed')
+  void commitModInstall(id, true)
+    .then(message => { toast(message, 'success'); store.fsRefreshTick++ })
+    .catch(e => toast('MOD 安装失败：' + errText(e), 'error'))
+  busy.value = false
 }
 </script>
 <template>

@@ -106,6 +106,8 @@ onBeforeUnmount(close)
 </template>
 
 <style scoped>
+/* 触发按钮自成层叠上下文：避免被同级卡片/列表盖住（下拉面板已 Teleport 到 body） */
+.select-menu-btn { position: relative; z-index: 1; }
 .select-menu-btn {
   display: flex;
   align-items: center;
