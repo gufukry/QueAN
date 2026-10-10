@@ -721,7 +721,17 @@ async function communityDownloadInFolder(
   }
 
   // 与最终启动使用同一个目录解析器，避免资源被装进未参与启动的目录。
-  const base = instanceDirectoryState(target.versionId, readVersionJson(target.versionId)).path
+  // 没有游戏版本时（「仅下载文件」）：直接落到游戏目录对应的资源文件夹
+  let base: string
+  if (!target.versionId) {
+    const dirName = target.kind === 'mod' ? 'mods'
+      : target.kind === 'resourcepack' ? 'resourcepacks'
+      : target.kind === 'shader' ? 'shaderpacks' : 'datapacks'
+    base = path.join(target.folder ?? defaultFolderPath(), dirName)
+    fs.mkdirSync(base, { recursive: true })
+  } else {
+    base = instanceDirectoryState(target.versionId, readVersionJson(target.versionId)).path
+  }
 
   // 数据包：MC 只从 saves/<世界>/datapacks 加载——唯一存档直接投入，否则落 gameDir/datapacks 并提示
   if (target.kind === 'datapack') {

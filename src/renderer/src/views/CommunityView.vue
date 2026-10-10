@@ -390,7 +390,9 @@ const modal = reactive({
   versionId: '',
   mcVersion: '',
   loader: '' as LoaderName | '',
-  downloading: false
+  downloading: false,
+  /** 没有可用实例时：只把文件放进游戏目录，不安装到实例 */
+  downloadOnly: false
 })
 
 const isModpack = computed(() => modal.kind === 'modpack')
@@ -451,13 +453,13 @@ const canConfirm = computed(
     !!selectedFile.value &&
     !modal.loadingFiles &&
     !modal.downloading &&
-    (isModpack.value || !!modal.versionId)
+    (isModpack.value || !!modal.versionId || !!selectedInstance.value || modal.downloadOnly)
 )
 
 async function confirmDownload() {
   const file = selectedFile.value
   if (!file || !canConfirm.value) return
-  const target = targetOptions.value.find(v => instanceKey(v) === modal.versionId)
+  const target = targetOptions.value.find(v => instanceKey(v) === modal.versionId) ?? selectedInstance.value ?? undefined
   if (modal.kind === 'mod') {
     if (!target) return
     modRequest.value = { target, input: { file } }
@@ -469,9 +471,14 @@ async function confirmDownload() {
   const label = kindLabel[modal.kind] ?? '资源'
   modal.open = false
   toast(`开始下载${label} ${file.fileName || ''}…`.replace(' …', '…'), 'info')
+  if (modal.downloadOnly) toast(`没有游戏版本：文件将保存到游戏目录的 ${label} 文件夹`, 'info')
   store.downloadPanelRequest++   // 展开下载中心：可见当前文件、总量与速度
   modal.downloading = true
-  void communityDownload(file, { versionId: target?.id ?? '', kind: modal.kind })
+  void communityDownload(file, {
+    versionId: modal.downloadOnly ? '' : (target?.id ?? ''),
+    kind: modal.kind,
+    folder: modal.downloadOnly ? (store.settings?.folders.find(f => f.isDefault)?.path ?? store.settings?.gameDir ?? undefined) : undefined
+  })
     .then(res => { toast(res || `${label}已下载`, 'success') })
     .catch(e => toast(`${label}下载失败：` + errText(e), 'error'))
     .finally(() => { modal.downloading = false })
@@ -721,6 +728,10 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
             <p data-ui="CommunityView:ab12acbb18fe" v-else class="files-error">没有与所选文件兼容的已安装实例；可调整文件筛选，或在游戏版本页安装。</p>
           </template>
           <p data-ui="CommunityView:a8e08b82f315" v-else class="muted pack-tip">整合包将下载后自动创建独立实例并安装</p>
+          <label v-if="!isModpack" class="download-only" data-ui="CommunityView:download-only">
+            <input type="checkbox" v-model="modal.downloadOnly" :disabled="modal.downloading" />
+            <span>没有游戏版本也可以下载（仅保存文件到游戏目录，不安装到实例）</span>
+          </label>
 
           <div data-ui="CommunityView:2356b94bbc0d" class="modal-actions">
             <button data-ui="CommunityView:989d28842ec5" class="btn btn-ghost" :disabled="modal.downloading" @click="modal.open = false">取消</button>
@@ -1125,3 +1136,9 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
 .community-page .capsule.active { color:var(--text); background:var(--accent-soft); text-shadow:none; }
 </style>
 
+
+<!-- 「仅下载文件」勾选（没有游戏版本时也能下载模组/资源包等） -->
+<style scoped>
+.download-only { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0 2px; font-size: var(--text-sm); line-height: 1.5; cursor: pointer; }
+.download-only input { margin-top: 3px; flex-shrink: 0; }
+</style>
