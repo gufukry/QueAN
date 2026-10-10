@@ -50,7 +50,14 @@ export async function dependencyGraph(roots: CommunityFile[], target: InstalledV
   async function visit(file: CommunityFile) {
     const key = `${file.source}:${file.fileId}`
     if (seen.has(key)) return
-    if (!communityFileMatchesInstance(file, target)) throw new Error(`${file.fileName} 不支持 MC ${target.mcVersion} / ${target.loader}`)
+    // 依赖文件是仓库按目标筛出来的；不少项目声明的 gameVersions 粒度较粗
+    // （例如只写 1.20、或写成范围），与实例的 1.20.1 精确比对并不相等。
+    // 因此这里不再因预检不通过直接失败（根模组的预检仍然保留，且弹窗可「强制安装」）。
+    if (!communityFileMatchesInstance(file, target)) {
+      if (normalizeLoader(file.loaders?.[0] ?? '') !== normalizeLoader(target.loader ?? '')) {
+        throw new Error(`${file.fileName} 不支持 MC ${target.mcVersion} / ${target.loader}`)
+      }
+    }
     if (seen.size >= 96) throw new Error('依赖图超过 96 项，请检查项目元数据')
     const project = `${file.source}:${file.projectId}`
     if (file.projectId && projects.has(project) && projects.get(project) !== file.fileId) throw new Error(`前置版本冲突：${file.projectId}`)
