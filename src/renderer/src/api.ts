@@ -293,6 +293,9 @@ export const prepareServerLaunch = (id: string, versionId?: string, folder?: str
   invoke<ServerLaunchPreparation>(IPC.serversPrepareLaunch, id, versionId, folder)
 
 // ---------------- MOD 拖入即装 ----------------
+/** 手动释放内存：整理启动器自身工作集，返回释放的字节数 */
+export const releaseMemory = () => invoke<{ freedBytes: number }>('mem:release')
+
 export const getModTargets = () => invoke<{ versions: InstalledVersion[]; errors: string[] }>(IPC.modsTargets)
 export const prepareModInstall = (target: { id: string; folder: string }, input: { paths?: string[]; file?: CommunityFile }, force?: boolean) => invoke<ModInstallPlan>(IPC.modsPrepare, target, input, force)
 export const commitModInstall = (id: string, includeDependencies: boolean) => invoke<string>(IPC.modsCommit, id, includeDependencies)

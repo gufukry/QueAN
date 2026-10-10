@@ -31,6 +31,10 @@ import { IPC_EVENT } from '../shared/types'
  * 启动耗时标记：从进程启动（含 Electron 自身引导）算起。
  * 每项优化都以此量化，避免靠感觉判断「卡不卡」。
  */
+/** 启动器自身各进程的工作集合计（字节）——用于「释放内存」前后对比 */
+const memoryTotalBytes = (): number =>
+  app.getAppMetrics().reduce((sum, metric) => sum + (metric.memory?.workingSetSize ?? 0) * 1024, 0)
+
 const startupMark = (): string => '+' + Math.round(process.uptime() * 1000) + 'ms'
 
 // 便携式布局（与 PCL 一致）：启动器数据放桌面「QueAN」。必须在任何 userData 读写之前执行。
@@ -302,6 +306,12 @@ app.whenReady().then(async () => {
   // - 旧版外观资源迁移只影响背景/缩略图，且幂等，晚一点跑不会丢东西。
   void import('./core/memTrim').then(({ startMemoryTrim }) => startMemoryTrim(() => win, (message: string) => launcherLogInfo('memory', message))).then((controller: MemoryTrimController) => {
     memTrim = controller
+    // 手动释放内存：复用同一套工作集整理，返回释放字节数供界面提示
+    ipcMain.handle('mem:release', async () => {
+      const before = memoryTotalBytes()
+      await memTrim?.trimNow('manual')
+      return { freedBytes: Math.max(0, before - memoryTotalBytes()) }
+    })
     launcherLogInfo('memory', '内存压榨控制器已启动（指标日志 5 分钟/条；静默 10 分钟后低频整理）')
   }).catch((error: unknown) => launcherLogWarn('memory', '内存压榨控制器启动失败', error))
   void migrateLegacyAppearanceAssets().catch((error) => launcherLogWarn('appearance', '旧版外观资源迁移失败，不阻断启动', error))
