@@ -406,12 +406,12 @@ const isModpack = computed(() => modal.kind === 'modpack')
 /** 最近一次安装请求：失败时用它把弹窗带回错误重新打开（内含「强制安装」） */
 let lastModRequest: { target: InstalledVersion; input: { file: CommunityFile } } | null = null
 const selectedFile = computed(
-  () => modal.files.find((f) => f.fileId === modal.fileId) ?? null
+  () => modal.files?.find?.((f) => f.fileId === modal.fileId) ?? null
 )
-const targetOptions = computed(() => modal.kind === 'mod' ? allTargets.value.filter(v => selectedFile.value && communityFileMatchesInstance(selectedFile.value, v)) : store.installed)
+const targetOptions = computed(() => modal.kind === 'mod' ? (allTargets.value ?? []).filter(v => selectedFile.value && communityFileMatchesInstance(selectedFile.value, v)) : store.installed)
 watch(targetOptions, options => {
   if (!options.some(v => instanceKey(v) === modal.versionId)) {
-    const selected = options.find(v => v.id === currentInstance.value?.id && v.folder === currentInstance.value?.folder) ?? options[0]
+    const selected = (options ?? []).find(v => v.id === currentInstance.value?.id && v.folder === currentInstance.value?.folder) ?? options[0]
     modal.versionId = selected ? instanceKey(selected) : ''
   }
 })
