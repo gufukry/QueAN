@@ -1149,25 +1149,7 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
 .filter-row { position: relative; z-index: 20; }
 .ver-filter-menu { z-index: 200; }
 .ver-filter-input { padding-right: 30px; }
-.ver-filter-toggle {
-  position: absolute;
-  top: 50%;
-  right: 6px;
-  transform: translateY(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-sm, 6px);
-  background: transparent;
-  color: var(--text-dim, currentColor);
-  cursor: pointer;
-}
-.ver-filter-toggle:hover { background: rgba(255,255,255,.1); }
-.ver-filter-toggle svg { width: 16px; height: 16px; }
+
 </style>
 /* 版本筛选浮层：结果卡片不得盖住它；占位文字用正常前景色（原来像禁用态） */
 .result-card { position: relative; z-index: 0; }
