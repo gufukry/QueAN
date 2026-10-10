@@ -749,7 +749,7 @@ export function registerIpc(getWin: () => BrowserWindow | null): void {
   // 单独下载 Java 运行时（与启动时自动准备同链路）：走下载中心任务，带进度与取消
   ipcMain.handle(IPC.javaInstall, async (_e, need: number, arch?: 'arm64' | 'x64') => {
     const major = Math.floor(Number(need))
-    if (![8, 11, 16, 17, 21, 25].includes(major)) throw new Error(`不支持的 Java 大版本：${need}`)
+    if (![8, 11, 16, 17, 21, 22, 23, 24, 25].includes(major)) throw new Error(`不支持的 Java 大版本：${need}`)
     const task = registerTask(`下载 Java ${major}`, 'java')
     const progressGuard = new ProgressEventGuard()
     const taskEmit = (event: ProgressEvent): void => {

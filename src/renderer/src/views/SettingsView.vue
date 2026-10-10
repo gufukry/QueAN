@@ -247,7 +247,7 @@ const javaAddError = ref('')
 /** 单独下载 Java 运行时（参考美西螈的 Java 管理：可自由选大版本下载，不必先装游戏） */
 const javaDownloadMajor = ref(21)
 const javaDownloading = ref(false)
-const javaMajors = [8, 11, 17, 21, 25]
+const javaMajors = [8, 11, 16, 17, 21, 22, 23, 24, 25]
 async function onDownloadJava() {
   if (javaDownloading.value) return
   javaDownloading.value = true
