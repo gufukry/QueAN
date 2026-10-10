@@ -172,7 +172,7 @@ export async function probeJavaAsync(exe: string, signal?: AbortSignal): Promise
       exe,
       [...JAVA_PROBE_VM_ARGS, '-XshowSettings:properties', '-version'],
       signal,
-      10000
+      30000
     )
     const parsed = parseJavaProbeOutput(output)
     return parsed ? probeCache.put(exe, { path: exe, ...parsed }) : null
@@ -941,10 +941,20 @@ async function ensureJavaInternal(versionJson: VersionJson, emit: ProgressEmit):
 async function downloadAndExtractJava(need: number, emit: ProgressEmit, architecture?: 'arm64' | 'x64'): Promise<string> {
   const arch = (architecture ?? process.arch) === 'arm64' ? 'aarch64' : 'x64'
   const report = (text: string): void => { javaLog.info(text); emit({ stage: 'java', progress: 0, text }) }
+  // PCL 式重试：首个 10s，失败后隔 500ms 再用 30s 试，共 3 次（差网络下首次请求往往超时）
   const read = async (url: string): Promise<unknown> => {
-    const response = await httpFetch(url, { systemProxy: true, signal: AbortSignal.timeout(12000) })
-    if (!response.ok) { await response.body?.cancel(); throw new Error(`${new URL(url).hostname} HTTP ${response.status}`) }
-    return response.json()
+    let lastError: unknown
+    for (const timeout of [10_000, 30_000, 30_000]) {
+      try {
+        const response = await httpFetch(url, { systemProxy: true, signal: AbortSignal.timeout(timeout) })
+        if (!response.ok) { await response.body?.cancel(); throw new Error(`${new URL(url).hostname} HTTP ${response.status}`) }
+        return await response.json()
+      } catch (error) {
+        lastError = error
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
+    }
+    throw lastError instanceof Error ? lastError : new Error('Java 清单获取失败')
   }
   return provisionJava({ major: need, os: IS_WIN ? 'windows' : IS_MAC ? 'mac' : 'linux', arch }, read, async pkg => {
     const root = path.resolve(runtimesDir())
@@ -953,8 +963,9 @@ async function downloadAndExtractJava(need: number, emit: ProgressEmit, architec
     const archive = path.join(staging, IS_WIN ? 'runtime.zip' : 'runtime.tar.gz')
     const extracted = path.join(staging, 'unpacked')
     try {
-      const size = await javaPackageSize(pkg, url => httpFetch(url, { method: 'HEAD', systemProxy: true, signal: AbortSignal.timeout(10000) }))
-      await downloadFile(pkg.url, archive, (done, total) => emit({ stage: 'java', progress: total ? done / total * .85 : 0, bytesDone: done, text: `下载 Java ${need} · ${pkg.provider} ${(done / 1048576).toFixed(1)}${total ? '/' + (total / 1048576).toFixed(1) : ''} MB` }), undefined, 'official', undefined, [], { sha256: pkg.sha256, size, systemProxy: true, maxAttempts: 2 })
+      // 头部探测只用于显示大小：失败就不显示总量，不能因此让整个 Java 安装失败
+      const size = await javaPackageSize(pkg, url => httpFetch(url, { method: 'HEAD', systemProxy: true, signal: AbortSignal.timeout(15000) })).catch(() => undefined)
+      await downloadFile(pkg.url, archive, (done, total) => emit({ stage: 'java', progress: total ? done / total * .85 : 0, bytesDone: done, text: `下载 Java ${need} · ${pkg.provider} ${(done / 1048576).toFixed(1)}${total ? '/' + (total / 1048576).toFixed(1) : ''} MB` }), undefined, getSettings().mirror, undefined, [], { sha256: pkg.sha256, size, systemProxy: true, maxAttempts: 3 })
       emit({ stage: 'java', progress: .9, text: `校验通过，正在解压 Java ${need} · ${pkg.provider}` })
       fs.mkdirSync(extracted)
       if (IS_WIN) new AdmZip(archive).extractAllTo(extracted, true)

@@ -344,6 +344,13 @@ async function segmented(url: string, dest: string, expected: Integrity, signal:
         return
       } catch (error) {
         controller.signal.throwIfAborted(); lastError = error
+        // 因过慢/停滞断开的源就地降权：后续分片优先选更快的源（PCL 断开后换源继续）；
+        // 同时标记到共享源池，使同一任务后续文件也优先用更快的源
+        if (error instanceof NetworkIdle) {
+          source.rate = 0
+          source.failures++
+          try { sourcePool?.fail(source.identity) } catch { /* 源池标记失败不影响重试 */ }
+        }
         if (error instanceof InvalidContent || (error instanceof DownloadHttpError && classifyHttpStatus(error.status) !== 'transient')) source.disabled = true
         else if (error instanceof NetworkIdle || error instanceof TypeError || (error instanceof DownloadHttpError && classifyHttpStatus(error.status) === 'transient')) source.failures++
         else throw error // Disk/permission failures are not network retries.
