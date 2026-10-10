@@ -303,8 +303,8 @@ async function segmented(url: string, dest: string, expected: Integrity, signal:
   try { previous = JSON.parse(await fs.promises.readFile(path.join(cache, 'identity.json'), 'utf8')) } catch {}
   const compatible = previous.version === 1 && previous.size === size && previous.sha1 === expected.sha1 && previous.sha512 === expected.sha512 && previous.sha256 === expected.sha256 && Number.isSafeInteger(previous.step) && previous.step! > 0 && previous.step! <= size
   // Keep old valid fragments, including those created with a different thread setting.
-  // 片大小保持 min(1MB, size/2)：几 MB 的文件本就能拆出 2~4 片，
-  // 改动它会打乱既有分片布局与续传语义（已有用例依赖），所以只下调启用门槛。
+  // 片大小 min(1MB, size/2)：保持既有分片/续传契约（有 3 个用例依赖具体布局）。
+  // 想再提速需要连同那些用例的契约一起重做，不能只放松断言。
   const step = compatible ? previous.step! : Math.min(1024 * 1024, Math.ceil(size / 2))
   const count = Math.ceil(size / step)
   if (!compatible) {

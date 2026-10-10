@@ -22,16 +22,40 @@ export function parseModArchive(zip: AdmZip, filePath: string, fileName: string,
   const requirements = (deps: RecordValue, dialect: 'fabric' | 'quilt' = 'fabric'): ModRequirement[] => Object.entries(deps)
     .filter(([id]) => !builtins.has(id)).map(([id, range]) => ({ id, range: dependencyRange(range, dialect) }))
   try {
+
+/**
+ * 宽容解析模组元数据：部分模组的 fabric.mod.json 里含原始控制字符（换行/制表），
+ * 严格 JSON.parse 会直接失败，但 Fabric 加载器本身能容忍。这里只把「字符串字面量内部」
+ * 的控制字符转义掉再解析，结构不动。
+ */
+function parseModJson<T>(text: string): T {
+  let out = '', inString = false, escaped = false
+  for (const ch of text) {
+    if (inString) {
+      if (escaped) { out += ch; escaped = false; continue }
+      if (ch === '\\') { out += ch; escaped = true; continue }
+      if (ch === '"') { out += ch; inString = false; continue }
+      const code = ch.charCodeAt(0)
+      if (code < 0x20) { out += '\\u' + code.toString(16).padStart(4, '0'); continue }
+      out += ch
+      continue
+    }
+    out += ch
+    if (ch === '"') inString = true
+  }
+  return JSON.parse(out) as T
+}
+
     const fabric = read('fabric.mod.json')
     if (fabric) {
-      const j = JSON.parse(fabric), dep = j.depends ?? {}
+      const j = parseModJson<RecordValue>(fabric), dep = j.depends ?? {}
       records.push({ loader: 'fabric', id: j.id, name: j.name ?? j.id, version: String(j.version ?? ''), mcRange: dependencyRange(dep.minecraft), loaderRange: dependencyRange(dep.fabricloader), requirements: requirements(dep), icon: typeof j.icon === 'string' ? j.icon : Object.values(j.icon ?? {})[0] as string })
       for (const id of j.provides ?? []) if (typeof id === 'string') provides.push({ id, version: String(j.version ?? '') })
       nested.push(...(j.jars ?? []).map((v: { file: string }) => v.file))
     }
     const quilt = read('quilt.mod.json')
     if (quilt) {
-      const j = JSON.parse(quilt).quilt_loader ?? {}
+      const j = (parseModJson<RecordValue>(quilt).quilt_loader ?? {}) as RecordValue
       const deps: RecordValue = {}
       for (const raw of j.depends ?? []) {
         const d = typeof raw === 'string' ? { id: raw, versions: '*' } : raw
@@ -69,7 +93,7 @@ export function parseModArchive(zip: AdmZip, filePath: string, fileName: string,
     if (!records.length) {
       const legacy = read('mcmod.info')
       if (legacy) {
-        const j = JSON.parse(legacy), mods = Array.isArray(j) ? j : j.modList
+        const j = parseModJson<RecordValue[] | RecordValue>(legacy), mods = Array.isArray(j) ? j : j.modList
         for (const m of mods ?? []) {
           const req = (m.requiredMods ?? m.dependencies ?? []).filter((s: unknown) => typeof s === 'string').map((s: string) => {
             const [id, range = '*'] = s.replace(/^required-(?:after|before):/, '').split('@')
