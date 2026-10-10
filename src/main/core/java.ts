@@ -983,7 +983,7 @@ async function downloadAndExtractJava(need: number, emit: ProgressEmit, architec
       if (!IS_WIN) fs.chmodSync(exe, 0o755)
       emit({ stage: 'java', progress: .95, text: `正在验证 Java ${need} · ${pkg.provider}（${arch}）` })
       const verified = await probeJavaAsync(exe)
-      if (!verified || verified.major !== need || verified.architecture !== (arch === 'aarch64' ? 'arm64' : 'x64')) throw new Error(`Java ${need} 无法运行或架构不匹配${IS_MAC && process.arch === 'arm64' && arch === 'x64' ? '；旧版游戏需要 Intel Java，请确认系统已安装 Rosetta' : ''}`)
+      if (!verified || verified.major !== need || verified.architecture !== (arch === 'aarch64' ? 'arm64' : 'x64')) throw new Error(`Java ${need} 校验未通过：期望 ${need} 位64 ${arch === 'aarch64' ? 'arm64' : 'x64'}，实际 ${verified ? `${verified.major} / ${verified.is64Bit ? '64位' : '32位'}${verified.architecture ? ' / ' + verified.architecture : ''}` : '无法识别（java -version 无有效输出）'}${IS_MAC && process.arch === 'arm64' && arch === 'x64' ? '；旧版游戏需要 Intel Java，请确认系统已安装 Rosetta' : ''}`)
       await validateJavaRuntime(exe, verified.major)
       // Publish a fresh directory only after verification. Never remove or replace
       // a runtime that an already-running game may still be using.
