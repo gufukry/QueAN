@@ -100,7 +100,8 @@ interface PendingFile {
   reuseFiles?: string[]
   sha1?: string
   sha512?: string
-  size: number
+  /** 清单未给出尺寸时缺省（上传进度按未知大小显示，不显示 0/0） */
+  size?: number
 }
 
 type Parsed =
@@ -361,7 +362,7 @@ async function parseMrpack(zip: PackZip): Promise<Parsed> {
       urls: urls.slice(1),
       sha1,
       sha512,
-      size: f.fileSize ?? 0
+      size: f.fileSize && f.fileSize > 0 ? f.fileSize : undefined
     })
   }
 
@@ -953,7 +954,7 @@ async function modpackInfo(zip: PackZip, filePath: string): Promise<ModpackInfo>
     loaderVersion: meta.loaderVersion,
     fileCount: files.length,
     downloadBytes:
-      parsed.kind === 'mrpack' ? parsed.files.reduce((sum, file) => sum + file.size, 0) : 0,
+      parsed.kind === 'mrpack' ? parsed.files.reduce((sum, file) => sum + (file.size ?? 0), 0) : 0,
     hasOverrides: !!meta.overridesPrefix && zip.getEntries().some((entry) => normEntry(entry.entryName).startsWith(`${meta.overridesPrefix}/`)),
     hasClientOverrides:
       !!meta.clientOverridesPrefix &&
@@ -1154,7 +1155,7 @@ async function installModpackInFolder(filePath: string, emit: ProgressEmit, opts
               stage: 'modpack',
               progress: 0.04 + ratio * 0.96,
               text:
-                detail.bytesTotal != null
+                detail.bytesTotal != null && detail.bytesTotal > 0
                   ? `下载整合包文件 ${d}/${t}（${fmtMB(doneBytes)}/${fmtMB(detail.bytesTotal)}）${detail.activeFiles?.length && detail.activeFiles.length <= 2 ? ' · ' + detail.activeFiles.join('、') : ''}`
                   : `下载整合包文件 ${d}/${t}`,
               speed,

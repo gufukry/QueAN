@@ -153,7 +153,9 @@ export class DownloadProgressTracker {
 
   private totalExpected(): number | null {
     if (this.entries.some((entry) => entry.expected == null)) return null
-    return this.entries.reduce((sum, entry) => sum + (entry.expected ?? 0), 0)
+    const sum = this.entries.reduce((total, entry) => total + (entry.expected ?? 0), 0)
+    // 声明大小都是 0（清单未给出尺寸）时按未知处理：宁可显示不确定进度，也不显示 0/0
+    return sum > 0 ? sum : null
   }
 
   private bytesDone(): number {
