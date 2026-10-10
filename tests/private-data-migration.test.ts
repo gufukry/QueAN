@@ -58,7 +58,7 @@ test('迁移：老默认目录改名为 .minecraft，私有数据移出游戏目
     const api = await migrationHarness(root)
     const target = path.join(appData, '.minecraft')
 
-    const result = api.migrateLegacyFolders([{ path: legacy, name: '默认文件夹', isDefault: true }], legacy, appData)
+    const result = api.migrateLegacyFolders([{ path: legacy, name: '默认文件夹', isDefault: true }], legacy, legacy, target)
 
     assert.equal(result.changed, true)
     assert.equal(result.activeFolder, target)
@@ -88,7 +88,7 @@ test('迁移：目标 .minecraft 已存在时不覆盖，保留旧目录并切�
     fs.writeFileSync(path.join(target, 'versions', 'pcl-only', 'pcl-only.json'), '{"id":"pcl-only"}')
     const api = await migrationHarness(root)
 
-    const result = api.migrateLegacyFolders([{ path: legacy, name: '默认文件夹', isDefault: true }], legacy, appData)
+    const result = api.migrateLegacyFolders([{ path: legacy, name: '默认文件夹', isDefault: true }], legacy, legacy, target)
 
     assert.equal(result.changed, true)
     assert.equal(result.activeFolder, target)
@@ -112,9 +112,9 @@ test('迁移幂等：第二次调用无改动；同名私有文件以目标为�
     const api = await migrationHarness(root)
     const target = path.join(appData, '.minecraft')
 
-    const first = api.migrateLegacyFolders([{ path: legacy, name: '默认文件夹', isDefault: true }], legacy, appData)
+    const first = api.migrateLegacyFolders([{ path: legacy, name: '默认文件夹', isDefault: true }], legacy, legacy, target)
     assert.equal(first.changed, true)
-    const second = api.migrateLegacyFolders(first.folders, first.activeFolder, appData)
+    const second = api.migrateLegacyFolders(first.folders, first.activeFolder, legacy, target)
     assert.equal(second.changed, false, '第二次调用不应再有改动')
 
     // 私有根里已有同名文件：再搬一次时必须保留已有内容

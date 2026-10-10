@@ -413,7 +413,28 @@ export function registerIpc(getWin: () => BrowserWindow | null): void {
   )
   ipcMain.handle(IPC.tasksPause, (_e, taskId: string) => pauseTask(String(taskId ?? '')))
   ipcMain.handle(IPC.tasksResume, (_e, taskId: string) => resumeTask(String(taskId ?? '')))
-  ipcMain.handle(IPC.versionsRemove, (_e, versionId: string, folder?: string) => versions.removeVersion(versionId, folder))
+  ipcMain.handle(IPC.versionsRemove, async (_e, versionId: string, folder?: string, permanent?: boolean) => {
+    const vid = String(versionId ?? '')
+    const target = folder || folderOfVersion(vid)
+    await versions.removeVersion(vid, folder, permanent === true ? 'permanent' : 'trash')
+    // 删干净：同步清掉收藏标记与分类分配（与改名时的迁移逻辑对应）
+    const s = settings.getSettings()
+    const root = target.replace(/\\/g, '/').replace(/\/$/, '').toLowerCase()
+    const key = JSON.stringify([root, vid])
+    if (s.favoriteInstanceOverrides && key in s.favoriteInstanceOverrides) {
+      const overrides = { ...s.favoriteInstanceOverrides }
+      delete overrides[key]
+      settings.saveSettings({ favoriteInstanceOverrides: overrides })
+    }
+    const categoryState = normalizeVersionCategoryState(s)
+    if (key in categoryState.versionCategoryAssignments) {
+      const assignments = { ...categoryState.versionCategoryAssignments }
+      delete assignments[key]
+      if (JSON.stringify(assignments) !== JSON.stringify(categoryState.versionCategoryAssignments)) {
+        settings.saveSettings({ versionCategoryAssignments: assignments })
+      }
+    }
+  })
   ipcMain.handle(IPC.versionsRename, (_e, id: string, newName: string, folder?: string) => scopedVersion(id, folder, () => {
     const vid = String(id ?? '')
     const name = String(newName ?? '').trim()

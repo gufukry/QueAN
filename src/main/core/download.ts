@@ -67,22 +67,14 @@ export class DownloadHttpError extends Error {
 }
 class InvalidContent extends Error {}
 class NetworkIdle extends Error {}
-export const transferTimeouts = { inactivityMs: 30_000, alternativeHeadersMs: 2500 }
-export const slowSpeedThresholds = {
-  largeFileBytes: 1024*1024,
-  // 有备用源 + 大文件时，低于该速率才考虑换源（原先是 256KB/s，在网络差的国内链路上会
-  // 把多镜像下载抖成反复断线重连）。
-  largeWindowMs: 8000,
-  largeMinBps: 32*1024,
-  smallWindowMs: 4000,
-  smallMinBps: 32*1024,
-  // 绝对下限对齐 PCL：窗口 ≥5s 且速率 <1KB/s（≈只在真停滞时）才判“过慢断开”。
-  windowMs: 5000,
-  minWindowBytes: 5*1024,
-  warmupBytes: 1024*1024,
-  warmupMs: 15000,
-  // 尾巴宽限：剩余不足 256KB 与本次传输量 10% 的较小值时不再判慢。
-  minRemainingBytes: 256*1024
+export const transferTimeouts = {
+  /** 基准「无数据」超时：对齐 PCL 的 max(连接均值, 15s) 下限 */
+  inactivityMs: 15_000,
+  /** 无数据超时上限（PCL: min(基准 ×(1+该源失败次数), 30s)） */
+  maxInactivityMs: 30_000,
+  /** PCL 的「速度过慢」：数据包间隔超过该值（毫秒）才进入判定 */
+  slowGapMs: 5_000,
+  alternativeHeadersMs: 2500
 }
 const failures = new Map<string, { count: number; until: number }>()
 const origin = (url: string) => { try { return new URL(url).origin } catch { return url } }
@@ -176,10 +168,9 @@ async function receive(url: string, temporary: string, expected: Integrity, sign
   const abort = () => controller.abort(signal?.reason)
   signal?.addEventListener('abort', abort, { once: true })
   let response: Response | undefined, reader: ReadableStreamDefaultReader<Uint8Array> | undefined, file: fs.promises.FileHandle | undefined
-  let timer: ReturnType<typeof setInterval> | undefined, waiting = false, sinceData = 0, elapsed = 0, windowTime = 0, windowBytes = 0, transferred = 0
+  let timer: ReturnType<typeof setInterval> | undefined, waiting = false, sinceData = 0, elapsed = 0, transferred = 0, lastDataAt = 0
   let last = performance.now()
   let headersMs = 0, bodyMs = 0, remainingBytes = expected.size ?? Infinity
-  const slow = slowSpeedThresholds
   try {
     signal?.throwIfAborted()
     let offset = 0
@@ -200,29 +191,13 @@ async function receive(url: string, temporary: string, expected: Integrity, sign
     timer = setInterval(() => {
       const now = performance.now(), dt = now - last; last = now
       if (!waiting || isTaskPaused(signal) || downloadLimiter.isThrottling) return
-      sinceData += dt; elapsed += dt; windowTime += dt
-      if (sinceData >= transferTimeouts.inactivityMs) controller.abort(new NetworkIdle('下载网络停滞'))
-      // A queue/paused task consumes no timeout. Only abandon an unresponsive
-      // first source early when an exact fallback exists; the last source keeps
-      // the full idle allowance, so slower but usable connections can finish.
+      sinceData += dt; elapsed += dt
+      // PCL「无数据超时」：min(max(连接均值,15s)×(1+该源失败次数), 30s)
+      const idleLimit = Math.min(transferTimeouts.inactivityMs * (1 + (failures.get(origin(url))?.count ?? 0)), transferTimeouts.maxInactivityMs)
+      if (lastDataAt > 0 && sinceData >= idleLimit) controller.abort(new NetworkIdle('下载网络停滞'))
+      // 有备用来源时，响应头迟迟不来就切源（PCL 的“慢速重试/快速重试”思路）
       if (!response && hasAlternative && elapsed >= transferTimeouts.alternativeHeadersMs) controller.abort(new NetworkIdle('下载源响应缓慢，切换备用来源'))
-      const smallAlternative = hasAlternative && !!response && (expected.size ?? 0) < slow.largeFileBytes
-      const duration = hasAlternative && (expected.size ?? 0) >= slow.largeFileBytes ? slow.largeWindowMs : smallAlternative ? Math.min(slow.smallWindowMs, slow.windowMs) : slow.windowMs
-      if (windowTime >= duration) {
-        const aggressive = hasAlternative && (expected.size ?? 0) >= slow.largeFileBytes
-        const ready = transferred >= slow.warmupBytes || elapsed >= slow.warmupMs
-        const rate = windowBytes / (windowTime / 1000)
-        // 尾巴宽限：快下完时即使忽快忽慢也不再换源/掐断，避免最后一小段反复重来。
-        // 宽限量与本次传输量挂钩（取 256KB 与 10% 的较小值），否则小文件会被整段豁免。
-        const graceBytes = Math.min(slow.minRemainingBytes, Math.floor((typeof required === 'number' && Number.isFinite(required) ? required : 0) * 0.1))
-        const tailGrace = Number.isFinite(remainingBytes) && remainingBytes > 0 && remainingBytes < graceBytes
-        // Small mods/assets used to tolerate a few KB/s indefinitely. Switch only
-        // when an exact alternate exists and finishing is not already imminent.
-        const smallStalled = !tailGrace && smallAlternative && rate < slow.smallMinBps && remainingBytes > 0 && remainingBytes / Math.max(1, rate) > slow.smallWindowMs / 1000
-        if (!tailGrace && ((aggressive && rate < slow.largeMinBps) || smallStalled || (ready && windowBytes < slow.minWindowBytes))) controller.abort(new NetworkIdle('下载速度过慢'))
-        windowTime = 0; windowBytes = 0
-      }
-    }, Math.max(10, Math.min(100, transferTimeouts.inactivityMs / 4)))
+    }, Math.max(10, Math.min(200, transferTimeouts.inactivityMs / 4)))
     waiting = true
     const headerStart = performance.now()
     response = await downloadFetch(url, { signal: controller.signal, headers, bodyTimeoutMs: 120_000, separateConnection: !!range, systemProxy: expected.systemProxy })
@@ -237,6 +212,9 @@ async function receive(url: string, temporary: string, expected: Integrity, sign
     }
     if (!response.body) throw new InvalidContent('下载响应没有内容')
     connected?.(response.url || url)
+    // 连接已建立即开始计「无数据超时」（PCL 用读超时，语义等价）：
+    // 服务端一直不发正文时，不能无上限地等。
+    lastDataAt = performance.now()
     let total = range ? range.end - range.start + 1 : expected.size ?? 0
     if (response.status === 206) {
       const parsed = /^bytes (\d+)-(\d+)\/(\d+)$/.exec(response.headers.get('content-range') ?? '')
@@ -253,7 +231,6 @@ async function receive(url: string, temporary: string, expected: Integrity, sign
     reader = response.body.getReader()
     let done = offset
     remainingBytes = total ? total - done : Infinity
-    windowTime = 0; windowBytes = 0
     progress?.(done, total, 0)
     while (true) {
       await waitIfTaskPaused(signal)
@@ -264,6 +241,13 @@ async function receive(url: string, temporary: string, expected: Integrity, sign
       bodyMs += performance.now() - readStart
       waiting = false; sinceData = 0
       if (chunk.done) break
+      // PCL「速度过慢」：数据包间隔 >5s 且该间隔到位的字节数 < 间隔毫秒数（≈<1KB/s），
+      // 且不是单源下载时才断开——单源慢就让它慢慢下完。
+      const dataAt = performance.now()
+      if (lastDataAt > 0 && hasAlternative && dataAt - lastDataAt > transferTimeouts.slowGapMs && dataAt - lastDataAt > chunk.value.length) {
+        controller.abort(new NetworkIdle('下载速度过慢'))
+      }
+      lastDataAt = dataAt
       await downloadLimiter.consume(chunk.value.length, signal)
       await waitIfTaskPaused(signal)
       let written = 0
@@ -272,7 +256,7 @@ async function receive(url: string, temporary: string, expected: Integrity, sign
         if (!result.bytesWritten) throw new Error('写入文件失败')
         written += result.bytesWritten
       }
-      done += written; transferred += written; windowBytes += written; remainingBytes = total ? Math.max(0, total - done) : Infinity
+      done += written; transferred += written; remainingBytes = total ? Math.max(0, total - done) : Infinity
       if (total && done > total) throw new InvalidContent('响应数据超出声明大小')
       progress?.(done, total, written)
       // HTTP length/Content-Range plus the final hash define completion, not a
@@ -443,7 +427,7 @@ async function segmented(url: string, dest: string, expected: Integrity, signal:
 export async function downloadFile(url: string, dest: string, progress?: ProgressFn, sha1?: string, mirror: MirrorPref = 'official', signal?: AbortSignal, alternatives: string[] = [], integrity: { sha512?: string; sha256?: string; size?: number; reuseDirs?: string[]; reuseFiles?: string[]; systemProxy?: boolean; maxAttempts?: number; maxSegments?: number | (() => number); sourcePool?: DownloadSourcePool } = {}): Promise<void> {
   return withFileJob(dest, signal, async () => {
     const expected = { sha1, sha512: integrity.sha512, sha256: integrity.sha256, size: integrity.size, systemProxy: integrity.systemProxy }, temporary = dest + '.part'
-    const attempts = Math.max(1, Math.min(8, integrity.maxAttempts ?? 6))
+    const attempts = Math.max(1, Math.min(4, integrity.maxAttempts ?? 3))
     await fs.promises.mkdir(path.dirname(dest), { recursive: true })
     try {
       if (!await verifyFile(dest, expected, signal)) { const size = (await fs.promises.stat(dest)).size; progress?.(size, size); return }

@@ -2,11 +2,14 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { withFileJob } from './fileJobs'
 
+/** 删除方式：回收站（可恢复）或永久删除（PCL 式「删干净」） */
+export type VersionRemovalMode = 'trash' | 'permanent'
+
 /** Use the native recycle operation instead of deleting children before discovering a locked parent. */
 export async function recycleVersion(folder: string, id: string, deps: {
   assertIdle(directory: string): Promise<void>
   trash(directory: string): Promise<void>
-}): Promise<void> {
+}, mode: VersionRemovalMode = 'trash'): Promise<void> {
   if (typeof id !== 'string' || !id || id === '.' || id === '..' || /[\\/:*?"<>|\x00-\x1f]/.test(id) || /[. ]$/.test(id)) {
     throw new Error('版本名称无效，未删除任何文件')
   }
@@ -22,11 +25,16 @@ export async function recycleVersion(folder: string, id: string, deps: {
     const current = await fs.lstat(target)
     if (current.isSymbolicLink() || current.ino !== stat.ino || current.dev !== stat.dev) throw new Error('版本目录已变化，请刷新后重试')
     try {
-      await deps.trash(target)
+      if (mode === 'permanent') {
+        await fs.rm(target, { recursive: true, force: true, maxRetries: 3 })
+      } else {
+        await deps.trash(target)
+      }
       try { await fs.lstat(target) } catch (e) { if ((e as NodeJS.ErrnoException).code === 'ENOENT') return; throw e }
       throw new Error('系统未移除该目录')
     } catch (error) {
-      throw new Error(`无法将版本移入回收站：请关闭使用该目录的游戏或文件窗口，并检查目录权限及磁盘的回收站支持。目录：${target}；${error instanceof Error ? error.message : String(error)}`)
+      const verb = mode === 'permanent' ? '彻底删除' : '移入回收站'
+      throw new Error(`无法${verb}版本目录：请关闭使用该目录的游戏或文件窗口，并检查目录权限及磁盘是否只读。目录：${target}；${error instanceof Error ? error.message : String(error)}`)
     }
   })
 }

@@ -14,6 +14,7 @@ import {
   logScope
 } from './core/launcherLog'
 import { getSettings, migrateLegacyAppearanceAssets } from './core/settings'
+import { applyPortableUserData } from './core/portableData'
 import { windowAppearance } from './windowAppearance'
 import { installContextMenu } from './contextMenu'
 import { applyNativeAppearance } from './nativeAppearance'
@@ -30,6 +31,13 @@ import { IPC_EVENT } from '../shared/types'
  * 每项优化都以此量化，避免靠感觉判断「卡不卡」。
  */
 const startupMark = (): string => '+' + Math.round(process.uptime() * 1000) + 'ms'
+
+// 便携式布局（与 PCL 一致）：启动器数据放桌面「QueAN」。必须在任何 userData 读写之前执行。
+try {
+  app.setPath('userData', applyPortableUserData(app.getPath('desktop'), app.getPath('userData')))
+} catch (error) {
+  console.error('[QueAN] 便携数据目录初始化失败，继续使用默认 userData:', error)
+}
 
 configureRuntimeGraphics(app.commandLine, process.platform, dirname(process.execPath))
 

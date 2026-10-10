@@ -85,10 +85,10 @@ export interface LegacyFolderMigration {
 export function migrateLegacyFolders(
   folders: GameFolder[],
   activeFolder: string,
-  appData: string
+  legacyRoot: string,
+  targetRoot: string
 ): LegacyFolderMigration {
-  const legacyRoot = path.join(appData, '.quean')
-  const target = path.join(appData, '.minecraft')
+  const target = targetRoot
   const same = (a: string, b: string): boolean => path.resolve(a) === path.resolve(b)
 
   let next = folders
@@ -99,7 +99,12 @@ export function migrateLegacyFolders(
   if (legacyIndex >= 0) {
     try {
       if (!fs.existsSync(target)) {
-        fs.renameSync(legacyRoot, target)
+        // 老目录可能在另一个卷（桌面 vs 用户数据），rename 失败时退化为逐项搬移
+        try { fs.renameSync(legacyRoot, target) }
+        catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== 'EXDEV') throw error
+          mergeInto(legacyRoot, target)
+        }
         next = folders.map((folder) => (same(folder.path, legacyRoot) ? { ...folder, path: target } : folder))
         if (same(active, legacyRoot)) active = target
         changed = true

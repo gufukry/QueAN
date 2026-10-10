@@ -38,8 +38,8 @@ function settingsFile(): string {
 }
 
 function defaults(): Settings {
-  // 与官方启动器 / PCL 同目录，游戏数据（versions/mods/saves…）可被其它启动器共用
-  const gameDir = path.join(app.getPath('appData'), '.minecraft')
+  // 默认游戏目录放在桌面（PCL 便携版建在启动器目录，从桌面运行时就是桌面）
+  const gameDir = path.join(app.getPath('desktop'), '.minecraft')
   return {
     gameDir,
     folders: [{ path: gameDir, name: '默认文件夹', isDefault: true }],
@@ -84,7 +84,7 @@ export function resetSettingsToDefaults(): void {
   } catch { /* 备份失败不阻断重置 */ }
   const def = defaults()
   fs.mkdirSync(path.dirname(file), { recursive: true })
-  ensureDefaultGameFolder(app.getPath('appData'), def.folders)
+  ensureDefaultGameFolder(app.getPath('desktop'), def.folders)
   fs.writeFileSync(file, JSON.stringify(def, null, 2), 'utf-8')
   cached = def
 }
@@ -151,10 +151,14 @@ export function getSettings(): Settings {
     }
     c.gameDir = c.activeFolder
     cached = c
-    // 一次性迁移：私有数据移出游戏目录 + 老默认目录 .quean → .minecraft（幂等，失败则保持原样）
+    // 一次性迁移：私有数据移出游戏目录；老默认目录（.quean 与上一版的 appData/.minecraft）→ 桌面 .minecraft
+    // （幂等：迁完就不再匹配，失败则保持原样）
     try {
-      const migration = migrateLegacyFolders(c.folders, c.activeFolder, app.getPath('appData'))
-      if (migration.changed) {
+      const target = path.join(app.getPath('desktop'), '.minecraft')
+      const legacyRoots = [path.join(app.getPath('appData'), '.quean'), path.join(app.getPath('appData'), '.minecraft')]
+      for (const legacy of legacyRoots) {
+        const migration = migrateLegacyFolders(c.folders, c.activeFolder, legacy, target)
+        if (!migration.changed) continue
         c.folders = migration.folders
         c.activeFolder = migration.activeFolder
         c.gameDir = migration.activeFolder
@@ -181,7 +185,7 @@ export function getSettings(): Settings {
   } catch {
     cached = def
   }
-  try { ensureDefaultGameFolder(app.getPath('appData'), cached.folders) }
+  try { ensureDefaultGameFolder(app.getPath('desktop'), cached.folders) }
   catch (error) { console.error('[QueAN] 默认游戏目录创建失败:', error) }
   return cached
 }

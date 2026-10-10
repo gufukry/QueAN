@@ -9,7 +9,7 @@ import { mavenIdentity } from './mavenIdentity'
 import { withFileJob } from './fileJobs'
 import { downloadLimiter } from './downloadLimits'
 import { app, shell } from 'electron'
-import { recycleVersion } from './versionRemoval'
+import { recycleVersion, type VersionRemovalMode } from './versionRemoval'
 import { samePath } from './folderPaths'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -958,7 +958,7 @@ export function renameVersion(id: string, newName: string): void {
     throw e
   }
 }
-export async function removeVersion(id: string, requestedFolder?: string): Promise<void> {
+export async function removeVersion(id: string, requestedFolder?: string, mode: VersionRemovalMode = 'trash'): Promise<void> {
   const folder = requestedFolder || folderOfVersion(id)
   if (!getSettings().folders.some(f => samePath(f.path, folder))) throw new Error('游戏文件夹尚未登记')
   await withGameFolder(folder, async () => {
@@ -974,7 +974,15 @@ export async function removeVersion(id: string, requestedFolder?: string): Promi
         if (json) await assertInstanceIdle(instanceDirectoryState(id, json, folder).path)
       },
       trash: target => shell.trashItem(target)
-    })
+    }, mode)
+    // 删干净：连同该实例的私有残留（自定义图标、专属缩略图）一起清理；
+    // 收藏与分类分配由 IPC 层同步移除。共享的依赖库/资源与私有 base 原版保持不动。
+    if (json) {
+      if (json._thumbnail) removeInstanceThumbnail(json._thumbnail, folder)
+      if (json._icon?.startsWith('file:')) {
+        try { fs.rmSync(path.join(instanceIconsDir(), json._icon.slice(5)), { force: true }) } catch { /* 图标清理失败不影响删除结果 */ }
+      }
+    }
   })
 }
 

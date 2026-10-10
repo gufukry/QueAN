@@ -60,3 +60,18 @@ test('删除拒绝目录链接，不接触链接目标', async t => {
   await assert.rejects(recycleVersion(root, 'linked', { assertIdle: async () => {}, trash: async () => { assert.fail('must not recycle link') } }), /链接/)
   assert((await fs.stat(path.join(root, 'outside'))).isDirectory())
 })
+
+test('彻底删除模式：直接删除目录、不调用回收站（PCL 式删干净）', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'quean-permanent-'))
+  try {
+    await fs.mkdir(path.join(root, 'versions', '中文 版本'), { recursive: true })
+    await fs.writeFile(path.join(root, 'versions', '中文 版本', 'x.json'), '{}')
+    let trashed = false
+    await recycleVersion(root, '中文 版本', {
+      assertIdle: async () => {},
+      trash: async () => { trashed = true }
+    }, 'permanent')
+    assert.equal(trashed, false, '彻底删除不应调用回收站')
+    assert.deepEqual(await fs.readdir(path.join(root, 'versions')), [], '版本目录被完全删除')
+  } finally { await fs.rm(root, { recursive: true, force: true }) }
+})

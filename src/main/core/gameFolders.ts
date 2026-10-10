@@ -119,7 +119,7 @@ export function removeGameFolder(input: string): GameFolder[] {
   // 失效/最后一个文件夹也允许解除绑定：移除后自动补回内置默认文件夹，不留死锁
   if (!folders.length) {
     const { app } = require('electron')
-    const fallback = path.join(app.getPath('appData'), '.minecraft')
+    const fallback = path.join(app.getPath('desktop'), '.minecraft')
     fs.mkdirSync(fallback, { recursive: true })
     folders = [{ path: fallback, name: '默认文件夹', isDefault: true }]
     folderLog.info(`已移除最后一个文件夹，自动重建内置默认文件夹：${fallback}`)

@@ -141,7 +141,7 @@ export const installVersion = (id: string, opts?: InstallOptions, folder?: strin
 export const requestFavoriteVersions = (source: string, projectId: string, mc: string, loader: string, ticket: string) =>
   invoke<import('@shared/modFavorites').FavoriteVersionResult>('mods:favoriteVersions', source, projectId, mc, loader, ticket)
 export const cancelFavoriteVersions = (ticket: string) => invoke<void>('mods:favoriteVersionsCancel', ticket)
-export const removeVersion = (id: string, folder?: string) => invoke<void>(IPC.versionsRemove, id, folder)
+export const removeVersion = (id: string, folder?: string, permanent?: boolean) => invoke<void>(IPC.versionsRemove, id, folder, permanent)
 export const renameVersion = (id: string, newName: string, folder?: string) =>
   invoke<void>(IPC.versionsRename, id, newName, folder)
 export const setVersionJava = (id: string, javaPath: string, automatic = false, folder?: string) =>

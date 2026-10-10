@@ -11,7 +11,7 @@ import {
   noteHostSuccess,
   resetHostHealthForTest,
   setStatfsProbeForTest,
-  slowSpeedThresholds
+  transferTimeouts
 } from '../src/main/core/download'
 import { DEFAULT_DOWNLOAD_LIMITS, downloadLimiter } from '../src/main/core/downloadLimits'
 import { cancelTaskAndWait, finishTask, isCancelError, registerTask } from '../src/main/core/tasks'
@@ -129,41 +129,6 @@ test('本地文件复用：大小相同但内容不符或扩展名不同时回�
   }
 })
 
-test('慢速连接在滑动窗口内字节过少时主动掐断并重试耗尽', async () => {
-  resetHostHealthForTest()
-  const original = { ...slowSpeedThresholds }
-  slowSpeedThresholds.windowMs = 250
-  slowSpeedThresholds.minWindowBytes = 16 * 1024
-  slowSpeedThresholds.warmupBytes = 256 * 1024
-  let requests = 0
-  const server = http.createServer((_req, res) => {
-    requests++
-    res.writeHead(200, { 'content-length': String(1024 * 1024) })
-    res.write(Buffer.alloc(300 * 1024, 1)) // 快速突进一段跨过预热阈值
-    const timer = setInterval(() => {
-      if (res.destroyed || res.writableEnded) {
-        clearInterval(timer)
-        return
-      }
-      res.write(Buffer.alloc(1024, 2)) // 之后每 80ms 才 1KB：窗口内远低于 16KB
-    }, 80)
-    res.on('close', () => clearInterval(timer))
-  })
-  const root = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'quean-slow-'))
-  try {
-    const base = await listen(server)
-    await assert.rejects(
-      downloadFile(`${base}/slow.bin`, path.join(root, 'slow.bin')),
-      /速度过慢|下载失败/
-    )
-    assert.equal(requests, 6, 'transient 掐断按默认 attempts（6）重试耗尽后整体重试轮再试一次')
-  } finally {
-    Object.assign(slowSpeedThresholds, original)
-    await closeServer(server)
-    await fs.promises.rm(root, { recursive: true, force: true })
-  }
-})
-
 test('限速开启时跳过慢速检测，isThrottling 只读反映限速状态', async () => {
   resetHostHealthForTest()
   assert.equal(downloadLimiter.isThrottling, false)
@@ -173,10 +138,6 @@ test('限速开启时跳过慢速检测，isThrottling 只读反映限速状态'
   assert.equal(downloadLimiter.isThrottling, false)
 
   // 限速模式下（isThrottling=true）即使流量形态缓慢也不掐断，正常完成
-  const original = { ...slowSpeedThresholds }
-  slowSpeedThresholds.windowMs = 200
-  slowSpeedThresholds.minWindowBytes = 16 * 1024
-  slowSpeedThresholds.warmupBytes = 1024
   let requests = 0
   const payload = Buffer.alloc(8 * 1024, 9)
   const server = http.createServer((_req, res) => {
@@ -191,7 +152,6 @@ test('限速开启时跳过慢速检测，isThrottling 只读反映限速状态'
     await downloadFile(`${base}/ok.bin`, path.join(root, 'ok.bin'))
     assert.equal(requests, 1)
   } finally {
-    Object.assign(slowSpeedThresholds, original)
     downloadLimiter.configure(DEFAULT_DOWNLOAD_LIMITS)
     await closeServer(server)
     await fs.promises.rm(root, { recursive: true, force: true })

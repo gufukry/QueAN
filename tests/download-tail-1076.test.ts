@@ -5,7 +5,7 @@ import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
-import { downloadAll, downloadFile, slowSpeedThresholds, resetHostHealthForTest } from '../src/main/core/download'
+import { downloadAll, downloadFile, transferTimeouts, resetHostHealthForTest } from '../src/main/core/download'
 import { downloadLimiter, DEFAULT_DOWNLOAD_LIMITS } from '../src/main/core/downloadLimits'
 const MiB = 1024 * 1024
 const sha = (data: Buffer) => crypto.createHash('sha1').update(data).digest('hex')
@@ -49,9 +49,9 @@ test('last mod inherits free batch connections while its original request is sti
 })
 
 test('a slow shard resumes on another source without cancelling healthy shards', { timeout: 6000 }, async () => {
-  const data = crypto.randomBytes(2 * MiB), saved = { ...slowSpeedThresholds }
+  const data = crypto.randomBytes(2 * MiB), saved = { ...transferTimeouts }
   const healthy: Array<{ completed: boolean; aborted: boolean }> = [], resumed: number[] = []
-  Object.assign(slowSpeedThresholds, { largeWindowMs: 150 })
+  Object.assign(transferTimeouts, { inactivityMs: 150, maxInactivityMs: 150 })
   const f = await fixture((req, res) => {
     const { start, end } = range(req, res, data)
     if (req.url === '/first' && start === 0) { res.write(data.subarray(0, 16384)); return }
@@ -69,12 +69,12 @@ test('a slow shard resumes on another source without cancelling healthy shards',
     assert(resumed.some(offset => offset === 16384), 'continue from the saved bytes')
     assert.equal(healthy.length, 1); assert.equal(healthy[0].aborted, false)
     assert.equal(sha(fs.readFileSync(dest)), sha(data))
-  } finally { Object.assign(slowSpeedThresholds, saved); await f.close() }
+  } finally { Object.assign(transferTimeouts, saved); await f.close() }
 })
 
 test('a sole range source reconnects a crawling connection once and keeps the downloaded prefix', { timeout: 6000 }, async () => {
-  const data = crypto.randomBytes(2 * MiB), saved = { ...slowSpeedThresholds }, offsets: number[] = []
-  Object.assign(slowSpeedThresholds, { largeWindowMs: 150 })
+  const data = crypto.randomBytes(2 * MiB), saved = { ...transferTimeouts }, offsets: number[] = []
+  Object.assign(transferTimeouts, { inactivityMs: 150, maxInactivityMs: 150 })
   const f = await fixture((req, res) => {
     const { start, end } = range(req, res, data); offsets.push(start)
     if (start % MiB === 0) { res.write(data.subarray(start, start + 16384)); return }
@@ -85,7 +85,7 @@ test('a sole range source reconnects a crawling connection once and keeps the do
     await downloadFile(f.base + '/only', dest, undefined, sha(data), 'official', AbortSignal.timeout(4000), [], { size: data.length })
     assert.deepEqual(offsets.sort((a, b) => a - b), [0, 16384, MiB, MiB + 16384])
     assert.equal(sha(fs.readFileSync(dest)), sha(data))
-  } finally { Object.assign(slowSpeedThresholds, saved); await f.close() }
+  } finally { Object.assign(transferTimeouts, saved); await f.close() }
 })
 
 test('resume preserves the old fragment layout when connection settings change', async () => {

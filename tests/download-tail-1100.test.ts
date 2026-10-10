@@ -6,7 +6,7 @@ import os from 'node:os'
 import http from 'node:http'
 import crypto from 'node:crypto'
 import AdmZip from 'adm-zip'
-import { downloadAll, downloadFile, resetHostHealthForTest, slowSpeedThresholds } from '../src/main/core/download'
+import { downloadAll, downloadFile, resetHostHealthForTest, transferTimeouts } from '../src/main/core/download'
 import { downloadLimiter, DEFAULT_DOWNLOAD_LIMITS } from '../src/main/core/downloadLimits'
 import { versionInstallHarness } from './helpers/version-install-harness'
 import { ParallelProgress } from '../src/main/core/parallelProgress'
@@ -23,28 +23,9 @@ async function fixture(handler: http.RequestListener) {
   } }
 }
 
-test('小文件持续低速会续传到备用源，最后唯一来源仍可正常完成', { timeout: 6000 }, async () => {
-  const body = Buffer.alloc(128 * 1024, 21), saved = { ...slowSpeedThresholds }, resumed: number[] = []
-  slowSpeedThresholds.smallWindowMs = 150
-  const f = await fixture((req, res) => {
-    let offset = Number(req.headers.range?.match(/bytes=(\d+)-/)?.[1] ?? 0)
-    res.writeHead(offset ? 206 : 200, { 'content-length': body.length - offset, ...(offset ? { 'content-range': `bytes ${offset}-${body.length - 1}/${body.length}` } : {}) })
-    if (req.url === '/fast') { resumed.push(offset); res.end(body.subarray(offset)); return }
-    const timer = setInterval(() => { const end = Math.min(body.length, offset + (req.url === '/only' ? 8192 : 1024)); res.write(body.subarray(offset, end)); offset = end; if (end === body.length) { clearInterval(timer); res.end() } }, 50)
-    res.on('close', () => clearInterval(timer))
-  })
-  try {
-    const started = performance.now()
-    await downloadFile(f.url + '/slow', path.join(f.root, 'small'), undefined, hash(body), 'official', AbortSignal.timeout(3000), [f.url + '/fast'], { size: body.length })
-    assert(performance.now() - started < 2000); assert(resumed[0] > 0); assert.equal(hash(fs.readFileSync(path.join(f.root, 'small'))), hash(body))
-    await downloadFile(f.url + '/only', path.join(f.root, 'only'), undefined, hash(body), 'official', AbortSignal.timeout(2000), [], { size: body.length })
-    assert.equal(hash(fs.readFileSync(path.join(f.root, 'only'))), hash(body))
-  } finally { Object.assign(slowSpeedThresholds, saved); await f.close() }
-})
-
 test('分片重试重新访问镜像入口，不被第一次跳转的慢节点锁住', { timeout: 6000 }, async () => {
-  const body = crypto.randomBytes(2 * 1024 * 1024), saved = slowSpeedThresholds.largeWindowMs
-  slowSpeedThresholds.largeWindowMs = 150
+  const body = crypto.randomBytes(2 * 1024 * 1024), savedIdle = transferTimeouts.inactivityMs, savedMax = transferTimeouts.maxInactivityMs
+  transferTimeouts.inactivityMs = 150; transferTimeouts.maxInactivityMs = 150
   let redirects = 0, slowShardIssued = false; const starts: number[] = [], mirrorStarts: number[] = []
   const f = await fixture((req, res) => {
     if (req.url === '/mirror') {
@@ -67,7 +48,7 @@ test('分片重试重新访问镜像入口，不被第一次跳转的慢节点�
     assert(redirects >= 3); assert(starts.includes(8192))
     assert(mirrorStarts.includes(8192), 'the resumed shard must revisit the mirror entry rather than pinning its first redirect')
     assert.equal(hash(fs.readFileSync(path.join(f.root, 'large'))), hash(body))
-  } finally { slowSpeedThresholds.largeWindowMs = saved; await f.close() }
+  } finally { transferTimeouts.inactivityMs = savedIdle; transferTimeouts.maxInactivityMs = savedMax; await f.close() }
 })
 
 test('大文件尚未完成时小文件队列已被处理，全部请求仍遵守全局连接限制', { timeout: 6000 }, async () => {

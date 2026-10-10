@@ -476,7 +476,8 @@ async function openVersionFolder(id: string) {
 const removeModal = reactive({
   open: false,
   target: null as InstalledVersion | null,
-  busy: false
+  busy: false,
+  permanent: false
 })
 
 function requestRemove(version: InstalledVersion) {
@@ -490,9 +491,10 @@ async function confirmRemove() {
   if (!version || removeModal.busy) return
   removeModal.busy = true
   try {
-    await removeVersion(version.id, version.folder)
+    await removeVersion(version.id, version.folder, removeModal.permanent)
     await refreshInstalled()
     removeModal.open = false
+    removeModal.permanent = false
     toast(`已删除 ${version.id}`, 'success')
   } catch (error) {
     toast('删除失败：' + errText(error), 'error')
@@ -772,8 +774,11 @@ onUnmounted(() => {
     <ConfirmModal
       :open="removeModal.open"
       title="删除版本"
-      :message="`确定要删除版本「${removeModal.target?.id}」吗？该版本目录将移入系统回收站（共享依赖与资源保留）。`"
+      :message="`确定要删除版本「${removeModal.target?.id}」吗？${removeModal.permanent ? '将彻底删除该版本目录及其模组、存档、图标，无法恢复。' : '该版本目录将移入系统回收站（共享依赖与资源保留）。'}`"
+      option="彻底删除（不进入回收站，含模组与存档，不可恢复）"
+      :checked="removeModal.permanent"
       :busy="removeModal.busy"
+      @update:checked="removeModal.permanent = $event"
       @cancel="removeModal.open = false"
       @confirm="confirmRemove"
     />
