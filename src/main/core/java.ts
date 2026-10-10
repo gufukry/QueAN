@@ -938,6 +938,11 @@ async function ensureJavaInternal(versionJson: VersionJson, emit: ProgressEmit):
   }
 }
 
+/** 单独下载指定大版本的 Java 运行时（与启动时自动准备走同一条链路），返回 java 可执行文件路径 */
+export async function installJavaRuntime(need: number, architecture?: 'arm64' | 'x64', emit?: ProgressEmit): Promise<string> {
+  return downloadAndExtractJava(need, emit ?? (() => {}), architecture)
+}
+
 async function downloadAndExtractJava(need: number, emit: ProgressEmit, architecture?: 'arm64' | 'x64'): Promise<string> {
   const arch = (architecture ?? process.arch) === 'arm64' ? 'aarch64' : 'x64'
   const report = (text: string): void => { javaLog.info(text); emit({ stage: 'java', progress: 0, text }) }

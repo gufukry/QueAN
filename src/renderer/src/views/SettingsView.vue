@@ -14,6 +14,7 @@ import {
   hideJava,
   installPlugin,
   listJava,
+  installJavaRuntime,
   listPlugins,
   onProgress,
   openPluginsDir,
@@ -242,6 +243,25 @@ const javaScanProgress = ref(0)
 const javaAdding = ref(false)
 const javaCustomInput = ref('')
 const javaAddError = ref('')
+
+/** 单独下载 Java 运行时（参考美西螈的 Java 管理：可自由选大版本下载，不必先装游戏） */
+const javaDownloadMajor = ref(21)
+const javaDownloading = ref(false)
+const javaMajors = [8, 11, 17, 21, 25]
+async function onDownloadJava() {
+  if (javaDownloading.value) return
+  javaDownloading.value = true
+  try {
+    toast(`开始下载 Java ${javaDownloadMajor.value}…`, 'info')
+    const path = await installJavaRuntime(javaDownloadMajor.value)
+    javas.value = await listJava()
+    toast(`Java ${javaDownloadMajor.value} 已就绪：${path}`, 'success')
+  } catch (error) {
+    toast('Java 下载失败：' + errText(error), 'error')
+  } finally {
+    javaDownloading.value = false
+  }
+}
 
 async function onRefreshJava(refresh = true, announce = true) {
   if (javaRefreshing.value) {
@@ -857,6 +877,16 @@ async function onRemovePlugin(p: PluginInfo) {
             <p data-ui="SettingsView:b8220f037cc7" v-else-if="!javas.length" class="muted group-hint">
               未检测到本机 Java，将使用「自动选择」或在启动时自动下载。
             </p>
+
+            <div data-ui="SettingsView:java-download" class="java-download-row">
+              <span class="muted">单独下载 Java 运行时（不依赖游戏版本）</span>
+              <select v-model.number="javaDownloadMajor" :disabled="javaDownloading" aria-label="Java 大版本">
+                <option v-for="n in javaMajors" :key="n" :value="n">Java {{ n }}</option>
+              </select>
+              <button class="btn btn-ghost btn-sm" :disabled="javaDownloading" @click="onDownloadJava">
+                {{ javaDownloading ? '下载中…' : '下载 Java' }}
+              </button>
+            </div>
 
             <details class="java-detected"><summary>本机 Java 与手动管理（{{ javas.length }}）</summary>
             <div data-ui="SettingsView:205e9439c186" class="java-scan-row">
@@ -1766,4 +1796,10 @@ async function onRemovePlugin(p: PluginInfo) {
  .settings-search{grid-row:2;grid-column:1}.settings-scopes{grid-row:3}.settings-categories{grid-row:4}.settings-body{grid-row:5}.settings-search-results{top:92px}
  .feature-grid{grid-template-columns:minmax(0,1fr)}.theme-options{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+</style>
+
+<!-- 单独下载 Java 运行时 -->
+<style scoped>
+.java-download-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
+.java-download-row select { min-width: 104px; }
 </style>

@@ -141,6 +141,9 @@ export const installVersion = (id: string, opts?: InstallOptions, folder?: strin
 export const requestFavoriteVersions = (source: string, projectId: string, mc: string, loader: string, ticket: string) =>
   invoke<import('@shared/modFavorites').FavoriteVersionResult>('mods:favoriteVersions', source, projectId, mc, loader, ticket)
 export const cancelFavoriteVersions = (ticket: string) => invoke<void>('mods:favoriteVersionsCancel', ticket)
+/** 单独下载指定大版本的 Java 运行时，返回安装后的 java 路径 */
+export const installJavaRuntime = (need: number, arch?: 'arm64' | 'x64') => invoke<string>(IPC.javaInstall, need, arch)
+
 export const removeVersion = (id: string, folder?: string, permanent?: boolean) => invoke<void>(IPC.versionsRemove, id, folder, permanent)
 export const renameVersion = (id: string, newName: string, folder?: string) =>
   invoke<void>(IPC.versionsRename, id, newName, folder)

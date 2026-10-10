@@ -746,6 +746,29 @@ export function registerIpc(getWin: () => BrowserWindow | null): void {
     return java.scanJava()
   })
   ipcMain.handle(IPC.javaHide, (_e, p: string) => java.hideJava(String(p ?? '')))
+  // 单独下载 Java 运行时（与启动时自动准备同链路）：走下载中心任务，带进度与取消
+  ipcMain.handle(IPC.javaInstall, async (_e, need: number, arch?: 'arm64' | 'x64') => {
+    const major = Math.floor(Number(need))
+    if (![8, 11, 16, 17, 21, 25].includes(major)) throw new Error(`不支持的 Java 大版本：${need}`)
+    const task = registerTask(`下载 Java ${major}`, 'java')
+    const progressGuard = new ProgressEventGuard()
+    const taskEmit = (event: ProgressEvent): void => {
+      const normalized = progressGuard.normalize(event)
+      emit({ ...normalized, stage: 'java', taskId: task.id, taskTitle: task.title })
+    }
+    let ok = false
+    try {
+      const result = await java.installJavaRuntime(major, arch, taskEmit)
+      ok = true
+      send(IPC_EVENT.taskDone, { taskId: task.id, ok: true })
+      return result
+    } catch (error) {
+      send(IPC_EVENT.taskDone, { taskId: task.id, ok: false, error: error instanceof Error ? error.message : String(error), cancelled: isCancelError(error) })
+      throw error
+    } finally {
+      finishTask(task.id)
+    }
+  })
   ipcMain.handle(IPC.javaRefresh, async (_event, refresh?: boolean) => {
     if (activeJavaScanTaskId) throw new Error('Java 扫描已在进行中')
     const task = registerTask('扫描本机 Java', 'java')
