@@ -17,6 +17,21 @@ onMounted(async () => {
   finally { busy.value = false }
 })
 onUnmounted(() => { disposed = true; if (plan.value) void discardModInstall(plan.value.id) })
+/** 强制安装：跳过兼容性预检与元数据校验（PCL 不做这些检查；只在用户点按钮时放行） */
+async function forceInstall() {
+  if (busy.value) return
+  error.value = ''; busy.value = true
+  try {
+    const result = await prepareModInstall({ id: props.target.id, folder: props.target.folder! }, props.input, true)
+    plan.value = result
+  } catch (e) {
+    error.value = errText(e); plan.value = undefined; busy.value = false
+    return
+  }
+  busy.value = false
+  await install()   // install() 会重新置 busy 并按后台流程提交
+}
+
 async function install() {
   if (!plan.value || busy.value) return
   busy.value = true; error.value = ''

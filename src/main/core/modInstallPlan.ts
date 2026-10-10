@@ -160,7 +160,7 @@ export async function executeModPlan(id: string, includeDependencies: boolean, r
     for (const file of dependencies) {
       signal?.throwIfAborted()
       const mod = parseModFile(file.dest)
-      if (!modMatchesInstance(mod, target)) throw new Error(`${file.fileName} 的 JAR 元数据不兼容目标实例：${mod.error ?? ''}`)
+      if (!plan.force && !modMatchesInstance(mod, target)) throw new Error(`${file.fileName} 的 JAR 元数据不兼容目标实例：${modMismatchReasons(mod, target).join('；') || mod.error || '声明的版本范围不满足'}（可在左下角选择「强制安装」继续）`)
       // Keep an installed compatible provider; never install a second copy by filename.
       if (!installed.some(m => provided(m).some(p => p.id === mod.id))) staged.push(mod)
     }
