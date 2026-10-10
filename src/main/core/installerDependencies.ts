@@ -41,6 +41,6 @@ export async function prepareInstallerDependencies(jar: string, target: string, 
   const tasks = installerDependencyTasks(jar, target, reuseRoots)
   if (!tasks.length) return
   await downloadAll(tasks, (done, total, speed, detail) => emit({ stage: 'loader-dependencies', progress: detail.fraction ?? 0,
-    text: `下载加载器依赖 ${done}/${total}`, speed, bytesDone: detail.bytesDone, bytesTotal: detail.bytesTotal ?? undefined,
+    text: `下载加载器依赖 ${done}/${total}`, speed, bytesDone: detail.bytesDone, files: detail.files, filesTotal: detail.filesTotal, bytesTotal: detail.bytesTotal ?? undefined,
     etaSeconds: detail.etaSeconds ?? undefined, indeterminate: detail.indeterminate }), downloadLimiter.maxConcurrent, mirror, signal)
 }

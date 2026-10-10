@@ -379,7 +379,7 @@ async function installLoaderInternal(
           text: `${loader} 依赖库 ${d}/${t}`,
           speed,
           etaSeconds: detail.etaSeconds ?? undefined,
-          bytesDone: detail.bytesDone,
+          bytesDone: detail.bytesDone, files: detail.files, filesTotal: detail.filesTotal,
           bytesTotal: detail.bytesTotal ?? undefined,
           indeterminate: detail.indeterminate
         }),
@@ -505,7 +505,7 @@ async function installLoaderInternal(
             text: `补全依赖库 ${d}/${t}`,
             speed,
             etaSeconds: detail.etaSeconds ?? undefined,
-            bytesDone: detail.bytesDone,
+            bytesDone: detail.bytesDone, files: detail.files, filesTotal: detail.filesTotal,
             bytesTotal: detail.bytesTotal ?? undefined,
             indeterminate: detail.indeterminate
           }),

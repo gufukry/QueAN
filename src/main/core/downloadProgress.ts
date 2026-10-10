@@ -1,6 +1,8 @@
 export interface DownloadProgressSnapshot {
   /** 逐文件进度（仅多文件任务填充，供 UI 列出文件清单） */
   files?: Array<{ label: string; done: number; total: number | null; complete: boolean }>
+  /** 批次文件总数（files 可能只带前若干条） */
+  filesTotal?: number
   completedFiles: number
   totalFiles: number
   bytesDone: number

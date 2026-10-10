@@ -407,7 +407,7 @@ async function installVanillaUnlocked(
                   text: `下载依赖库 ${d}/${t}`,
                   speed,
                   etaSeconds: detail.etaSeconds ?? undefined,
-                  bytesDone: detail.bytesDone,
+                  bytesDone: detail.bytesDone, files: detail.files, filesTotal: detail.filesTotal,
                   bytesTotal: detail.bytesTotal ?? undefined,
                   indeterminate: detail.indeterminate,
                   source: sourceText
@@ -495,7 +495,7 @@ async function installVanillaUnlocked(
                 text: `下载资源文件 ${d}/${t}`,
                 speed,
                 etaSeconds: detail.etaSeconds ?? undefined,
-                bytesDone: detail.bytesDone,
+                bytesDone: detail.bytesDone, files: detail.files, filesTotal: detail.filesTotal,
                 bytesTotal: detail.bytesTotal ?? undefined,
                 indeterminate: detail.indeterminate,
                 source: sourceText

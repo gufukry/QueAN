@@ -1476,7 +1476,7 @@ onUnmounted(() => {
                     失败于「{{ stageLabel(t.stage || 'error') }}」阶段：{{ t.error }}
                   </template>
                 </div>
-                <div v-if="t.files && t.files.length > 1" class="dl-files">
+                <div v-if="t.files && t.files.length > 0" class="dl-files">
                   <div v-for="(f, i) in t.files.slice(0, 12)" :key="i" class="dl-file" :class="{ 'is-done': f.complete }">
                     <span class="dl-file-name" :title="f.label">{{ f.label }}</span>
                     <span class="dl-file-bar"><i :style="{ width: (f.complete ? 100 : (f.total ? Math.round(f.done / f.total * 100) : 0)) + '%' }"></i></span>

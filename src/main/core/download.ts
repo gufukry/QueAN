@@ -506,7 +506,7 @@ export async function downloadAll(tasks: DownloadTask[], progress?: AllProgressF
     const snapshot = tracker.snapshot(), paused = isTaskPaused(signal)
     const sampled = speed.sample(networkBytes, snapshot.bytesTotal == null ? null : Math.max(0, snapshot.bytesTotal - snapshot.bytesDone), performance.now(), paused)
     // 文件清单每 500ms 上报一次：够实时，也不会在大任务里刷爆 IPC
-    const withFiles = tasks.length > 1 && Date.now() - lastFilesAt >= 500
+    const withFiles = tasks.length >= 1 && Date.now() - lastFilesAt >= 500
     if (withFiles) lastFilesAt = Date.now()
     progress?.(snapshot.completedFiles, tasks.length, sampled.speedBps, {
       ...snapshot, ...sampled, paused, activeFiles: [...active.values()],
