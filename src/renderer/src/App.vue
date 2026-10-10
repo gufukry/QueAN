@@ -1506,10 +1506,11 @@ onUnmounted(() => {
       <!-- 内容区（:duration 显式给出过渡时长：窗口被遮挡/最小化时 transitionend 不会触发，setTimeout 兜底防切换卡死） -->
       <main data-ui="App:4f03b68b3168" class="content">
         <Transition name="fade" :duration="routeDuration">
-          <div data-ui="App:ece4739a5266" :key="store.currentView" class="route-view">
-            <!-- KeepAlive：切换菜单后各页面（如社区资源的搜索/筛选）不丢状态，回来还是原来的样子 -->
+          <div data-ui="App:ece4739a5266" class="route-view">
+            <!-- KeepAlive：切换菜单后各页面（如社区资源的搜索/筛选）不丢状态。
+                 注意 key 必须放在 KeepAlive 内的组件上：放在外层 div 上会连同 KeepAlive 一起重建，缓存失效。 -->
             <KeepAlive :max="8">
-              <component :is="currentComponent" />
+              <component :is="currentComponent" :key="store.currentView" />
             </KeepAlive>
           </div>
         </Transition>
