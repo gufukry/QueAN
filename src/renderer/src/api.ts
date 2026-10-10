@@ -294,7 +294,7 @@ export const prepareServerLaunch = (id: string, versionId?: string, folder?: str
 
 // ---------------- MOD 拖入即装 ----------------
 export const getModTargets = () => invoke<{ versions: InstalledVersion[]; errors: string[] }>(IPC.modsTargets)
-export const prepareModInstall = (target: { id: string; folder: string }, input: { paths?: string[]; file?: CommunityFile }) => invoke<ModInstallPlan>(IPC.modsPrepare, target, input)
+export const prepareModInstall = (target: { id: string; folder: string }, input: { paths?: string[]; file?: CommunityFile }, force?: boolean) => invoke<ModInstallPlan>(IPC.modsPrepare, target, input)
 export const commitModInstall = (id: string, includeDependencies: boolean) => invoke<string>(IPC.modsCommit, id, includeDependencies)
 export const discardModInstall = (id: string) => invoke<void>(IPC.modsDiscard, id)
 export const parseMods = (paths: string[]) => invoke<ModInfo[]>(IPC.modsParse, paths)

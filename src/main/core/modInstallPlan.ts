@@ -73,22 +73,24 @@ export async function dependencyGraph(roots: CommunityFile[], target: InstalledV
 
 interface PrivatePlan {
   view: ModInstallPlan; directory: string; roots: string[]; downloads: CommunityFile[]; expires: number
+  /** 强制安装：跳过兼容性预检与元数据校验（PCL 不做这些检查，这里给用户兜底入口） */
+  force?: boolean
 }
 const plans = new Map<string, PrivatePlan>()
 const clean = (plan: PrivatePlan) => { fs.rmSync(plan.directory, { recursive: true, force: true }); plans.delete(plan.view.id) }
 
-export async function prepareModInstall(target: InstalledVersion, input: { paths?: string[]; file?: CommunityFile }, emit: (e: ProgressEvent) => void, signal?: AbortSignal, repository = dependencyRepository): Promise<ModInstallPlan> {
+export async function prepareModInstall(target: InstalledVersion, input: { paths?: string[]; file?: CommunityFile }, emit: (e: ProgressEvent) => void, signal?: AbortSignal, repository = dependencyRepository, force = false): Promise<ModInstallPlan> {
   for (const p of plans.values()) if (p.expires < Date.now()) clean(p)
   if (plans.size >= 8) throw new Error('待确认安装过多，请取消已有安装计划')
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'quean-mod-plan-'))
   const id = crypto.randomUUID()
-  const plan: PrivatePlan = { directory, roots: [], downloads: [], expires: Date.now() + 20 * 60_000, view: { id, target, files: [], missing: [], warnings: [] } }
+  const plan: PrivatePlan = { directory, roots: [], downloads: [], force, expires: Date.now() + 20 * 60_000, view: { id, target, files: [], missing: [], warnings: [] } }
   try {
     const roots: CommunityFile[] = []
     if (input.file) {
       if (!input.file.source || !input.file.projectId) throw new Error('缺少项目来源，请重新打开下载页')
       const file = await repository.exact(input.file.source, input.file.projectId, input.file.fileId)
-      if (!communityFileMatchesInstance(file, target)) throw new Error('所选 MOD 文件与目标实例不兼容')
+      if (!force && !communityFileMatchesInstance(file, target)) throw new Error('所选 MOD 文件与目标实例不兼容（可在弹窗里选择「强制安装」继续）')
       const dest = path.join(directory, path.basename(file.fileName))
       emit({ stage: 'download', progress: 0, text: '读取所选 MOD，解析内置前置要求…' })
       await downloadAll([{ url:file.url, dest, sha1:file.sha1, size:file.size || undefined }], (_d,_t,speed,detail) => emit({stage:'download', progress:detail.fraction ?? 0, text:'下载所选 MOD', speed, bytesDone:detail.bytesDone, bytesTotal:detail.bytesTotal ?? undefined, etaSeconds:detail.etaSeconds ?? undefined}), 8, 'official', signal)
@@ -158,7 +160,7 @@ export async function executeModPlan(id: string, includeDependencies: boolean, r
     const current = revalidate(plan.view.target)
     if (current.gameDirectory !== target.gameDirectory) throw new Error('下载期间实例目录发生变化，未安装任何 MOD')
     installed = installedMods(current)
-    for (const mod of staged) if (!modMatchesInstance(mod, current)) throw new Error(`${mod.name} 的兼容性已变化，请重新解析`)
+    for (const mod of staged) if (!plan.force && !modMatchesInstance(mod, current)) throw new Error(`${mod.name} 的兼容性已变化，请重新解析`)
     const missing = missingRequirements(staged, target, [...staged, ...installed])
     if (missing.length) throw new Error(`未写入任何 MOD；仍缺少或版本不满足：${missing.map(d => `${d.id} ${d.range}`).join('、')}。请补齐前置或处理旧版冲突后重试`)
     const accepted: ModInfo[] = []

@@ -1074,9 +1074,9 @@ export function registerIpc(getWin: () => BrowserWindow | null): void {
 
   const modTargets = () => scanModTargets(settings.getSettings().folders.map(f => f.path), versions.scanInstalledFolder)
   ipcMain.handle(IPC.modsTargets, () => modTargets())
-  ipcMain.handle(IPC.modsPrepare, async (_e, ref: { id: string; folder: string }, input: { paths?: string[]; file?: CommunityFile }) => {
+  ipcMain.handle(IPC.modsPrepare, async (_e, ref: { id: string; folder: string }, input: { paths?: string[]; file?: CommunityFile }, force?: boolean) => {
     const target = selectModTarget(modTargets().versions, ref.id, ref.folder)
-    return prepareModInstall(target, input, emit)
+    return prepareModInstall(target, input, emit, undefined, undefined, force === true)
   })
   ipcMain.handle(IPC.modsDiscard, (_e, id: string) => discardModPlan(String(id)))
   ipcMain.handle(IPC.modsCommit, async (_e, id: string, includeDependencies: boolean) => {
