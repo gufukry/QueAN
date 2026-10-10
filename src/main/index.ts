@@ -15,6 +15,7 @@ import {
 } from './core/launcherLog'
 import { getSettings, migrateLegacyAppearanceAssets } from './core/settings'
 import { applyPortableUserData } from './core/portableData'
+import { hidePortableRuntimeFolder } from './core/applyUpdate'
 import { windowAppearance } from './windowAppearance'
 import { installContextMenu } from './contextMenu'
 import { applyNativeAppearance } from './nativeAppearance'
@@ -38,6 +39,8 @@ try {
 } catch (error) {
   console.error('[QueAN] 便携数据目录初始化失败，继续使用默认 userData:', error)
 }
+// 便携包会把运行时解压到 exe 旁的 QueAN-runtime：Windows 上设为隐藏，不碍眼
+hidePortableRuntimeFolder()
 
 configureRuntimeGraphics(app.commandLine, process.platform, dirname(process.execPath))
 

@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
+import { execFile } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { atomicUpdateJson, buildUpdaterScript, readUpdateTransaction, updateMarker, validateUpdatePayload, type UpdateTransaction, type UpdaterScriptSpec } from './updateTransaction'
 export { buildUpdaterScript } from './updateTransaction'
@@ -41,6 +42,31 @@ export function currentPortableExe(): string | null {
   if (process.platform === 'linux') return linuxAppTarget()
   if (process.platform !== 'win32') return null
   return (isolatedUpdateTest() && process.env.QueAN_UPDATE_TARGET_EXE) || process.env.PORTABLE_EXECUTABLE_FILE || null
+}
+
+/** 便携版运行时解压目录名（electron-builder 便携包的固定子目录） */
+export const PORTABLE_RUNTIME_DIR = 'QueAN-runtime'
+
+/**
+ * 便携运行时目录：<exe 所在目录>/QueAN-runtime。
+ * 非便携运行（开发模式、安装版）下返回 null。
+ */
+export function portableRuntimeDirOf(execPath: string): string | null {
+  const dir = path.dirname(execPath)
+  return path.basename(dir) === PORTABLE_RUNTIME_DIR ? dir : null
+}
+
+/**
+ * Windows 上把便携运行时目录设为隐藏：它就在 exe 旁边，不隐藏的话
+ * 会和启动器 exe 并列显示在桌面/目录里。失败不影响启动。
+ */
+export function hidePortableRuntimeFolder(): void {
+  if (process.platform !== 'win32' || !app.isPackaged) return
+  const dir = portableRuntimeDirOf(process.execPath)
+  if (!dir) return
+  try {
+    execFile('attrib', ['+h', dir], { windowsHide: true }, () => { /* 属性设置失败不影响启动 */ })
+  } catch { /* 同上 */ }
 }
 
 /** 是否支持自更新（仅便携包运行或测试注入目标时） */

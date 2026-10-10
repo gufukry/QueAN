@@ -128,3 +128,12 @@ test('安装器依赖可从游戏目录 libraries 复用相同内容：其它启
     assert.deepEqual(fs.readFileSync(path.join(f.root, 'libraries', relative)), bytes)
   } finally { server.closeAllConnections(); await new Promise<void>(r => server.close(() => r())); fs.rmSync(f.root, { recursive: true, force: true }) }
 })
+
+test('便携运行时目录仅在 exe 位于 QueAN-runtime 内时命中（用于隐藏该目录）', async () => {
+  const { portableRuntimeDirOf, PORTABLE_RUNTIME_DIR } = await import('../src/main/core/applyUpdate')
+  assert.equal(PORTABLE_RUNTIME_DIR, 'QueAN-runtime')
+  assert.equal(portableRuntimeDirOf(path.join('C:', 'Users', 'Administrator', 'Desktop', 'QueAN-runtime', 'QueAN.exe')),
+    path.join('C:', 'Users', 'Administrator', 'Desktop', 'QueAN-runtime'))
+  assert.equal(portableRuntimeDirOf(path.join('C:', 'Users', 'Administrator', 'Desktop', 'QueAN.exe')), null)
+  assert.equal(portableRuntimeDirOf(path.join('/opt', 'quean', 'quean')), null)
+})
