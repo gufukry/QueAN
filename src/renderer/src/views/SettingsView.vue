@@ -880,9 +880,13 @@ async function onRemovePlugin(p: PluginInfo) {
 
             <div data-ui="SettingsView:java-download" class="java-download-row">
               <span class="muted">单独下载 Java 运行时（不依赖游戏版本）</span>
-              <select v-model.number="javaDownloadMajor" :disabled="javaDownloading" aria-label="Java 大版本">
-                <option v-for="n in javaMajors" :key="n" :value="n">Java {{ n }}</option>
-              </select>
+              <SelectMenu
+                class="java-download-select"
+                aria-label="Java 大版本"
+                :model-value="javaDownloadMajor"
+                :options="javaMajors.map(n => ({ value: n, label: 'Java ' + n }))"
+                @update:model-value="javaDownloadMajor = Number($event)"
+              />
               <button class="btn btn-ghost btn-sm" :disabled="javaDownloading" @click="onDownloadJava">
                 {{ javaDownloading ? '下载中…' : '下载 Java' }}
               </button>
@@ -1801,5 +1805,5 @@ async function onRemovePlugin(p: PluginInfo) {
 <!-- 单独下载 Java 运行时 -->
 <style scoped>
 .java-download-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
-.java-download-row select { min-width: 104px; }
+.java-download-select { min-width: 104px; }
 </style>
