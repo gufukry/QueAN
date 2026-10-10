@@ -130,7 +130,12 @@ onBeforeUnmount(close)
 .select-menu-label { flex: 1; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .select-menu-chevron { width: 14px; height: 14px; flex-shrink: 0; color: var(--text-dim); transition: transform 0.18s ease; }
 .select-menu-btn.open .select-menu-chevron { transform: rotate(180deg); }
+@keyframes selectMenuIn {
+  from { opacity: 0; transform: translateY(-6px) scale(.985); }
+  to { opacity: 1; transform: none; }
+}
 .select-menu-float {
+  animation: selectMenuIn .14s ease-out;
   position: fixed;
   z-index: 11000;
   display: flex;

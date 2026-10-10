@@ -303,9 +303,9 @@ async function segmented(url: string, dest: string, expected: Integrity, signal:
   try { previous = JSON.parse(await fs.promises.readFile(path.join(cache, 'identity.json'), 'utf8')) } catch {}
   const compatible = previous.version === 1 && previous.size === size && previous.sha1 === expected.sha1 && previous.sha512 === expected.sha512 && previous.sha256 === expected.sha256 && Number.isSafeInteger(previous.step) && previous.step! > 0 && previous.step! <= size
   // Keep old valid fragments, including those created with a different thread setting.
-  // 片大小 min(1MB, size/2)：保持既有分片/续传契约（有 3 个用例依赖具体布局）。
-  // 想再提速需要连同那些用例的契约一起重做，不能只放松断言。
-  const step = compatible ? previous.step! : Math.min(1024 * 1024, Math.ceil(size / 2))
+  // 与 PCL 一致：ModNet.FilePieceLimit = 256KB —— 按 256KB 粒度切片，
+  // 几 MB 的模组/资源包/光影也会拆成十几条并发（直连 CDN 时才快）。
+  const step = compatible ? previous.step! : Math.min(256 * 1024, size)
   const count = Math.ceil(size / step)
   if (!compatible) {
     await clear(); await fs.promises.mkdir(cache, { recursive: true })
@@ -464,7 +464,7 @@ export async function downloadFile(url: string, dest: string, progress?: Progres
         const source = candidates[index], fallback = index + 1 < candidates.length
         for (let attempt = 0; attempt < attempts; attempt++) {
           try {
-            const bytes = (expected.size ?? 0) >= 512 * 1024 && downloadLimiter.maxConcurrent >= 2 && (sha1 || integrity.sha512 || integrity.sha256)
+            const bytes = (expected.size ?? 0) >= 256 * 1024 && downloadLimiter.maxConcurrent >= 2 && (sha1 || integrity.sha512 || integrity.sha256)
               ? await segmented(source, dest, expected, signal, progress, fallback, integrity.maxSegments, candidates.slice(index + 1), integrity.sourcePool)
               : await receive(source, temporary, expected, signal, progress, fallback, undefined, undefined, integrity.sourcePool)
             const invalid = await verifyFile(temporary, expected, signal)

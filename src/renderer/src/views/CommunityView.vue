@@ -154,6 +154,12 @@ const filteredVersionOptions = computed(() => {
   return manifestVersions.value.filter((v) => v.toLowerCase().includes(kw)).slice(0, 60)
 })
 
+/** 弹窗内的版本选项（与页面筛选同源，供 SelectMenu 使用） */
+const modalVersionOptions = computed(() => [
+  { value: '', label: '全部版本' },
+  ...manifestVersions.value.slice(0, 200).map(v => ({ value: v, label: v }))
+])
+
 function pickVersion(v: string) {
   query.mcVersion = v
   versionInput.value = query.mcVersion
@@ -699,9 +705,8 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
             </button>
           </div>
           <div class="filter-row">
-            <label data-ui="CommunityView:9b7baa1d1a72" class="modal-field">Minecraft 版本<input data-ui="CommunityView:75b46121b566" v-model="modal.mcVersion" class="input" list="mod-minecraft-versions" placeholder="全部版本" @change="loadFiles"/></label>
+            <label data-ui="CommunityView:9b7baa1d1a72" class="modal-field">Minecraft 版本<SelectMenu v-model="modal.mcVersion" :options="modalVersionOptions" placeholder="全部版本" @change="loadFiles" /></label>
             <label data-ui="CommunityView:73416dae43e4" v-if="usesCommunityLoader(modal.kind)" class="modal-field">Loader<SelectMenu v-model="modal.loader" :options="loaderOptions" @change="loadFiles" /></label>
-            <datalist data-ui="CommunityView:3ea5bc9c8890" id="mod-minecraft-versions"><option v-for="v in manifestVersions" :key="v" :value="v"/></datalist>
           </div>
 
           <p class="modal-label">选择文件版本</p>
