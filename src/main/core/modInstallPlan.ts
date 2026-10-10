@@ -63,15 +63,18 @@ export async function dependencyGraph(roots: CommunityFile[], target: InstalledV
     if (file.projectId && projects.has(project) && projects.get(project) !== file.fileId) throw new Error(`前置版本冲突：${file.projectId}`)
     if (file.projectId) projects.set(project, file.fileId)
     seen.add(key)
-    for (const dep of file.dependencies ?? []) {
-      if (!dep.required) continue
+    // 同一节点的多个前置并行解析：依赖图是 DAG，兄弟节点之间没有先后关系，
+    // 串行会让每个网络往返叠加（这正是"归纳前置关系"很慢的原因）。
+    const required = (file.dependencies ?? []).filter(dep => dep.required)
+    const resolved = await Promise.all(required.map(async dep => {
       if (!file.source || (!dep.projectId && !dep.fileId)) throw new Error(`无法定位 ${file.fileName} 的必要前置，请手动安装`)
       const selected = roots.find(root => root.source === file.source && (dep.projectId ? root.projectId === dep.projectId : root.fileId === dep.fileId))
       if (selected && dep.fileId && selected.fileId !== dep.fileId) throw new Error(`前置版本冲突：${dep.projectId || dep.fileId}`)
       const next = selected || (dep.fileId ? await repo.exact(file.source, dep.projectId, dep.fileId) : (await repo.files(file.source, dep.projectId!, target))[0])
       if (!next) throw new Error(`前置 ${dep.projectId} 没有兼容版本`)
-      await visit(next)
-    }
+      return next
+    }))
+    for (const next of resolved) await visit(next)
     result.push(file)
   }
   for (const root of roots) await visit(root)
