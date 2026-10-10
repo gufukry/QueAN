@@ -52,7 +52,9 @@ export function downloadCandidates(urls: string[], mirror: MirrorPref): string[]
     const hosted = (() => {
       try {
         const host = new URL(url).hostname
-        return host === 'cdn.modrinth.com' || host === 'edge.forgecdn.net' || host === 'mediafilez.forgecdn.net'
+        // 仅 Modrinth 内容 CDN：用户反馈这类资源直连更快。CurseForge(edge/mediafilez)
+        // 保留原有「镜像优先」顺序——它那条镜像（mod.mcimirror.top）在差网络下更稳。
+        return host === 'cdn.modrinth.com'
       } catch { return false }
     })()
     const mirrored = mirrorUrl(url, mirror)
