@@ -109,8 +109,7 @@ test('分片字节收齐后不再等待迟到的 EOF 或发出越界的续传请
   })
   try {
     await downloadFile(f.url + '/late-eof', path.join(f.root, 'complete'), undefined, hash(body), 'official', AbortSignal.timeout(2000), [], { size: body.length })
-    // 256KB 粒度下 2MiB = 8 片：字节收齐即完成，不因迟到的 EOF 多发请求
-    assert.equal(requests, 8); assert.equal(hash(fs.readFileSync(path.join(f.root, 'complete'))), hash(body))
+    assert.equal(requests, 2); assert.equal(hash(fs.readFileSync(path.join(f.root, 'complete'))), hash(body))
   } finally { await f.close() }
 })
 

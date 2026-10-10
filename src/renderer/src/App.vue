@@ -1507,7 +1507,10 @@ onUnmounted(() => {
       <main data-ui="App:4f03b68b3168" class="content">
         <Transition name="fade" :duration="routeDuration">
           <div data-ui="App:ece4739a5266" :key="store.currentView" class="route-view">
-            <component :is="currentComponent" />
+            <!-- KeepAlive：切换菜单后各页面（如社区资源的搜索/筛选）不丢状态，回来还是原来的样子 -->
+            <KeepAlive :max="8">
+              <component :is="currentComponent" />
+            </KeepAlive>
           </div>
         </Transition>
       </main>

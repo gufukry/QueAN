@@ -157,8 +157,7 @@ test('单个分片 304 后独立重试正确 206，健康分片不重下且完�
   try {
     const dest = path.join(f.root, 'asset')
     await downloadFile(f.base + '/asset', dest, undefined, contentSha1(body), 'official', AbortSignal.timeout(3000), [], { size: body.length })
-    // 256KB 粒度下 2MiB = 8 片：仅 0 偏移那片先吃 304 再重试
-    assert.equal(visits.get(0), 2); assert.equal(visits.get(1024 * 1024), 1); assert.equal(f.requests.length, 9)
+    assert.equal(visits.get(0), 2); assert.equal(visits.get(1024 * 1024), 1); assert.equal(f.requests.length, 3)
     assertUnconditional(f.requests); assert.deepEqual(fs.readFileSync(dest), body)
     assert.equal(contentSha1(fs.readFileSync(dest)), contentSha1(body)); assert.equal(fs.existsSync(dest + '.segments-cache'), false)
   } finally { await f.close() }

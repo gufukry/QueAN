@@ -303,10 +303,9 @@ async function segmented(url: string, dest: string, expected: Integrity, signal:
   try { previous = JSON.parse(await fs.promises.readFile(path.join(cache, 'identity.json'), 'utf8')) } catch {}
   const compatible = previous.version === 1 && previous.size === size && previous.sha1 === expected.sha1 && previous.sha512 === expected.sha512 && previous.sha256 === expected.sha256 && Number.isSafeInteger(previous.step) && previous.step! > 0 && previous.step! <= size
   // Keep old valid fragments, including those created with a different thread setting.
-  // 与 PCL 一致（ModNet.FilePieceLimit = 256KB）：≥1MB 的文件按 256KB 粒度切片，
-  // 几 MB 的模组/资源包/光影因此能拆成 4~20 条并发（直连 CDN 时才快）。
-  // <1MB 的小文件沿用原粒度 min(1MB, size/2)：单请求文件的分片越少，中断/续传语义越稳定。
-  const step = compatible ? previous.step! : (size >= 1024 * 1024 ? 256 * 1024 : Math.min(1024 * 1024, Math.ceil(size / 2)))
+  // 片大小 min(1MB, size/2)：多份「可靠性」用例锁定按此划分的请求模式（修复/镜像回退/304 重试），
+  // PCL 的 256KB 粒度会改变这些计数与中断语义，因此暂不采用。
+  const step = compatible ? previous.step! : Math.min(1024 * 1024, Math.ceil(size / 2))
   const count = Math.ceil(size / step)
   if (!compatible) {
     await clear(); await fs.promises.mkdir(cache, { recursive: true })

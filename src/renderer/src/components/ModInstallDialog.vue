@@ -21,20 +21,20 @@ async function install() {
   if (!plan.value || busy.value) return
   busy.value = true; error.value = ''
   const id = plan.value.id
-  // 提交期间保持弹窗打开：出错就停在这里，方便点「强制安装」；成功后由 install 收尾
+  plan.value = undefined   // 先清空，避免卸载时把正在提交的计划丢弃
   toast('开始下载并安装 MOD 与前置…', 'info')
   store.downloadPanelRequest++
-  try {
-    const message = await commitModInstall(id, true)
-    plan.value = undefined
-    toast(message, 'success'); store.fsRefreshTick++; emit('installed')
-  } catch (e) {
-    // 保留计划与错误态：弹窗里可以直接选择「强制安装」
-    error.value = errText(e)
-  } finally {
-    busy.value = false
-  }
+  emit('installed')        // 收起弹窗：进度看下载中心，完成/失败用右上角通知
+  void commitModInstall(id, true)
+    .then(message => { toast(message, 'success'); store.fsRefreshTick++ })
+    .catch(e => {
+      const message = errText(e)
+      toast('MOD 安装失败：' + message, 'error')
+      emit('failed', message)   // 父组件会把弹窗带错误重新打开，里面可点「强制安装」
+    })
+  busy.value = false
 }
+
 </script>
 <template>
   <Teleport to="body"><div class="modal-mask" style="z-index: 10020" @pointerdown.self="!busy && emit('close')">

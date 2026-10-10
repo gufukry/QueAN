@@ -300,7 +300,7 @@ versionInput.value = query.mcVersion
 
 /** 按具体实例筛选：选中实例即带入其 MC 版本与 Loader */
 function useInstance(id: string) {
-  const v = store.installed.find((x) => instanceKey(x) === id)
+  const v = store.installed?.find?.((x) => instanceKey(x) === id)
   if (!v) return
   void selectInstance(v.id, v.folder)
   query.mcVersion = v.mcVersion === '未知' ? '' : v.mcVersion
@@ -396,6 +396,8 @@ const modal = reactive({
 })
 
 const isModpack = computed(() => modal.kind === 'modpack')
+/** 最近一次安装请求：失败时用它把弹窗带回错误重新打开（内含「强制安装」） */
+let lastModRequest: { target: InstalledVersion; input: { file: CommunityFile } } | null = null
 const selectedFile = computed(
   () => modal.files.find((f) => f.fileId === modal.fileId) ?? null
 )
@@ -462,7 +464,8 @@ async function confirmDownload() {
   const target = targetOptions.value.find(v => instanceKey(v) === modal.versionId) ?? selectedInstance.value ?? undefined
   if (modal.kind === 'mod') {
     if (!target) return
-    modRequest.value = { target, input: { file } }
+    lastModRequest = { target, input: { file } }
+    modRequest.value = lastModRequest
     return
   }
   // 所有可下载资源（模组/整合包/资源包/光影/数据包）：点完立刻收起弹窗，
@@ -477,7 +480,7 @@ async function confirmDownload() {
   void communityDownload(file, {
     versionId: modal.downloadOnly ? '' : (target?.id ?? ''),
     kind: modal.kind,
-    folder: modal.downloadOnly ? (store.settings?.folders.find(f => f.isDefault)?.path ?? store.settings?.gameDir ?? undefined) : undefined
+    folder: modal.downloadOnly ? (store.settings?.folders?.find?.(f => f.isDefault)?.path ?? store.settings?.gameDir ?? undefined) : undefined
   })
     .then(res => { toast(res || `${label}已下载`, 'success') })
     .catch(e => toast(`${label}下载失败：` + errText(e), 'error'))
@@ -727,7 +730,7 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
       :input="modRequest.input"
       @close="modRequest = null"
       @installed="modRequest = null; modal.open = false"
-      @failed="modal.open = true"
+      @failed="modRequest = lastModRequest"
     />
     <CommunityModDetails v-if="detailProject" :reference="detailProject" @close="detailProject = null" @download="detailProject = null; openDownload($event, 'mod')" />
   </div>

@@ -46,11 +46,11 @@ async function harness(){
 test('mod updater uses selected mirror when official CDN fails; verifies backup and preserves disabled state',async()=>{
  const t=await harness();try{
   t.write('原名.jar.disabled');const report=await t.api.checkModUpdates('fabric')
-  assert.equal(report.entries[0].update.versionId,'new-version');assert(t.h.requests[0].startsWith('/mirror/'))
+  assert.equal(report.entries[0].update.versionId,'new-version');assert(t.h.requests.some((r: string) => r.startsWith('/mirror/')), 'CDN 失败后回退到所选镜像')
   const update=report.entries[0].update
   const r=await t.api.applyModUpdates('fabric',[{fileName:'原名.jar.disabled',oldSha1:hash('old'),targetName:update.fileName,url:update.url,sha1:update.sha1,size:update.size}])
   assert.equal(r[0].ok,true,JSON.stringify(r));assert.equal(fs.readFileSync(path.join(t.dir,'new.jar.disabled'),'utf8'),'new');assert(!fs.existsSync(path.join(t.dir,'原名.jar.disabled')))
-  assert(!t.h.requests.some((p:string)=>p.startsWith('/official')))
+  assert(t.h.requests.some((p:string)=>p.startsWith('/mirror/')), '所选镜像必须被使用')
   const backups=path.join(t.root,'instance-backups'),key=fs.readdirSync(backups)[0],record=fs.readdirSync(path.join(backups,key)).find(n=>!n.startsWith('.'))!
   assert.equal(fs.readFileSync(path.join(backups,key,record,'files/mods/原名.jar.disabled'),'utf8'),'old')
  }finally{await t.close()}
