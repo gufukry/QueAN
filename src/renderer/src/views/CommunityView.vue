@@ -463,23 +463,17 @@ async function confirmDownload() {
     modRequest.value = { target, input: { file } }
     return
   }
+  // 所有可下载资源（模组/整合包/资源包/光影/数据包）：点完立刻收起弹窗，
+  // 用右上角通知反馈开始与结果，下载过程在下载中心实时可见，不再卡在弹窗里看转圈。
+  const kindLabel: Record<string, string> = { mod: '模组', modpack: '整合包', resourcepack: '资源包', shader: '光影', datapack: '数据包' }
+  const label = kindLabel[modal.kind] ?? '资源'
+  modal.open = false
+  toast(`开始下载${label} ${file.fileName || ''}…`.replace(' …', '…'), 'info')
   modal.downloading = true
-  try {
-    const res = await communityDownload(file, {
-      versionId: target?.id ?? '',
-      kind: modal.kind
-    })
-    modal.open = false
-    if (modal.kind === 'modpack') {
-      toast(res || '已开始安装整合包', 'success')
-    } else {
-      toast(`下载完成，已保存到：${res}`, 'success')
-    }
-  } catch (e) {
-    toast('下载失败：' + errText(e), 'error')
-  } finally {
-    modal.downloading = false
-  }
+  void communityDownload(file, { versionId: target?.id ?? '', kind: modal.kind })
+    .then(res => { toast(res || `${label}已下载`, 'success') })
+    .catch(e => toast(`${label}下载失败：` + errText(e), 'error'))
+    .finally(() => { modal.downloading = false })
 }
 function selectDownloadInstance() { const target = targetOptions.value.find(v => instanceKey(v) === modal.versionId); if (target) void selectInstance(target.id, target.folder) }
 
@@ -1129,3 +1123,4 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
 
 .community-page .capsule.active { color:var(--text); background:var(--accent-soft); text-shadow:none; }
 </style>
+
