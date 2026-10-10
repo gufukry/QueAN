@@ -26,6 +26,8 @@ export class ParallelProgress {
   private publish(): void {
     this.publishedAt = performance.now()
     const stages: ParallelStage[] = []
+    const files: NonNullable<ProgressEvent['files']> = []
+    let filesTotal = 0
     let weighted = 0
     let speed = 0
     for (const lane of this.lanes) {
@@ -34,6 +36,10 @@ export class ParallelProgress {
       const progress = done ? 1 : Math.min(0.999, fraction(event?.overall ?? event?.progress ?? 0))
       weighted += lane.weight * progress
       if (!done && event?.speed && Number.isFinite(event.speed)) speed += Math.max(0, event.speed)
+      if (!done && event?.files?.length) {
+        files.push(...event.files)
+        filesTotal += event.filesTotal ?? event.files.length
+      }
       if (!done && event?.parallelStages?.length) {
         stages.push(...event.parallelStages.map(child => ({ ...child, id: `${lane.id}/${child.id}` })))
       } else {
@@ -43,6 +49,10 @@ export class ParallelProgress {
       }
     }
     const progress = this.range[0] + (this.range[1] - this.range[0]) * weighted / this.lanes.reduce((n, lane) => n + lane.weight, 0)
-    this.emit({ stage: 'parallel', progress, overall: progress, text: this.text, speed: speed || undefined, parallelStages: stages })
+    this.emit({
+      stage: 'parallel', progress, overall: progress, text: this.text, speed: speed || undefined, parallelStages: stages,
+      // 逐文件清单透传给 UI（原实现只输出阶段，会把文件信息丢掉）
+      ...(files.length ? { files: files.slice(0, 120), filesTotal } : {})
+    })
   }
 }
