@@ -1804,6 +1804,6 @@ async function onRemovePlugin(p: PluginInfo) {
 
 <!-- 单独下载 Java 运行时 -->
 <style scoped>
-.java-download-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 10px; }
+.java-download-row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin: var(--space-1) 0 var(--space-3); }
 .java-download-select { min-width: 104px; }
 </style>

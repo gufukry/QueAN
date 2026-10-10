@@ -1140,8 +1140,8 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
 
 <!-- 「仅下载文件」勾选（没有游戏版本时也能下载模组/资源包等） -->
 <style scoped>
-.download-only { display: flex; align-items: flex-start; gap: 8px; margin: 10px 0 2px; font-size: var(--text-sm); line-height: 1.5; cursor: pointer; }
-.download-only input { margin-top: 3px; flex-shrink: 0; }
+.download-only { display: flex; align-items: flex-start; gap: var(--space-2); margin: var(--space-3) 0 var(--space-1); font-size: var(--text-sm); line-height: 1.5; cursor: pointer; }
+.download-only input { margin-top: var(--space-1); flex-shrink: 0; }
 </style>
 
 <!-- 版本筛选：浮层必须盖住后面的卡片，并给输入框一个可点的下拉按钮 -->

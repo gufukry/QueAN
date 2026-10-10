@@ -2660,11 +2660,11 @@ onUnmounted(() => {
 
 <!-- 下载中心：逐文件清单（模组/资源文件等） -->
 <style scoped>
-.dl-files { margin: 6px 0 2px; max-height: 168px; overflow-y: auto; }
-.dl-file { display: flex; align-items: center; gap: 8px; font-size: var(--text-xs, 11px); line-height: 1.6; }
+.dl-files { margin: var(--space-2) 0 var(--space-1); max-height: 168px; overflow-y: auto; }
+.dl-file { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); line-height: 1.6; }
 .dl-file-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dl-file-bar { flex: 0 0 64px; height: 4px; border-radius: 2px; background: rgba(255,255,255,.14); overflow: hidden; }
+.dl-file-bar { flex: 0 0 64px; height: var(--space-1); border-radius: 2px; background: var(--border); overflow: hidden; }
 .dl-file-bar > i { display: block; height: 100%; background: var(--accent, #d8a657); }
 .dl-file.is-done .dl-file-name { opacity: .55; }
-.dl-file-more { margin: 4px 0 0; font-size: var(--text-xs, 11px); }
+.dl-file-more { margin: var(--space-1) 0 0; font-size: var(--text-xs); }
 </style>
