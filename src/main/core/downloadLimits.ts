@@ -16,12 +16,12 @@ export function validateDownloadLimits(value: DownloadLimits): void {
 export const HOST_CONNECTION_LIMIT = 32
 
 /**
- * 国内镜像（BMCLAPI）对高频请求会返 403/429 甚至直接卡住，参照 PCL 的做法：
- * 单域名并发压到 8，并让每次新建连接至少间隔 100ms（PCL: "减少 BMCLAPI 请求频率"）。
+ * 镜像/特殊主机：与 PCL 一致（ModNet.TryBeginThread 对这些主机直接拒绝开新线程），
+ * 只跑单连接：BMCLAPI 会限频，GitHub/OptiFine/Momot 容易断流。
  */
-export const MIRROR_HOST_CONNECTION_LIMIT = 8
+export const MIRROR_HOST_CONNECTION_LIMIT = 1
 export const MIRROR_REQUEST_INTERVAL_MS = 100
-const MIRROR_HOST_PATTERN = /(^|\.)bangbang93\.com$/i
+const MIRROR_HOST_PATTERN = /(^|\.)(bangbang93\.com|pcl2-server|meloong\.com|github\.com|optifine\.net|momot\.rs)$/i
 
 export function isMirrorHost(origin: string): boolean {
   try { return MIRROR_HOST_PATTERN.test(new URL(origin).hostname) } catch { return false }
@@ -66,11 +66,11 @@ export class DownloadLimiter {
   private queuedOrigins = new Map<() => void, string>()
   private nextMirrorSlot = 0
 
-  /** 镜像错峰：保证每次新建连接之间至少间隔 MIRROR_REQUEST_INTERVAL_MS */
+  /** 镜像错峰：保证每次新建连接之间至少间隔 MIRROR_REQUEST_INTERVAL_MS（预约不超过 1 秒，避免大批文件被排到很久以后） */
   private async staggerMirror(origin: string | undefined, signal?: AbortSignal): Promise<void> {
     if (!origin || !isMirrorHost(origin)) return
     const now = performance.now()
-    const slot = Math.max(now, this.nextMirrorSlot)
+    const slot = Math.max(now, Math.min(this.nextMirrorSlot, now + MIRROR_REQUEST_INTERVAL_MS * 10))
     this.nextMirrorSlot = slot + MIRROR_REQUEST_INTERVAL_MS
     if (slot > now) await abortableDelay(slot - now, signal)
   }
