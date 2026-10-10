@@ -450,7 +450,11 @@ async function launchOwned(
 
       // a1) 依赖库完整性：缺失则自动补下（含 fabric/quilt 的 maven 坐标库）
       const libTasks = libraryTasks(merged)
-      const reused = reuseExternalRuntimeLibraries(merged, settings.folders.map(f => f.path), librariesDir(), libTasks.map(t => t.dest))
+      // 只对本地缺失的运行库做跨目录复用扫描：库已齐时不再遍历其它游戏文件夹（每次启动省一次大目录扫描）
+      const missingLibs = libTasks.map(t => t.dest).filter(dest => !fs.existsSync(dest))
+      const reused = missingLibs.length
+        ? reuseExternalRuntimeLibraries(merged, settings.folders.map(f => f.path), librariesDir(), missingLibs)
+        : 0
       if (reused) log(`[QueAN] 已复用注册目录中 ${reused} 个运行库文件`)
       await repairNeoRuntime(merged, clientJar, readVersionJson(baseId), emit)
       const launchFiles = launchLibraryFiles(merged)
