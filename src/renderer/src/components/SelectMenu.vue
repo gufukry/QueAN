@@ -24,7 +24,7 @@ const menuStyle = ref<Record<string, string>>({})
 
 const currentOption = computed(() => props.options.find(o => o.value === props.modelValue))
 const currentLabel = computed(() =>
-  props.options.find((o) => o.value === props.modelValue)?.label ?? props.placeholder ?? '请选择'
+  (props.options ?? []).find((o) => o.value === props.modelValue)?.label ?? props.placeholder ?? '请选择'
 )
 
 function toggle() {

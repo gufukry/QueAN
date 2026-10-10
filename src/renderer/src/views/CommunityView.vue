@@ -148,6 +148,12 @@ const versionInput = ref('')
 const versionDropdownOpen = ref(false)
 /** 实例下拉当前选中项；默认空 = 不按实例筛选（版本/加载器默认全部） */
 const instanceFilterId = ref('')
+/** 页面版本筛选的选项（SelectMenu 用；与弹窗同源） */
+const versionSelectOptions = computed(() => [
+  { value: '', label: '全部版本' },
+  ...manifestVersions.value.slice(0, 200).map(v => ({ value: v, label: v }))
+])
+
 /** 弹窗内的版本选项（与页面筛选同源，供 SelectMenu 使用） */
 const modalVersionOptions = computed(() => [
   { value: '', label: '全部版本' },
