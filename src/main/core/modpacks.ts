@@ -1115,7 +1115,7 @@ async function installModpackInFolder(filePath: string, emit: ProgressEmit, opts
               parallel.update('pack', {
                 stage: 'modpack',
                 progress: cfFiles.length ? (resolved / cfFiles.length) * 0.04 : 0,
-                text: `校验整合包文件 ${resolved}/${cfFiles.length} · 包内 ${reused} 个 · 本地 ${reusedLocal} 个 · 自动补全 ${alternate} 个`
+                text: cfFiles.length ? `校验整合包文件 ${resolved}/${cfFiles.length} · 包内 ${reused} 个 · 本地 ${reusedLocal} 个 · 自动补全 ${alternate} 个` : '整合包文件已就绪'
               })
               return local ? null : {
                 rel: `${await curseForgeInstallDir(f.projectID, info.fileName, sources, signal)}/${info.fileName}`,
@@ -1151,6 +1151,11 @@ async function installModpackInFolder(filePath: string, emit: ProgressEmit, opts
           const downloadProgress: Parameters<typeof prepareModpackFiles>[1] = (d, t, speed, detail) => {
             const doneBytes = detail.bytesDone
             const ratio = detail.fraction ?? 0
+            // 没有任何需要下载的文件（全部来自包内或本地复用）时不要报 0/0
+            if (!t) {
+              parallel.update('pack', { stage: 'modpack', progress: 1, text: '整合包文件已就绪（全部来自包内或本地）' })
+              return
+            }
             parallel.update('pack', {
               stage: 'modpack',
               progress: 0.04 + ratio * 0.96,

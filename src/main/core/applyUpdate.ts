@@ -48,12 +48,19 @@ export function currentPortableExe(): string | null {
 export const PORTABLE_RUNTIME_DIR = 'QueAN-runtime'
 
 /**
- * 便携运行时目录：<exe 所在目录>/QueAN-runtime。
- * 非便携运行（开发模式、安装版）下返回 null。
+ * 便携运行时目录：exe 的祖先里名为 QueAN-runtime 的那一层。
+ * 便携包实际解压到 QueAN-runtime\<构建缓存键>\，所以不能只看直接父目录；
+ * 非便携运行（开发模式、安装版）返回 null。
  */
 export function portableRuntimeDirOf(execPath: string): string | null {
-  const dir = path.dirname(execPath)
-  return path.basename(dir) === PORTABLE_RUNTIME_DIR ? dir : null
+  let dir = path.dirname(execPath)
+  for (let depth = 0; depth < 4; depth++) {
+    if (path.basename(dir) === PORTABLE_RUNTIME_DIR) return dir
+    const parent = path.dirname(dir)
+    if (parent === dir) break
+    dir = parent
+  }
+  return null
 }
 
 /**
