@@ -49,7 +49,7 @@ async function install() {
         <p class="modal-note">是否一键下载缺失前置并安装？已有兼容前置将复用；若检测到冲突，将停止且不覆盖原文件。</p>
       </template>
       <p v-if="error" class="modal-error">{{ error }}</p>
-      <div class="modal-actions"><button class="btn btn-ghost" :disabled="busy" @click="emit('close')">{{ error ? '关闭并重新选择' : '取消' }}</button><button v-if="plan" class="btn btn-gold" :disabled="busy || !!plan.warnings.length" @click="install">{{ plan.files.some(f => f.dependency) ? '一键下载前置并安装' : '确认安装' }}</button></div>
+      <div class="modal-actions"><button v-if="error" class="btn btn-danger modal-actions-left" :disabled="busy" @click="forceInstall">强制安装</button><button class="btn btn-ghost" :disabled="busy" @click="emit('close')">{{ error ? '关闭并重新选择' : '取消' }}</button><button v-if="plan" class="btn btn-gold" :disabled="busy || !!plan.warnings.length" @click="install">{{ plan.files.some(f => f.dependency) ? '一键下载前置并安装' : '确认安装' }}</button></div>
     </section>
   </div></Teleport>
 </template>
@@ -81,4 +81,6 @@ async function install() {
 .modal-note { font-size: var(--text-sm); line-height: 1.6; color: var(--text-dim); }
 .modal-error { color: var(--danger); white-space: pre-wrap; font-size: var(--text-sm); }
 .modal-actions { display: flex; align-items: center; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-5); }
+/* 强制安装固定在左下角，与右侧的取消/确认分开 */
+.modal-actions-left { margin-right: auto; }
 </style>
