@@ -5,7 +5,7 @@ import { prepareModInstall, commitModInstall, discardModInstall, errText } from 
 import { store, toast } from '../store'
 import MarqueeText from './MarqueeText.vue'
 const props = defineProps<{ target: InstalledVersion; input: { paths?: string[]; file?: CommunityFile } }>()
-const emit = defineEmits<{ close: []; installed: [] }>()
+const emit = defineEmits<{ close: []; installed: []; failed: [string] }>()
 const plan = ref<ModInstallPlan>(), busy = ref(true), error = ref('')
 let disposed = false
 onMounted(async () => {
@@ -21,15 +21,19 @@ async function install() {
   if (!plan.value || busy.value) return
   busy.value = true; error.value = ''
   const id = plan.value.id
-  // 与导入/社区下载一致：确认后收起弹窗，进度看下载中心，完成与失败用右上角通知
-  plan.value = undefined   // 先清空，避免卸载时把正在提交的计划丢弃
+  // 提交期间保持弹窗打开：出错就停在这里，方便点「强制安装」；成功后由 install 收尾
   toast('开始下载并安装 MOD 与前置…', 'info')
   store.downloadPanelRequest++
-  emit('installed')
-  void commitModInstall(id, true)
-    .then(message => { toast(message, 'success'); store.fsRefreshTick++ })
-    .catch(e => toast('MOD 安装失败：' + errText(e), 'error'))
-  busy.value = false
+  try {
+    const message = await commitModInstall(id, true)
+    plan.value = undefined
+    toast(message, 'success'); store.fsRefreshTick++; emit('installed')
+  } catch (e) {
+    // 保留计划与错误态：弹窗里可以直接选择「强制安装」
+    error.value = errText(e)
+  } finally {
+    busy.value = false
+  }
 }
 </script>
 <template>

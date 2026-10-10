@@ -148,12 +148,6 @@ const versionInput = ref('')
 const versionDropdownOpen = ref(false)
 /** 实例下拉当前选中项；默认空 = 不按实例筛选（版本/加载器默认全部） */
 const instanceFilterId = ref('')
-const filteredVersionOptions = computed(() => {
-  const kw = versionInput.value.trim().toLowerCase()
-  if (!kw) return manifestVersions.value.slice(0, 60)
-  return manifestVersions.value.filter((v) => v.toLowerCase().includes(kw)).slice(0, 60)
-})
-
 /** 弹窗内的版本选项（与页面筛选同源，供 SelectMenu 使用） */
 const modalVersionOptions = computed(() => [
   { value: '', label: '全部版本' },
@@ -546,45 +540,14 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
 
       <div class="filter-row">
         <SelectMenu aria-label="资源来源" v-model="query.source" class="filter-select" :options="sourceOptions" @change="onFilterChange" />
-        <!-- 可搜索版本下拉：完整 MC 版本列表（远程清单数据源） -->
-        <div data-ui="CommunityView:a7e5c548e576" class="ver-filter">
-          <input data-ui="CommunityView:df846b92dee0"
-            v-model="versionInput"
-            class="input ver-filter-input"
-            :placeholder="manifestLoading ? '加载版本列表…' : (query.mcVersion || '全部版本')"
-            @focus="versionDropdownOpen = true"
-            @input="versionDropdownOpen = true"
-            @change="applyVersionInput"
-            @keydown.enter.prevent="applyVersionInput"
-          />
-          <button
-            data-ui="CommunityView:ver-filter-toggle"
-            class="ver-filter-toggle"
-            type="button"
-            aria-label="展开版本列表"
-            :aria-expanded="versionDropdownOpen"
-            @click="versionDropdownOpen = !versionDropdownOpen"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6" /></svg>
-          </button>
-          <div data-ui="CommunityView:c262110ba1ea" v-if="versionDropdownOpen" class="menu-overlay" @click="versionDropdownOpen = false"></div>
-          <div data-ui="CommunityView:8e1248a50470" v-if="versionDropdownOpen" class="float-menu ver-filter-menu">
-            <button data-ui="CommunityView:45317b5bff2e" class="menu-item" :class="{ active: !query.mcVersion }" @mousedown.prevent @click="pickVersion('')">
-              全部版本
-            </button>
-            <button data-ui="CommunityView:7bf879d180c7"
-              v-for="v in filteredVersionOptions"
-              :key="v"
-              class="menu-item"
-              :class="{ active: query.mcVersion === v }"
-              @mousedown.prevent
-              @click="pickVersion(v)"
-            >
-              {{ v }}
-            </button>
-            <div data-ui="CommunityView:6570e9d15e20" v-if="!filteredVersionOptions.length" class="ver-menu-empty">无匹配版本</div>
-          </div>
-        </div>
+        <SelectMenu
+          aria-label="Minecraft 版本"
+          class="filter-select ver-filter"
+          :model-value="query.mcVersion"
+          :options="versionSelectOptions"
+          placeholder="全部版本"
+          @update:model-value="pickVersion($event)"
+        />
         <SelectMenu aria-label="加载器" v-if="supportsLoader" v-model="query.loader" class="filter-select" :options="loaderOptions" @change="onLoaderChange" />
         <SelectMenu aria-label="排序" v-model="query.sort" class="filter-select" :options="sortOptions" @change="onFilterChange" />
       </div>
@@ -758,7 +721,14 @@ function selectDownloadInstance() { const target = targetOptions.value.find(v =>
         </div>
       </div>
     </Teleport>
-    <ModInstallDialog v-if="modRequest" :target="modRequest.target" :input="modRequest.input" @close="modRequest = null" @installed="modRequest = null; modal.open = false"/>
+    <ModInstallDialog
+      v-if="modRequest"
+      :target="modRequest.target"
+      :input="modRequest.input"
+      @close="modRequest = null"
+      @installed="modRequest = null; modal.open = false"
+      @failed="modal.open = true"
+    />
     <CommunityModDetails v-if="detailProject" :reference="detailProject" @close="detailProject = null" @download="detailProject = null; openDownload($event, 'mod')" />
   </div>
 </template>
