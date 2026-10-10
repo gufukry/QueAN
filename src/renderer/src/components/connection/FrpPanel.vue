@@ -154,6 +154,7 @@ onBeforeUnmount(() => { disposed = true; unsubscribe?.() })
       <header data-ui="FrpPanel:c82fb938cb1d" class="connection-panel-head">
         <div>
           <h2>节点参考</h2>
+          <p data-ui="FrpPanel:latency-hint" class="connection-muted">延迟提示：frp 走的是服务器中转，延迟取决于所选节点到你的距离——创建隧道时优先选地理上更近的节点（节点行有地区/运营商说明）。若只是和好友联机，改用「陶瓦」面板的 P2P 直连通常延迟更低。</p>
           <p>查看各节点的状态与说明，在上方选择可用节点创建隧道。专业版节点需要对应账号权限。</p>
         </div>
       </header>
