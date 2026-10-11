@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>QueAN —— Minecraft Java 版启动器</title>
+<meta name="description" content="QueAN：中文社区资源、多线程分片下载与镜像兜底、多游戏文件夹与实例隔离，支持整合包导入安装。">
+<meta name="theme-color" content="#10191b">
+<link rel="stylesheet" href="./style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%2355c96b'/></svg>">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    <a class="brand" href="#top"><span class="logo" aria-hidden="true"></span>QueAN</a>
+    <nav>
+      <a href="#features">功能</a>
+      <a href="#download">下载</a>
+      <a href="#changelog">更新日志</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap">
+    <section class="hero">
+      <span class="badge" id="verBadge">Minecraft Java 版启动器</span>
+      <h1>为国内玩家打造的<br>Minecraft 启动器</h1>
+      <p class="lede">中文关键词直接搜模组、多线程分片下载加国内镜像兜底、多游戏文件夹与实例隔离、整合包一键导入。基于 KAMUCL v1.1.15（MIT）二次开发。</p>
+      <div class="cta">
+        <a class="btn btn-gold btn-lg" id="dlBtn" href="#download">下载 Windows 版</a>
+        <a class="btn btn-lg" href="#changelog">查看更新日志</a>
+      </div>
+      <p class="meta" id="dlMeta">正在读取最新版本信息…</p>
+    </section>
+
+    <section id="features">
+      <div class="sec-head"><h2>能做什么</h2><span>重点功能</span></div>
+      <div class="grid">
+        <div class="card"><div class="icon">中</div><h3>中文社区资源</h3><p>用中文关键词直接列出全部相关模组，无需输入完整英文名称。</p></div>
+        <div class="card"><div class="icon">速</div><h3>下载提速与容错</h3><p>多线程分片下载、断点续传，国内镜像自动兜底，差网络也能装完。</p></div>
+        <div class="card"><div class="icon">隔</div><h3>多文件夹与实例隔离</h3><p>多个游戏文件夹互不影响，实例各自独立，支持整合包一键导入安装。</p></div>
+        <div class="card"><div class="icon">登</div><h3>外置登录</h3><p>内置 LittleSkin 预设，外置登录即选即用。</p></div>
+      </div>
+    </section>
+
+    <section id="download">
+      <div class="sec-head"><h2>下载</h2><span>便携版，解压即用</span></div>
+      <div class="card">
+        <div class="dl">
+          <div class="dl-info">
+            <strong id="dlVersion">QueAN</strong>
+            <div class="kv">
+              <span id="dlPlatform">Windows 便携版</span>
+              <span id="dlSize">—</span>
+              <span id="dlDate">—</span>
+            </div>
+          </div>
+          <a class="btn btn-gold btn-lg" id="dlLink" href="#" rel="noopener">立即下载</a>
+        </div>
+        <details class="sha">
+          <summary>校验信息（SHA256）</summary>
+          <p><code id="dlSha">—</code></p>
+          <p class="meta">下载后可用 <code>certutil -hashfile 文件名 SHA256</code> 校验，与上面的值一致即为完整安装包。</p>
+        </details>
+      </div>
+    </section>
+
+    <section id="changelog">
+      <div class="sec-head"><h2>更新日志</h2><span>按版本倒序</span></div>
+      <div class="log" id="log"><div class="skeleton">正在加载…</div></div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>QueAN 是基于 KAMUCL v1.1.15（MIT）二次开发的第三方非官方版本，与上游作者及 Mojang 均无隶属关系；保留原始版权与许可声明。</p>
+    <p>Minecraft 是 Mojang Studios 的商标。本站仅提供启动器本体下载，不含任何游戏内容。</p>
+  </div>
+</footer>
+
+<script src="./app.js"></script>
+</body>
+</html>
