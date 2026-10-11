@@ -49,7 +49,6 @@ export async function validateUpdatePayload(t: UpdateTransaction): Promise<void>
 export interface UpdaterScriptSpec {
   oldExe: string
   newExe: string
-  backupDir: string
   mainPid: number
   wrapperPid?: number
   stateDir: string
@@ -67,8 +66,7 @@ export function buildUpdaterScript(spec: UpdaterScriptSpec): string {
 $env:PSModulePath = (Join-Path $PSHOME 'Modules') + [IO.Path]::PathSeparator + $env:PSModulePath
 $oldExe = ${q(spec.oldExe)}
 $newExe = ${q(spec.newExe)}
-$backupDir = ${q(spec.backupDir)}
-$backup = Join-Path $backupDir ${q(t.id + '.exe')}
+$backup = Join-Path ([IO.Path]::GetTempPath()) ${q(t.id + '.exe.bak')}
 $stateDir = ${q(spec.stateDir)}
 $claim = ${q(claim)}
 $receipt = $claim + '.receipt.json'
@@ -98,17 +96,15 @@ try {
   }
   if ((Hash-File $newExe) -ne $expected) { throw 'Update payload checksum changed' }
   if ((Hash-File $oldExe) -ne $oldHash) { throw 'Target changed; refusing replacement' }
-  New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
   Copy-Item -LiteralPath $newExe -Destination $swap
   if ((Hash-File $swap) -ne $expected) { throw 'Staged copy checksum mismatch' }
-  # Replace is atomic on the same volume. It creates the backup without a missing-exe interval.
+  # Replace is atomic on the same volume. The scratch target keeps it atomic without
+  # leaving a backup behind: no missing-exe interval, no leftover folder.
   for ($n = 0; $n -lt 60; $n++) {
     if ((Hash-File $oldExe) -ne $oldHash) { throw 'Target changed while waiting; refusing replacement' }
     try { [IO.File]::Replace($swap, $oldExe, $backup); $replaced = $true; break }
     catch { if ($n -eq 59) { throw }; Start-Sleep -Milliseconds 500 }
   }
-  $state = @{from=${q(t.from)};to=${q(t.release.version)};time=[DateTime]::UtcNow.ToString('o');backupPath=$backup;backupVersion=${q(t.from)};result='applied'}
-  Write-Json (Join-Path $stateDir 'update-state.json') $state
   # The user's startup is continued once, using the original filename/shortcut.
   $start = New-Object Diagnostics.ProcessStartInfo
   $start.FileName = $oldExe
@@ -136,9 +132,10 @@ try {
   Log $_.ScriptStackTrace
   try { Set-Content -LiteralPath (Join-Path $stateDir 'update-failed.flag') -Value $_.Exception.Message -Encoding UTF8 } catch {}
   try { Move-Item -LiteralPath $claim -Destination ($claim + '.failed') -Force } catch {}
-  # A pre-replacement error leaves the original executable intact. A valid replaced
-  # executable and its backup stay available for explicit recovery; never auto-relaunch.
+  # A pre-replacement error leaves the original executable intact. After a successful
+  # replacement the new executable stays in place; there is no backup to roll back to.
 } finally {
+  Remove-Item -LiteralPath $backup -Force -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath $swap -Force -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyContinue
 }

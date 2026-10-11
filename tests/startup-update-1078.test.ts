@@ -63,12 +63,13 @@ test('native updater keeps the original filename, accepts an immediately closed 
     // A same-version filename beside the original must remain untouched.
     const collision = path.join(f.root, 'QueAN-1.0.78.exe'); fs.writeFileSync(collision, 'unrelated')
     const script = path.join(f.root, 'update.ps1')
-    const spec = { oldExe: f.target, newExe: f.file, backupDir: path.join(f.root, 'backups'), mainPid: 99999999, stateDir: f.root, transaction: f.t, oldSha256: hash('old') }
+    const spec = { oldExe: f.target, newExe: f.file, mainPid: 99999999, stateDir: f.root, transaction: f.t, oldSha256: hash('old') }
     fs.writeFileSync(script, '\uFEFF' + buildUpdaterScript(spec))
     let run = spawnSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script], { windowsHide: true, timeout: 20000, encoding: 'utf8' })
     assert.equal(run.status, 0, run.stdout + run.stderr)
     assert.equal(hash(fs.readFileSync(f.target)), f.t.sha256, fs.readFileSync(path.join(f.root, 'updater-last.log'), 'utf8'))
-    assert.equal(fs.readFileSync(path.join(spec.backupDir, f.t.id + '.exe'), 'utf8'), 'old')
+    // 不再保留备份：原目录里不应出现备份文件夹
+    assert(!fs.existsSync(path.join(f.root, 'backups')))
     assert.equal(fs.readFileSync(collision, 'utf8'), 'unrelated')
     assert(fs.existsSync(claim + '.completed'), fs.readFileSync(path.join(f.root, 'updater-last.log'), 'utf8'))
     assert.equal(fs.readFileSync(path.join(f.root, 'launches.txt'), 'utf8'), 'started\n')

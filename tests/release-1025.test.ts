@@ -16,7 +16,7 @@ test('fix-1: update check failure never misreports as latest; failed state has G
   const fn = sv.slice(sv.indexOf('async function onCheckUpdate'), sv.indexOf('const updateSource'))
   assert.match(fn, /r\.ok && r\.hasUpdate/)
   assert.match(fn, /else if \(r\.ok\)/)
-  assert.match(fn, /store\.updatePrompt = \{ release: r\.release, rollback: false \}/)
+  assert.match(fn, /store\.updatePrompt = r\.release/)
   assert.doesNotMatch(fn, /toast\(`发现新版本/)
   assert.match(fn, /else if \(r\.ok\) \{\s*updateCheckState\.value = 'latest'/)
   assert.doesNotMatch(fn, /toast\('当前版本已是最新/)

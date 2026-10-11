@@ -7,8 +7,6 @@ import { computed } from 'vue'
 import UpdateDialogShell from './UpdateDialogShell.vue'
 import type { ReleaseInfo } from '@shared/types'
 import { renderMarkdownLite } from '../markdownLite'
-import { usePlatformUpdate } from '../composables/usePlatformUpdate'
-const { systemInstaller, installAction, installExplanation } = usePlatformUpdate()
 
 const props = defineProps<{
   release: ReleaseInfo
@@ -22,8 +20,6 @@ const props = defineProps<{
   etaText?: string
   /** 低速提示（30s<100KB/s 出现一次） */
   slowHint?: boolean
-  /** 回退模式（文案微调） */
-  rollback?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -31,7 +27,6 @@ const emit = defineEmits<{
   (e: 'later'): void
   (e: 'skip'): void
   (e: 'cancelDownload'): void
-  (e: 'installNow'): void
   (e: 'close'): void
 }>()
 
@@ -53,17 +48,16 @@ const sizeText = computed(() => {
 </script>
 
 <template>
-  <UpdateDialogShell :label="rollback ? '版本回退确认' : '启动器更新'" @dismiss="dismiss()">
+  <UpdateDialogShell label="启动器更新" @dismiss="dismiss()">
     <template #header>
       <div class="upd-head">
-        <div><p class="upd-eyebrow">QueAN · {{ rollback ? '版本回退' : '软件更新' }}</p><h3 class="upd-title">{{ state === 'found' ? (rollback ? '回退到' : '发现新版本') : state === 'downloading' ? '正在下载' : '准备安装' }} v{{ release.version }}</h3></div>
+        <div><p class="upd-eyebrow">QueAN · 软件更新</p><h3 class="upd-title">{{ state === 'found' ? '发现新版本' : state === 'downloading' ? '正在下载' : '正在安装' }} v{{ release.version }}</h3></div>
         <button class="icon-btn" :aria-label="state === 'done' ? '关闭' : state === 'downloading' ? '隐藏（后台继续下载）' : '稍后提醒'" @click="dismiss()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       </div>
       <div class="upd-meta"><span>当前 v{{ currentVersion }}</span><span v-if="dateText">{{ dateText }}</span><span v-if="sizeText">{{ sizeText }}</span></div>
     </template>
     <template v-if="state === 'found'">
-      <p v-if="rollback" class="upd-slow">{{ systemInstaller ? '旧版本可能不兼容新配置，请先备份；系统安装器将请求安装确认。' : '旧版本可能不兼容新配置。回退前会自动备份当前版本。' }}</p>
-      <h4 class="upd-section-title">{{ rollback ? '此版本说明' : '更新内容' }}</h4>
+      <h4 class="upd-section-title">更新内容</h4>
       <div class="upd-body" v-html="bodyHtml"></div>
     </template>
     <template v-else-if="state === 'downloading'">
@@ -73,16 +67,16 @@ const sizeText = computed(() => {
       <p class="muted upd-note">下载进度同时显示在下载中心，支持断点续传。</p>
       <p v-if="slowHint" class="upd-slow">下载速度持续偏低，可以通过下方备用方式获取安装包。</p>
     </template>
-    <p v-else class="upd-done-text">{{ installExplanation }}</p>
+    <p v-else class="upd-done-text">安装包已下载并通过校验，正在替换并重启启动器，本次窗口会自动关闭。</p>
     <details v-if="state !== 'done'" class="upd-help" :open="slowHint || undefined">
       <summary>安装说明</summary>
       <p class="muted">如果旧桌面快捷方式失效，请重新指向更新后的文件。</p>
     </details>
     <template #footer>
       <div class="upd-actions">
-        <template v-if="state === 'found'"><button v-if="!rollback" class="upd-skip" @click="emit('skip')">跳过此版本</button><div class="upd-actions-right"><button class="btn btn-ghost" @click="emit('later')">稍后提醒</button><button class="btn btn-gold" @click="emit('updateNow')">{{ rollback ? '确认回退' : '立即更新' }}</button></div></template>
+        <template v-if="state === 'found'"><button class="upd-skip" @click="emit('skip')">跳过此版本</button><div class="upd-actions-right"><button class="btn btn-ghost" @click="emit('later')">稍后提醒</button><button class="btn btn-gold" @click="emit('updateNow')">立即更新</button></div></template>
         <div v-else-if="state === 'downloading'" class="upd-actions-right"><button class="btn btn-ghost" @click="emit('cancelDownload')">取消下载</button></div>
-        <div v-else class="upd-actions-right"><button class="btn btn-ghost" @click="emit('close')">稍后</button><button class="btn btn-gold" @click="emit('installNow')">{{ installAction }}</button></div>
+        <div v-else class="upd-actions-right"><span class="muted">正在安装并重启…</span></div>
       </div>
     </template>
   </UpdateDialogShell>

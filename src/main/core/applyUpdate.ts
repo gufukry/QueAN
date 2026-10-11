@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto'
 import { atomicUpdateJson, buildUpdaterScript, readUpdateTransaction, updateMarker, validateUpdatePayload, type UpdateTransaction, type UpdaterScriptSpec } from './updateTransaction'
 export { buildUpdaterScript } from './updateTransaction'
 import { app } from 'electron'
-import type { LocalUpdateCheck, ProgressEvent, ReleaseInfo, Settings, UpdateStateInfo } from '../../shared/types'
+import type { LocalUpdateCheck, ProgressEvent, ReleaseInfo, Settings } from '../../shared/types'
 import { IPC_EVENT } from '../../shared/types'
 import { compareSemver } from '../../shared/semver'
 import { downloadAll } from './download'
@@ -16,8 +16,8 @@ import { currentVersion, fetchSha256Sums, sha256File } from './selfUpdate'
 import { logScope } from './launcherLog'
 import { isolatedUpdateTest, trustedUpdateRelease, updateAssetName } from './updateTrust'
 import { UPDATE_MIRRORS } from '../../shared/branding'
-import { macAppTarget, macUpdateSupported, macUpdateDir, readMacUpdate, clearMacUpdate, stageMacUpdate, blockedMacVersion, applyMacUpdateOnStartup, acknowledgeMacUpdate, stageMacBackup } from './macUpdate'
-import { linuxAppTarget, linuxUpdateSupported, linuxUpdateDir, readLinuxUpdate, clearLinuxUpdate, stageLinuxUpdate, blockedLinuxVersion, applyLinuxUpdateOnStartup, acknowledgeLinuxUpdate, stageLinuxBackup, validateLinuxPendingUpdate } from './linuxUpdate'
+import { macAppTarget, macUpdateSupported, macUpdateDir, readMacUpdate, clearMacUpdate, stageMacUpdate, blockedMacVersion, applyMacUpdateOnStartup, acknowledgeMacUpdate } from './macUpdate'
+import { linuxAppTarget, linuxUpdateSupported, linuxUpdateDir, readLinuxUpdate, clearLinuxUpdate, stageLinuxUpdate, blockedLinuxVersion, applyLinuxUpdateOnStartup, acknowledgeLinuxUpdate, validateLinuxPendingUpdate } from './linuxUpdate'
 
 const updateLog = logScope('self-update')
 
@@ -88,26 +88,11 @@ function updateDirOf(exe: string): string {
   if (process.platform === 'linux') return linuxUpdateDir()
   return path.join(path.dirname(exe), 'QueAN-update')
 }
-function backupDirOf(exe: string): string {
-  return path.join(path.dirname(exe), 'QueAN-backup')
-}
-
 function userDataDir(): string {
   return isolatedUpdateTest() ? process.env.QueAN_USERDATA_DIR! : app.getPath('userData')
 }
-function stateFile(): string {
-  return path.join(userDataDir(), 'update-state.json')
-}
 function failedFlagFile(): string {
   return path.join(userDataDir(), 'update-failed.flag')
-}
-
-export function getUpdateState(): UpdateStateInfo | null {
-  try {
-    const j = JSON.parse(fs.readFileSync(stateFile(), 'utf-8'))
-    if (j && typeof j === 'object' && j.backupPath && fs.existsSync(j.backupPath)) return j as UpdateStateInfo
-  } catch { /* 无记录 */ }
-  return null
 }
 
 /** 启动时检查「更新失败已回滚」标记（脚本回滚时写入）；读取后即删除 */
@@ -209,7 +194,7 @@ export async function applyUpdateOnStartup(): Promise<boolean> {
     const oldSha256 = await sha256File(exe)
     // Atomic claim means repeated launches cannot submit the same job twice.
     fs.renameSync(marker, claim)
-    const helperPid = await spawnUpdater({ oldExe: exe, newExe: t.file, backupDir: backupDirOf(exe), mainPid: process.pid,
+    const helperPid = await spawnUpdater({ oldExe: exe, newExe: t.file, mainPid: process.pid,
       wrapperPid: process.ppid, stateDir: userDataDir(), transaction: t, oldSha256 })
     try { atomicUpdateJson(claim, { ...t, helperPid }) } catch (error) { updateLog.warn('更新助手已启动，无法补记进程编号', error) }
     app.exit(0)
@@ -237,8 +222,6 @@ export async function acknowledgeUpdateStartup(): Promise<void> {
   const claim = updateMarker(exe) + '.applying'
   const t = verifiedStartupTransaction
   if (!t || currentVersion() !== t.release.version) return
-  const state = getUpdateState()
-  if (state?.to === t.release.version) atomicUpdateJson(stateFile(), { ...state, result: 'ok' })
   atomicUpdateJson(claim + '.receipt.json', { id: t.id, version: currentVersion() })
   // 更新助手收到回执后会自行退出，稍等再把桌面上的更新残留清掉。
   setTimeout(() => { try { cleanupUpdateLeftovers() } catch { /* 忽略 */ } }, 8000)
@@ -258,10 +241,9 @@ export function isUpdateDownloading(): boolean {
 export function cleanupUpdateLeftovers(): void {
   const exe = currentPortableExe()
   if (!exe) return
-  if (getUpdateState()?.result !== 'ok') return
   if (readUpdateTransaction(updateMarker(exe), exe)) return
   const dir = path.dirname(exe)
-  for (const target of [updateDirOf(exe), backupDirOf(exe)]) {
+  for (const target of [updateDirOf(exe)]) {
     try { fs.rmSync(target, { recursive: true, force: true }) } catch (e) { updateLog.warn(`清理更新残留失败：${target}`, e) }
   }
   const exeName = path.basename(exe)
@@ -284,9 +266,10 @@ export function startAutoUpdate(release: ReleaseInfo, settings: Pick<Settings, '
   try {
     const handle = startUpdateDownload(release, settings, 'upgrade')
     handle.done
-      .then(() => {
-        updateLog.info(`更新 v${release.version} 已就绪（静默下载完成），将在下次启动时应用`)
+      .then(async () => {
+        updateLog.info(`更新 v${release.version} 下载并校验完成，立即安装并重启`)
         emit(IPC_EVENT.updateReady, { version: release.version })
+        try { await applyDownloadedUpdate(release) } catch (error) { updateLog.warn('自动安装未执行，仍保留待安装更新', error) }
       })
       .catch(() => { /* 失败/取消：静默，下次启动再试 */ })
       .finally(() => { autoDownloadingVersion = null })
@@ -371,12 +354,15 @@ export function startUpdateDownload(release: ReleaseInfo, settings: Pick<Setting
       await downloadAll(
         [{ url, urls: alternates, dest, sha256: expected, size: release.assetSize || undefined }],
         (_done, _total, bps, detail) => {
-          const received = detail.bytesDone, total = detail.bytesTotal ?? 0
+          const received = detail.bytesDone
+          // 以清单声明的包体为百分比基准：分片聚合口径可能偏大，会出现「才 12% 就完成」的假进度
+          const total = release.assetSize || detail.bytesTotal || 0
           const now = Date.now()
           // Network-only, per-task rate from the common transfer service.
           emit(IPC_EVENT.progress, {
             stage: 'launcher-update',
             progress: total > 0 ? received / total : 0,
+            overall: total > 0 ? received / total : 0,
             text: `${mode === 'rollback' ? '回退' : '更新'}启动器 v${release.version}`,
             speed: bps,
             etaSeconds: detail.etaSeconds ?? undefined,
@@ -434,23 +420,23 @@ async function spawnUpdater(spec: UpdaterScriptSpec): Promise<number> {
   return pid
 }
 
+/**
+ * 立即安装已下载的更新：校验通过后启动更新助手完成原子替换并自动重启，
+ * 本进程随即退出（不再等下次启动，也不再保留备份）。macOS/Linux 维持各自平台流程。
+ */
 export async function applyDownloadedUpdate(release: ReleaseInfo): Promise<void> {
   const exe = currentPortableExe()
   const t = process.platform === 'darwin' ? readMacUpdate() : process.platform === 'linux' ? readLinuxUpdate() : exe && readUpdateTransaction(updateMarker(exe), exe)
   if (!t || t.release.version !== release.version) throw new Error('更新尚未准备完成，请先下载')
   if (process.platform === 'linux') await validateLinuxPendingUpdate(t)
   else await validateUpdatePayload(t)
-}
-
-/** Manual rollback is staged for next startup too, and never consumes the only backup. */
-export async function restoreBackupAndRestart(): Promise<void> {
-  const state = getUpdateState(), exe = currentPortableExe()
-  if (!state || !exe) throw new Error('没有可用的备份')
-  if (process.platform === 'darwin') return stageMacBackup(state.backupPath, state.backupVersion)
-  if (process.platform === 'linux') return stageLinuxBackup(state.backupPath, state.backupVersion)
-  const dest = path.join(updateDirOf(exe), randomUUID(), `QueAN-${state.backupVersion}.exe`)
-  fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.copyFileSync(state.backupPath, dest)
-  await writePendingUpdate({ version: state.backupVersion, publishedAt: '', body: '', assetUrl: '', assetSize: fs.statSync(dest).size, assetName: path.basename(dest) }, dest, await sha256File(dest), 'rollback')
+  if (process.platform !== 'win32' || !exe) return
+  const marker = updateMarker(exe), claim = marker + '.applying'
+  const oldSha256 = await sha256File(exe)
+  fs.renameSync(marker, claim)
+  const helperPid = await spawnUpdater({ oldExe: exe, newExe: t.file, mainPid: process.pid, wrapperPid: process.ppid, stateDir: userDataDir(), transaction: t, oldSha256 })
+  try { atomicUpdateJson(claim, { ...t, helperPid }) } catch (error) { updateLog.warn('更新助手已启动，无法补记进程编号', error) }
+  app.exit(0)
 }
 
 /** 校验本地安装包：版本号（文件名解析）与 SHA256（联网比对 Release，离线则 unknown 由用户自担确认） */

@@ -98,10 +98,10 @@ test('级别过滤：阈值比较与环境变量解析', () => {
   assert(levelAtLeast('info', 'info'))
   assert(!levelAtLeast('debug', 'info'))
   assert(levelAtLeast('error', 'warn'))
-  assert.equal(minimumLevelFromEnv({}), 'debug')
+  assert.equal(minimumLevelFromEnv({}), 'info')
   assert.equal(minimumLevelFromEnv({ QueAN_LOG_LEVEL: 'warn' }), 'warn')
   assert.equal(minimumLevelFromEnv({ QueAN_LOG_LEVEL: 'ERROR' }), 'error')
-  assert.equal(minimumLevelFromEnv({ QueAN_LOG_LEVEL: 'nonsense' }), 'debug')
+  assert.equal(minimumLevelFromEnv({ QueAN_LOG_LEVEL: 'nonsense' }), 'info')
 })
 
 test('日志入口在 electron app 不可用时静默，绝不影响业务', () => {

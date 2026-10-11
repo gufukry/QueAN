@@ -104,7 +104,7 @@ test('checkLatest against mock server: hasUpdate, cache, 304 etag, silent degrad
 
 test('update wiring: IPC channels registered, startup auto-check, skip persisted, QQ group configurable', () => {
   const ipc = read('src/main/ipc.ts')
-  for (const ch of ['updateCheck', 'updateSkip', 'updateStart', 'updateApply', 'updateListReleases', 'updateGetState', 'updateRestoreBackup', 'updatePickLocalFile', 'updateApplyLocal', 'updateGetConfigStatus', 'updateResetSettings']) {
+  for (const ch of ['updateCheck', 'updateSkip', 'updateStart', 'updateApply', 'updateListReleases', 'updatePickLocalFile', 'updateApplyLocal', 'updateGetConfigStatus', 'updateResetSettings']) {
     assert.match(ipc, new RegExp(`IPC\\.${ch}`), ch)
   }
   const index = read('src/main/index.ts')

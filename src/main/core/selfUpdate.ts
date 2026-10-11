@@ -145,8 +145,9 @@ export async function checkLatest(force = false): Promise<UpdateCheckResult> {
     return { ok: true, hasUpdate: has, release: cache.latest ?? undefined, fromCache: true }
   }
   try {
-    // 自建端点优先（与 GitHub Release 同构）；任何失败都静默回落 GitHub
-    if (UPDATE_ENDPOINT) {
+    // 自建端点优先（与 GitHub Release 同构）；任何失败都静默回落 GitHub。
+    // 隔离测试用 QueAN_UPDATE_API_BASE 固定数据源，此时不启用自建端点。
+    if (UPDATE_ENDPOINT && !isolatedUpdateTest()) {
       try {
         const res = await httpFetch(UPDATE_ENDPOINT, { signal: AbortSignal.timeout(8000) })
         if (res.ok) {

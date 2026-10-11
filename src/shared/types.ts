@@ -496,20 +496,6 @@ export interface UpdateCheckResult {
 }
 
 /** 更新状态记录（userData/update-state.json）：备份还原入口与失败提示的数据源 */
-export interface UpdateStateInfo {
-  /** 更新前版本 */
-  from: string
-  /** 目标版本 */
-  to: string
-  time: string
-  /** 备份的完整路径（启动器目录 QueAN-backup 下） */
-  backupPath: string
-  /** 备份对应版本号 */
-  backupVersion: string
-  /** 结果：applied=已替换待验证；ok=新版已确认存活 */
-  result: 'applied' | 'ok'
-}
-
 /** 本地文件安装更新的校验结果 */
 export interface LocalUpdateCheck {
   filePath: string
@@ -952,8 +938,6 @@ export const IPC = {
   updateStart: 'update:start', // (release: ReleaseInfo, mode: 'upgrade'|'rollback') => { taskId: string }  后台下载更新包
   updateApply: 'update:apply', // (release: ReleaseInfo) => void  校验→备份→替换→重启（下载完成后调用）
   updateListReleases: 'update:listReleases', // () => ReleaseInfo[]  版本回退候选列表
-  updateGetState: 'update:getState', // () => UpdateStateInfo | null  备份还原入口数据源
-  updateRestoreBackup: 'update:restoreBackup', // () => void  还原到更新前的版本并重启
   updatePickLocalFile: 'update:pickLocalFile', // () => LocalUpdateCheck | null  选择本地安装包并校验
   updateApplyLocal: 'update:applyLocal', // (check: LocalUpdateCheck) => void  本地包走相同备份-替换-重启
   updateGetConfigStatus: 'update:getConfigStatus', // () => { configVersion: number; current: number; mismatch: 'newer' | null }

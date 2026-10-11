@@ -231,20 +231,18 @@ const updateModal = reactive<{
   state: 'found' | 'downloading' | 'done'
   taskId: string
   slowHint: boolean
-  rollback: boolean
-}>({ open: false, release: null, state: 'found', taskId: '', slowHint: false, rollback: false })
+}>({ open: false, release: null, state: 'found', taskId: '', slowHint: false })
 
 /** 更新下载任务进度（从下载中心任务列表取，含速度） */
 const updateTask = computed(() => store.tasks.find((t) => t.id === updateModal.taskId))
 const updatePercent = computed(() => updateTask.value?.progress ?? 0)
 const updateSpeedText = computed(() => (updateTask.value?.speed ? formatSpeed(updateTask.value.speed) : ''))
 
-function openUpdateModal(release: ReleaseInfo, rollback = false) {
+function openUpdateModal(release: ReleaseInfo) {
   updateModal.release = release
   updateModal.state = 'found'
   updateModal.taskId = ''
   updateModal.slowHint = false
-  updateModal.rollback = rollback
   updateModal.open = true
 }
 // 设置页手动检查/任意页面写入 store.updatePrompt → 统一在此打开弹窗
@@ -252,7 +250,7 @@ watch(
   () => store.updatePrompt,
   (req) => {
     if (req) {
-      openUpdateModal(req.release, req.rollback)
+      openUpdateModal(req.release)
       store.updatePrompt = null
     }
   }
@@ -262,7 +260,7 @@ async function onUpdateNow() {
   const release = updateModal.release
   if (!release) return
   try {
-    const { taskId } = await startUpdateDownload(release, updateModal.rollback ? 'rollback' : 'upgrade')
+    const { taskId } = await startUpdateDownload(release, 'upgrade')
     updateModal.taskId = taskId
     updateModal.state = 'downloading'
   } catch (e) {
@@ -289,19 +287,6 @@ async function onUpdateCancelDownload() {
   if (updateModal.taskId) await cancelTask(updateModal.taskId)
   updateModal.open = false
 }
-async function onUpdateInstallNow() {
-  const release = updateModal.release
-  if (!release) return
-  try {
-    await applyUpdate(release)
-    updateModal.open = false
-    toast(updateReadyMessage(), 'success')
-  } catch (e) {
-    toast('安装更新失败：' + errText(e), 'error')
-    updateModal.open = false
-  }
-}
-
 // 配置文件版本不兼容（回退后旧版读到新版配置）：继续尝试 / 重置设置
 const configMismatch = ref(false)
 async function checkConfigStatus() {
@@ -1092,12 +1077,12 @@ onMounted(async () => {
       if (r.cancelled) toast('任务已取消', 'info')
     }),
     onUpdatePrompt((payload) => {
-      // 回滚通知（更新失败自动还原后备份）
+      // 上次更新未完成的提示
       if ((payload as { rollbackNotice?: boolean }).rollbackNotice) {
-        toast('上次更新未完成，已停止自动重试。可在设置中重新下载或选择备份恢复。', 'error')
+        toast('上次更新未完成，已停止自动重试。可在设置中重新下载安装包。', 'error')
         return
       }
-      store.updatePrompt = { release: payload, rollback: false }
+      store.updatePrompt = payload
     }),
     onUpdateSlowHint((r) => {
       if (updateModal.open && r.taskId === updateModal.taskId) updateModal.slowHint = true
@@ -1528,12 +1513,10 @@ onUnmounted(() => {
       :percent="updatePercent"
       :speed-text="updateSpeedText"
       :slow-hint="updateModal.slowHint"
-      :rollback="updateModal.rollback"
       @update-now="onUpdateNow"
       @later="onUpdateLater"
       @skip="onUpdateSkip"
       @cancel-download="onUpdateCancelDownload"
-      @install-now="onUpdateInstallNow"
       @close="updateModal.open = false"
     />
 

@@ -162,7 +162,10 @@ test('Windows packaged updates ignore test overrides and reject local v99 pendin
   assert.equal(api.getPendingUpdate(), null); assert(fs.existsSync(file)); assert(fs.readdirSync(root).some(f => f.startsWith('pending-update.json.rejected-')))
   fs.writeFileSync(path.join(root, 'update-check-cache.json'), JSON.stringify({ checkedAt: Date.now(), latest: release }))
   const checked = await api.checkLatest(false)
-  assert.equal(checked.hasUpdate, false); assert.equal(checked.release.version, '1.0.30'); assert(requested.every(u => u.startsWith('https://api.github.com/')))
+  assert.equal(checked.hasUpdate, false); assert.equal(checked.release.version, '1.0.30')
+  // 打包版不吃测试覆盖：不得请求 mock 地址，只允许官方 API 或已配置的自建更新端点
+  assert(requested.length > 0, requested.join())
+  assert(requested.every(u => u.startsWith('https://api.github.com/') || /\/quean-update\/latest\.json$/.test(u)), requested.join())
   const official = { ...release, version: '1.0.42', assetName: 'QueAN.exe', assetUrl: 'https://github.com/gufukry/QueAN/releases/download/v1.0.42/QueAN.exe' }
   const officialFile = path.join(root, official.assetName); fs.writeFileSync(officialFile, 'fixture')
   fs.writeFileSync(path.join(root, 'pending-update.json'), JSON.stringify({ release: official, file: officialFile }))

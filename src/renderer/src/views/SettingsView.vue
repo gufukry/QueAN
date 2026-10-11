@@ -153,7 +153,7 @@ async function onCheckUpdate() {
     if (r.ok && r.hasUpdate && r.release) {
       updateCheckState.value = 'idle'
       // 更新弹窗已经给出结果，避免再叠加同内容通知。
-      store.updatePrompt = { release: r.release, rollback: false }
+      store.updatePrompt = r.release
     } else if (r.ok) {
       updateCheckState.value = 'latest'
       // Result remains visible beside the check button; no duplicate success toast.

@@ -26,7 +26,7 @@ test('fix-3: manual update check retries once + explicit 3-state feedback (手�
   assert.match(su, /for \(let attempt = 0; attempt < 2; attempt\+\+\)/)
   assert.match(su, /1\.5s 后重试一次/)
   const sv = read('src/renderer/src/views/SettingsView.vue')
-  assert.match(sv, /store\.updatePrompt = \{ release: r\.release, rollback: false \}/)
+  assert.match(sv, /store\.updatePrompt = r\.release/)
   assert.doesNotMatch(sv, /toast\(`发现新版本/)
   assert.match(sv, /updateCheckState\.value = 'latest'/)
   assert.match(sv, /class="upd-latest">已是最新/)

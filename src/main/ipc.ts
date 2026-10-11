@@ -1028,10 +1028,6 @@ export function registerIpc(getWin: () => BrowserWindow | null): void {
     await applyUpdate.applyDownloadedUpdate(release)
   })
   ipcMain.handle(IPC.updateListReleases, () => selfUpdate.listReleases())
-  ipcMain.handle(IPC.updateGetState, () => applyUpdate.getUpdateState())
-  ipcMain.handle(IPC.updateRestoreBackup, async () => {
-    await applyUpdate.restoreBackupAndRestart()
-  })
   ipcMain.handle(IPC.updatePickLocalFile, async () => {
     const win = getWin()
     const opts = {
