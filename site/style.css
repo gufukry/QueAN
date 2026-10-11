@@ -647,3 +647,93 @@ body > footer, footer{height:auto;max-height:none;min-height:auto;overflow:visib
   .hero{padding:36px 0 24px}
   .shot::before{height:auto;aspect-ratio:16/10}
 }
+
+/* ============ 双端适配 v10：PC 锁屏翻页 / 移动端可完整阅读的吸附 ============ */
+/* --- 通用：安全区、触控、兜底单位 --- */
+:root{--slide-h:100svh}
+@supports not (height:100svh){:root{--slide-h:100vh}}
+html{-webkit-text-size-adjust:100%}
+body{min-height:var(--slide-h)}
+img,.shot::before{max-width:100%}
+a,button,.btn,.hot-slot{-webkit-tap-highlight-color:transparent}
+.btn,.link-arrow,.nav-links a{min-height:44px}      /* 触控目标不小于 44px */
+.container{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+
+/* --- 大屏(≥1440)：内容居中限宽，避免行太长 --- */
+@media(min-width:1440px){.container{max-width:1180px}}
+
+/* --- 笔记本高度不足(≤760px 高)：整屏内容再压一档，保证不溢出 --- */
+@media(min-width:761px) and (max-height:760px){
+  .hero h1{font-size:clamp(26px,3.6vw,44px);margin-bottom:8px}
+  .hero-sub{margin-bottom:16px;font-size:14.5px}
+  .btn-hero{min-height:44px;font-size:14.5px}
+  .section-title{font-size:clamp(20px,2.4vw,26px);margin-bottom:6px}
+  .section-sub{margin-bottom:12px;font-size:14px}
+  .shot::before{height:clamp(140px,34vh,320px)}
+  .hero .shot{margin-top:12px}
+  .nums li{padding:12px 16px}.nums h3{font-size:14.5px}.nums p{font-size:12.5px}
+  .feature{padding:16px}.feature p{font-size:12.5px}
+  .faq summary{padding:11px 0;font-size:14px}
+  .dl-card{padding:16px}.release{padding:14px}
+}
+
+/* --- 平板(761–1024)：两栏收窄 --- */
+@media(max-width:1024px) and (min-width:761px){
+  .two-col{gap:28px}
+  .hero-head{max-width:620px}
+}
+
+/* --- 手机与窄屏(≤760)：解除整屏锁，改为「可完整阅读的吸附」 --- */
+@media(max-width:760px){
+  html{scroll-snap-type:y proximity}      /* 靠近才吸附：既能一屏一屏走，也不会切掉内容 */
+  .hero,main > section,body > section{
+    height:auto;max-height:none;min-height:var(--slide-h);overflow:visible;
+    scroll-snap-align:start;scroll-snap-stop:normal;padding:34px 0
+  }
+  .hero{padding:22px 0 18px;min-height:auto}
+  .container{padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}
+  /* 导航：收缩但保留入口 */
+  .nav-in{min-height:54px;gap:12px}
+  .nav-links{gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .nav-links::-webkit-scrollbar{display:none}
+  .nav-links a{padding:10px 10px;font-size:13.5px;white-space:nowrap}
+  .brand span{font-size:16px}
+  /* 排版与卡片改为单栏、加大可读性 */
+  .hero h1{font-size:clamp(28px,8.6vw,40px);line-height:1.12}
+  .hero-sub{font-size:15px;margin-bottom:20px}
+  .btn-hero{width:100%;min-height:52px;font-size:16px}
+  .section-title{font-size:clamp(21px,6.4vw,27px)}
+  .section-sub{font-size:14.5px;margin-bottom:16px}
+  .two-col{grid-template-columns:1fr;gap:22px}
+  .two-col.reverse .card{order:0}
+  .grid{grid-template-columns:1fr;gap:12px}
+  .feature{padding:18px}
+  .nums li{grid-template-columns:auto 1fr;gap:14px;padding:16px}
+  .checks li{font-size:14.5px}
+  .faq summary{font-size:15px;padding:15px 0}
+  .faq p{font-size:14px;padding-right:0}
+  .dl-head{flex-direction:column;align-items:stretch;gap:16px}
+  .dl-head .btn{width:100%}
+  .shot::before{height:auto;aspect-ratio:16/10}
+  .shot{margin:26px 0 30px}
+  .foot-grid{grid-template-columns:1fr;gap:18px}
+  /* 去掉仅鼠标可用的悬停位移，避免触屏"粘住" */
+  @media(hover:none){
+    .btn:hover,.feature:hover,.card:hover,.release:hover,.shot:hover::before{transform:none}
+  }
+}
+
+/* --- 小手机(≤420) --- */
+@media(max-width:420px){
+  .hero h1{font-size:clamp(25px,8.4vw,32px)}
+  .nav-links a{padding:9px 8px;font-size:13px}
+  .container{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+  .feature h3,.nums h3{font-size:15px}
+}
+
+/* --- 手机横屏：高度极低，一律放开自由滚动 --- */
+@media(max-width:900px) and (max-height:520px){
+  html{scroll-snap-type:none}
+  .hero,main > section,body > section{min-height:auto;padding:28px 0}
+  .shot::before{height:clamp(160px,52vh,260px);aspect-ratio:auto}
+}
