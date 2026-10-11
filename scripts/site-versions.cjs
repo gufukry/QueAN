@@ -37,6 +37,13 @@ let html = fs.readFileSync(htmlFile, 'utf-8')
 const re = /(<!--LOG:START-->)[\s\S]*?(<!--LOG:END-->)/
 if (!re.test(html)) throw new Error('index.html 缺少 <!--LOG:START--> / <!--LOG:END--> 标记')
 html = html.replace(re, `$1\n${rows}\n        $2`)
+
+// 资源串号按文件内容生成：内容一变串号就变，浏览器不会再用旧缓存（避免忘记手动 +1）
+const crypto = require('node:crypto')
+const assetVersion = (file) => crypto.createHash('sha1').update(fs.readFileSync(path.join(root, 'site', file))).digest('hex').slice(0, 8)
+html = html
+  .replace(/(style\.css)\?v=[0-9a-f]+/g, `$1?v=${assetVersion('style.css')}`)
+  .replace(/(app\.js)\?v=[0-9a-f]+/g, `$1?v=${assetVersion('app.js')}`)
 fs.writeFileSync(htmlFile, html, 'utf-8')
 
 console.log(`已生成 ${path.relative(root, versionsFile)} 并把日志写入 index.html（${notes.length} 个版本，最新 v${notes[0].version}）`)
