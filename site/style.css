@@ -337,3 +337,29 @@ a.btn-primary,.btn-primary,.btn-primary:link,.btn-primary:visited,.btn-primary:h
 .btn-primary:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
 /* 其它深色区里的普通链接保持蓝色，但按钮内一律白字 */
 .band--dark a:not(.btn){color:#2563eb}
+
+/* ============ 标题不换行 v21：缩短文案 + 下调字号 + 收紧留白 ============ */
+/* 让标题在窄屏也能一行放下：字号随视口收缩，但设下限保证可读 */
+.display,.display--sm{white-space:normal;word-break:keep-all;overflow-wrap:anywhere}
+.display{font-size:clamp(34px,5vw,64px)}
+.display--sm{font-size:clamp(24px,3.2vw,42px);margin-bottom:10px}
+.lead{font-size:clamp(15.5px,1.2vw,18px);line-height:1.7;margin-bottom:26px;max-width:56ch}
+/* 分区留白同步收紧，手机一屏能看到更多 */
+.band{padding:clamp(56px,8vh,112px) 0}
+.hero{padding-top:clamp(48px,7vh,96px);padding-bottom:clamp(40px,6vh,72px)}
+@media(max-width:734px){
+  .display{font-size:clamp(28px,7.6vw,34px);line-height:1.15}
+  .display--sm{font-size:clamp(22px,6.2vw,27px);line-height:1.2;margin-bottom:8px}
+  .lead{font-size:15px;line-height:1.7;margin-bottom:20px;max-width:none}
+  .band{padding:44px 0}
+  .hero{padding:36px 0 30px}
+  .eyebrow{font-size:12.5px;margin-bottom:10px}
+  .section-sub,.faq p,.checks li,.tile p,.steps p,.release li{font-size:15px}
+  .faq summary{font-size:16px;padding:16px 2px}
+  .tile{padding:20px}
+  .tile h3,.steps h3{font-size:18px}
+}
+@media(max-width:420px){
+  .display{font-size:clamp(25px,7.4vw,30px)}
+  .display--sm{font-size:clamp(20px,5.8vw,24px)}
+}
