@@ -593,3 +593,15 @@ html{scroll-behavior:smooth}
   .hero{padding:44px 0 0}
   .hero .shot{margin:32px 0 0}
 }
+
+/* ============ 吸附修正 v8：内容超出时仍可停在段落中间 ============ */
+/* 原来 section 带 scroll-snap-stop:always，导致超过一屏的段落中间内容被跳过（截屏看不到）。
+   现在只保留 mandatory 吸附，去掉"必须整段停"的锁，长段落内可自由停留。 */
+section,footer{scroll-snap-stop:auto}
+.hero{scroll-snap-stop:normal}
+/* 独立图片屏：整屏居中，图片完整可见 */
+section.shot-band{min-height:min(86vh,860px);display:flex;flex-direction:column;justify-content:center;padding:0}
+section.shot-band .shot{margin:0}
+@media(max-width:900px){
+  section.shot-band{min-height:auto;padding:48px 0}
+}
