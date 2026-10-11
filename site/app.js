@@ -1,23 +1,23 @@
-/* QueAN 官网脚本：下载信息实时读取更新清单；动效为渐进增强（JS 不可用时页面照常完整显示） */
+/* QueAN 官网脚本：下载信息实时读取更新清单；动效渐进增强（JS 不可用时页面完整可见） */
 (function () {
   const MANIFEST = './quean-update/latest.json'
-  const fmtSize = (n) => (!n || !Number.isFinite(n) ? '—' : n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.round(n / 1024) + ' KB')
-  const setText = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.textContent = v }
+  const fmt = (n) => (!n || !Number.isFinite(n) ? '—' : n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.round(n / 1024) + ' KB')
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.textContent = v }
 
-  // 动效：只有支持时才启用（默认样式可见，避免 JS 失败导致内容空白）
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     document.documentElement.classList.add('motion')
-    const reveal = (el) => el.classList.add('in')
+    const items = document.querySelectorAll('.release, .nums li, .feature, .card')
+    items.forEach((el) => el.classList.add('reveal'))
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((entries) => {
-        entries.forEach((e) => { if (e.isIntersecting) { reveal(e.target); io.unobserve(e.target) } })
+        entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } })
       }, { rootMargin: '0px 0px -6% 0px', threshold: 0.06 })
-      document.querySelectorAll('.reveal').forEach((el) => io.observe(el))
+      items.forEach((el) => io.observe(el))
     } else {
-      document.querySelectorAll('.reveal').forEach(reveal)
+      items.forEach((el) => el.classList.add('in'))
     }
   }
-  const onScroll = () => document.querySelector('header.top')?.classList.toggle('scrolled', window.scrollY > 8)
+  const onScroll = () => document.querySelector('.nav')?.classList.toggle('scrolled', window.scrollY > 8)
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
 
@@ -27,22 +27,13 @@
       const version = String(m.tag_name || '').replace(/^v/, '')
       const asset = (m.assets || [])[0] || {}
       const digest = String(asset.digest || '').replace(/^sha256:/, '')
-      if (version) {
-        setText('verBadge', '最新版本 v' + version)
-        setText('dlVersion', 'QueAN v' + version)
-        setText('dlTitle', 'QueAN v' + version)
-      }
-      setText('dlSize', fmtSize(asset.size))
-      setText('dlSize2', fmtSize(asset.size))
-      setText('dlDigestShort', digest ? 'SHA256 ' + digest.slice(0, 12) + '…' : '')
-      setText('dlSha', digest || '—')
-      for (const id of ['dlLink', 'dlLink2']) {
-        const a = document.getElementById(id)
-        if (a && asset.browser_download_url) { a.href = asset.browser_download_url; a.setAttribute('download', '') }
-      }
-      setText('dlMeta', version ? `当前最新版 v${version} · ${fmtSize(asset.size)} · 点击即可下载` : '')
+      if (version) { set('dlVersion', 'QueAN v' + version); set('heroNote', `最新版本 v${version} · ${fmt(asset.size)}`) }
+      set('dlSize', fmt(asset.size))
+      set('dlDigestShort', digest ? 'SHA256 ' + digest.slice(0, 12) + '…' : '')
+      set('dlSha', digest || '—')
+      const a = document.getElementById('dlLink')
+      if (a && asset.browser_download_url) { a.href = asset.browser_download_url; a.setAttribute('download', '') }
+      if (!version) set('heroNote', '')
     })
-    .catch(() => {
-      setText('dlMeta', '暂时读不到版本信息，可稍后刷新；安装包目录仍在 /quean-update/')
-    })
+    .catch(() => set('heroNote', '暂时读不到版本信息，可稍后刷新'))
 })()
