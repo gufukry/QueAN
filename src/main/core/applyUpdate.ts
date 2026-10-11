@@ -269,7 +269,6 @@ export function startAutoUpdate(release: ReleaseInfo, settings: Pick<Settings, '
       .then(async () => {
         updateLog.info(`更新 v${release.version} 下载并校验完成，立即安装并重启`)
         emit(IPC_EVENT.updateReady, { version: release.version })
-        try { await applyDownloadedUpdate(release) } catch (error) { updateLog.warn('自动安装未执行，仍保留待安装更新', error) }
       })
       .catch(() => { /* 失败/取消：静默，下次启动再试 */ })
       .finally(() => { autoDownloadingVersion = null })
@@ -392,6 +391,10 @@ export function startUpdateDownload(release: ReleaseInfo, settings: Pick<Setting
       updateLog.info(`更新包下载完成并校验通过：${dest}`)
       await writePendingUpdate(release, dest, expected, mode)
       emit(IPC_EVENT.taskDone, { taskId: task.id, ok: true })
+      // 下载完成即安装并重启：手动「立即更新」与后台自动下载共用这一条出口
+      if (mode === 'upgrade') {
+        try { await applyDownloadedUpdate(release) } catch (error) { updateLog.warn('自动安装未执行，仍保留待安装更新', error) }
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       emit(IPC_EVENT.taskDone, { taskId: task.id, ok: false, error: msg, cancelled: msg === '已取消' })
