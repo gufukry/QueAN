@@ -1212,7 +1212,7 @@ onUnmounted(() => {
   <div data-ui="App:870373af1ab7" v-if="bgStyle" class="app-bg" :style="bgStyle"></div>
   <div data-ui="App:e8c1fdc22711"
     class="shell"
-    :class="{ 'edit-mode': store.editMode, 'has-bg': !!bgStyle }"
+    :class="{ 'edit-mode': store.editMode, 'has-bg': !!bgStyle, 'window-locked': store.settings?.windowPosition === 'center' }"
 
   >
     <!-- ============ 左侧边栏（宽度 --sidebar-w） ============ -->
@@ -2028,6 +2028,10 @@ onUnmounted(() => {
 }
 /* 个性化编辑模式：顶栏不再是拖拽区，点击可落到 DOM 选中顶栏板块（退出编辑恢复拖拽） */
 .shell.edit-mode .topbar {
+  -webkit-app-region: no-drag;
+}
+/* 窗口位置设为“一直居中”时：顶栏不再是拖拽区，窗口固定不可移动 */
+.shell.window-locked .topbar {
   -webkit-app-region: no-drag;
 }
 

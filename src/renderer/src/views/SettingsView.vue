@@ -694,7 +694,7 @@ async function onRemovePlugin(p: PluginInfo) {
       <div data-ui="SettingsView:winpos001" v-if="store.settings && category === 'appearance'" class="card group group-inline setting-target" data-section="windowpos" tabindex="-1">
         <div>
           <h3 class="group-title">启动器窗口</h3>
-          <p data-ui="SettingsView:winpos002" class="muted">选择「一直居中」每次打开都居中；或「可自由移动」记住上次位置、可随意拖动。</p>
+          <p data-ui="SettingsView:winpos002" class="muted">选择「一直居中」每次打开都居中且窗口固定不可拖动；或「可自由移动」记住上次位置、可随意拖动。重启启动器后生效。</p>
         </div>
         <select data-ui="SettingsView:winpos003" class="select" aria-label="启动器窗口位置" :value="store.settings.windowPosition ?? 'free'" @change="save({ windowPosition: ($event.target as HTMLSelectElement).value === 'center' ? 'center' : 'free' })">
           <option value="free">可自由移动</option>
@@ -1782,6 +1782,8 @@ async function onRemovePlugin(p: PluginInfo) {
 .settings-body .group-inline { align-items:center;gap:16px; }
 .settings-body .group-inline>div { flex:1;min-width:0; }
 .settings-body .group-inline .switch { flex:none; }
+/* 启动器窗口位置：下拉固定宽度，避免把左侧说明文字挤成竖排 */
+.settings-body [data-section=windowpos] select { flex:none; width:170px; }
 .settings-body [data-section=motion] { padding:12px 18px;order:1; }
 .settings-body [data-section=motion] p { font-size:12px;line-height:1.6;margin:0; }
 .settings-body .background-settings { order:2;display:grid;gap:12px; }
