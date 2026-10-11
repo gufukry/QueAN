@@ -391,6 +391,8 @@ export type VersionCategoryAction =
 export interface Settings {
   /** Explicit reduction is additive to the operating system preference; absent means follow system. */
   reduceMotion?: boolean
+  /** 启动器窗口位置：center = 每次启动都居中；free = 记住上次位置、可自由移动（默认） */
+  windowPosition?: 'center' | 'free'
   visualDesign?: import('./visualDesign').VisualDesign
   gameDir: string
   /** 游戏文件夹登记列表（每个文件夹独立 versions/；libraries/assets/runtimes 共享于默认文件夹） */

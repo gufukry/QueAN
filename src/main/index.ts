@@ -115,10 +115,11 @@ function createWindow(startup?: Awaited<ReturnType<typeof createStartupSplash>>)
   logScope('window').debug('开始创建主窗口')
   applyNativeAppearance(null, getSettings())
   const windowState = loadWindowState()
+  const centeredWindow = getSettings().windowPosition === 'center'
   win = new BrowserWindow({
     ...windowAppearance(),
     ...(windowState
-      ? { width: windowState.width, height: windowState.height, x: windowState.x, y: windowState.y }
+      ? { width: windowState.width, height: windowState.height, ...(centeredWindow ? {} : { x: windowState.x, y: windowState.y }) }
       : {}),
     icon: join(__dirname, '../../build/icon.png'),
     show: false,
@@ -138,7 +139,8 @@ function createWindow(startup?: Awaited<ReturnType<typeof createStartupSplash>>)
   win.webContents.once('did-finish-load', () => { void import('./core/frpService').then(({ frpManager }) => frpManager.restore()).catch((error: unknown) => launcherLogWarn('frp', '恢复隧道失败', error)) })
   installContextMenu(win)
   applyNativeAppearance(win, getSettings())
-  if (process.platform === 'win32' && windowState) restoreWindowBounds(win, windowState)
+  if (centeredWindow) win.center()
+  else if (process.platform === 'win32' && windowState) restoreWindowBounds(win, windowState)
   if (windowState?.maximized) applyMaximized(win)
   trackWindowState(win)
   win.once('show', () => { void acknowledgeUpdateStartup().catch(error => launcherLogWarn('update', '更新确认失败', error)) })

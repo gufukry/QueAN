@@ -56,6 +56,7 @@ function defaults(): Settings {
     ...DEFAULT_DOWNLOAD_LIMITS,
     defaultIsolation: true,
     reduceMotion: false,
+    windowPosition: 'free',
     msClientId: DEFAULT_MS_CLIENT_ID,
     theme: 'macos',
     custom: structuredClone(DEFAULT_CUSTOM_THEME),
@@ -100,6 +101,7 @@ export function getSettings(): Settings {
       ...raw,
       ...normalizeVersionCategoryState(raw),
       visualDesign: cleanDesign(raw.visualDesign),
+      windowPosition: raw.windowPosition === 'center' ? 'center' : 'free',
       resolution: { ...def.resolution, ...(raw.resolution ?? {}) },
       custom: {
         colors: { ...def.custom.colors, ...(raw.custom?.colors ?? {}) },

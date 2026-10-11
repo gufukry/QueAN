@@ -691,6 +691,16 @@ async function onRemovePlugin(p: PluginInfo) {
 
       <!-- 个性化背景与启动卡图片；首页结构固定为图一布局。 -->
       <div data-ui="SettingsView:9816c9c5870a" class="background-settings" v-show="category === 'appearance'"><HomeLayoutEditor /></div>
+      <div data-ui="SettingsView:winpos001" v-if="store.settings && category === 'appearance'" class="card group group-inline setting-target" data-section="windowpos" tabindex="-1">
+        <div>
+          <h3 class="group-title">启动器窗口</h3>
+          <p data-ui="SettingsView:winpos002" class="muted">选择「一直居中」每次打开都居中；或「可自由移动」记住上次位置、可随意拖动。</p>
+        </div>
+        <select data-ui="SettingsView:winpos003" class="select" aria-label="启动器窗口位置" :value="store.settings.windowPosition ?? 'free'" @change="save({ windowPosition: ($event.target as HTMLSelectElement).value === 'center' ? 'center' : 'free' })">
+          <option value="free">可自由移动</option>
+          <option value="center">一直居中</option>
+        </select>
+      </div>
     <div data-ui="SettingsView:0683ad7389b1" v-if="store.settings && category === 'appearance'" class="card group group-inline setting-target" data-section="motion" tabindex="-1"><div><h3 class="group-title">减少动态效果</h3><p data-ui="SettingsView:53f72432b671" class="muted">停止装饰动画与自动轮播，缩短过渡。系统开启减少动态效果时也会自动生效。</p><p v-if="systemReduced" class="muted" role="status">当前系统已关闭动画：启动时显示完整头像，皮肤保持站姿。{{ systemMotionHelp }}</p></div><label class="switch"><input data-ui="SettingsView:35ef39b7e9bc" type="checkbox" aria-label="减少动态效果" :checked="store.settings.reduceMotion === true" @change="save({ reduceMotion: ($event.target as HTMLInputElement).checked })"/><span data-ui="SettingsView:4490d3e5d395" class="switch-ui"/></label></div>
 
       <div v-show="category === 'downloads'" data-section="installation" data-ui="download-location:settings" class="card group directory-setting">

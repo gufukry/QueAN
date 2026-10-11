@@ -20,7 +20,7 @@ export type SettingsCategory = typeof settingsCategories[number]['id']
 export const settingsCatalog = [
   { id: 'theme', category: 'appearance', name: '主题与个性化', keywords: '颜色 黑紫 深色 浅色 透明 自定义 字体 外观工作台' },
   { id: 'background', category: 'appearance', name: '窗口背景', keywords: '壁纸 图片 玻璃 模糊 透明度' },
-  { id: 'thumbnail', category: 'appearance', name: '首页启动卡图片', keywords: '轮播 插画 缩略图 背景 停留时间' },
+  { id: 'windowpos', category: 'appearance', name: '启动器窗口', keywords: '居中 自由移动 位置 悬浮窗 窗口 拖动' },
   { id: 'motion', category: 'appearance', name: '减少动态效果', keywords: '动画 动效 系统偏好 晕动 静止' },
   { id: 'isolation', category: 'directories', name: '新版本默认隔离', keywords: '存档 模组 配置 独立 共享目录' },
   { id: 'memory', category: 'game', name: '内存分配', keywords: 'RAM 自动分配 GB 性能' },

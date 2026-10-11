@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { openInstanceCenter } from '../instanceCenter'
-import { appearancePreview } from '../visualDesign'
 import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
-import { activeCarouselKeys, carouselDuration } from '@shared/appearancePolicy'
-import { useMotion } from '../motion'
-import { CarouselPlayback } from '@shared/carouselPlayback'
 import {
   errText,
   exportLaunchLogs,
@@ -42,15 +38,12 @@ import ConfirmModal from '../components/ConfirmModal.vue'
 // 首页先出，3D 视图随后到位，避免为它把 ~600KB 的 three 打进首屏包。
 const SkinViewer3D = defineAsyncComponent(() => import('../components/SkinViewer3D.vue'))
 import type {
-  ImageFit,
   InstalledVersion,
   JavaInfo,
   ProfileSkins,
   SkinVariant
 } from '@shared/types'
 import { trackBootTask } from '../bootTasks'
-import { managedImageUrl } from '../managedAssets'
-import { builtInLaunchImages } from '../launchImages'
 
 const LAST_VERSION_KEY = 'quean.lastVersion'
 
@@ -64,110 +57,6 @@ const loaderText = (version: InstalledVersion) =>
 // 与下方实例卡片共用命名规则；技术版本只读真实元数据，不从名称推断。
 const heroName = computed(() => currentVersion.value ? versionLabel(currentVersion.value) : '选择游戏实例')
 const heroVersion = computed(() => currentVersion.value?.mcVersion || '版本未知')
-
-function fitCss(fit: ImageFit): 'fill' | 'contain' | 'cover' {
-  return fit === 'fill' ? 'fill' : fit === 'fit' ? 'contain' : 'cover'
-}
-
-const failedBanners = ref(new Set<string>())
-const globalBanners = computed(() => {
-  const global = appearancePreview.value?.launchThumbnail
-  return activeCarouselKeys(global).map(path => {
-    const bundled = builtInLaunchImages.find(image => image.key === path)
-    return { path, src: bundled?.src ?? managedImageUrl(path), fit: fitCss(global?.fit ?? 'crop'), custom: !bundled }
-  })
-})
-const instanceBanners = computed(() => {
-  const version = currentVersion.value
-  if (version?.thumbnail) {
-    return [{
-      path: version.thumbnail,
-      src: managedImageUrl(version.thumbnail),
-      fit: fitCss(version.thumbnailFit ?? 'crop'),
-      custom: true
-    }]
-  }
-  return []
-})
-
-const banners = computed(() => {
-  const instance = instanceBanners.value.filter(item => !failedBanners.value.has(item.path))
-  return instance.length ? instance : globalBanners.value.filter(item => !failedBanners.value.has(item.path))
-})
-const { decorativeActive } = useMotion()
-watch(decorativeActive, active => active ? startBannerTimer() : stopBannerTimer())
-const bannerIndex = ref(0)
-const outgoingBanner = ref<number | null>(null)
-const upcomingBanner = ref(0)
-const bannerLayers = computed(() => [...new Set([bannerIndex.value, upcomingBanner.value, outgoingBanner.value])]
-  .filter((index): index is number => index !== null && !!banners.value[index]).sort((a, b) => a - b)
-  .map(index => ({ ...banners.value[index], index })))
-let bannerTimer: ReturnType<typeof setInterval> | null = null
-let playback: CarouselPlayback | null = null
-let playbackKey = ''
-/** Only current/next/outgoing DOM images own decoded resources. */
-const readyBanners = new Set<string>()
-function syncBannerResources() {
-  upcomingBanner.value = playback?.upcomingIndex() ?? bannerIndex.value
-  const retained = new Set(bannerLayers.value.map(item => item.src))
-  for (const src of readyBanners) if (!retained.has(src)) readyBanners.delete(src)
-}
-function finishBannerExit(index: number, event: TransitionEvent) {
-  if (event.propertyName === 'opacity' && outgoingBanner.value === index && bannerIndex.value !== index) {
-    outgoingBanner.value = null
-    syncBannerResources()
-  }
-}
-const bannerScope = computed(() => instanceBanners.value.some(item => !failedBanners.value.has(item.path)) ? `instance:${currentVersion.value?.folder}:${currentVersion.value?.id}` : 'global')
-
-function stopBannerTimer() {
-  if (playback && playbackKey) {
-    try { localStorage.setItem(playbackKey, JSON.stringify(playback.bookmark(Date.now()))) } catch { /* read-only storage */ }
-  }
-  if (bannerTimer) clearInterval(bannerTimer)
-  bannerTimer = null
-}
-
-function startBannerTimer() {
-  stopBannerTimer()
-  outgoingBanner.value = null
-  if (!banners.value.length) { playback = null; playbackKey = ''; bannerIndex.value = 0; upcomingBanner.value = 0; readyBanners.clear(); return }
-  playbackKey = 'quean.carousel.' + bannerScope.value + (appearancePreview.value?.launchThumbnail.randomPlayback ? '.random' : '')
-  let saved
-  try { saved = JSON.parse(localStorage.getItem(playbackKey) ?? 'null') } catch { /* invalid bookmark */ }
-  const settings = appearancePreview.value?.launchThumbnail
-  playback = new CarouselPlayback(banners.value.map(item => ({ path: item.path, durationMs: 1000 * carouselDuration(settings?.durations?.[item.path] ?? settings?.intervalSeconds) })), Date.now(), saved, settings?.randomPlayback === true)
-  bannerIndex.value = playback.index
-  syncBannerResources()
-  if (banners.value.length < 2 || !decorativeActive.value) return
-  bannerTimer = setInterval(() => {
-    if (document.hidden || !playback) return
-    const nextIdx = playback.peekNext(Date.now())
-    if (nextIdx !== playback.index && !readyBanners.has(banners.value[nextIdx]?.src ?? '')) return // 下一张未就绪，下一拍再试
-    const index = playback.tick(Date.now())
-    if (index !== bannerIndex.value) {
-      outgoingBanner.value = bannerIndex.value
-      bannerIndex.value = index
-      syncBannerResources()
-    }
-  }, 100)
-}
-
-watch(
-  () => JSON.stringify([instanceBanners.value, globalBanners.value, appearancePreview.value?.launchThumbnail.intervalSeconds, appearancePreview.value?.launchThumbnail.durations, appearancePreview.value?.launchThumbnail.randomPlayback]),
-  () => {
-    failedBanners.value = new Set()
-    startBannerTimer()
-  }
-)
-
-function onBannerError(item: { custom: boolean; path: string }) {
-  if (failedBanners.value.has(item.path)) return
-  failedBanners.value = new Set([...failedBanners.value, item.path])
-  bannerIndex.value = 0
-  startBannerTimer()
-  toast('已跳过不可用的启动卡图片；仅显示已勾选且可用的图片', 'error')
-}
 
 // ---------------- 启动、设置与日志 ----------------
 const launching = computed(() => store.launchState?.status === 'launching')
@@ -504,14 +393,11 @@ async function confirmRemove() {
 }
 
 onMounted(() => {
-  startBannerTimer()
   void loadJavaSummary()
   void reloadSkin()
 })
 
 onUnmounted(() => {
-  stopBannerTimer()
-  readyBanners.clear()
   skinRequestToken++
 })
 </script>

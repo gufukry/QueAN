@@ -2,7 +2,7 @@
   "name": "quean",
   "productName": "QueAN",
   "version": "1.0.0",
-  "description": "QueAN - 基于 KAMUCL 二次开发（二开）的 Minecraft 启动器",
+  "description": "QueAN - 面向国内网络的 Minecraft Java 版启动器",
   "author": "QueAN",
   "homepage": "https://github.com/gufukry/QueAN",
   "main": "out/main/index.js",
