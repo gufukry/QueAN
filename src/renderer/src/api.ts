@@ -425,9 +425,33 @@ export const exportLaunchLogs = (versionId: string, folder?: string) =>
 
 // ---------------- 工具 ----------------
 /** 把 invoke 抛出的错误转成适合 toast 展示的短文本 */
+/** 常见系统/网络错误码 → 中文提示（保留原始信息，便于排查） */
+const ERROR_HINTS: Array<[RegExp, string]> = [
+  [/ENOSPC|no space left on device/i, '磁盘空间不足，请清理磁盘或换一个游戏文件夹后重试'],
+  [/EACCES|EPERM|permission denied|access is denied/i, '没有写入权限，请检查文件夹权限或以管理员身份运行'],
+  [/EBUSY|resource busy|being used by another process/i, '文件被占用，请关闭正在使用它的程序后重试'],
+  [/ENOENT|no such file or directory/i, '文件或目录不存在，可能已被移动或删除'],
+  [/EROFS|read-only file system/i, '目标磁盘为只读，无法写入'],
+  [/ETIMEDOUT|timed out|timeout/i, '连接超时，请检查网络后重试'],
+  [/ECONNRESET|socket hang up|ECONNREFUSED|EPIPE/i, '网络连接被中断，请稍后重试'],
+  [/ENOTFOUND|EAI_AGAIN|getaddrinfo/i, '域名解析失败，请检查网络或 DNS 设置'],
+  [/EMFILE|ENFILE|too many open files/i, '打开的文件过多，请重启启动器后重试'],
+  [/EISDIR/i, '目标路径是文件夹，无法写入文件'],
+  [/ENOTEMPTY/i, '目录非空，无法覆盖'],
+  [/ENAMETOOLONG/i, '文件名过长，请缩短文件名后重试'],
+  [/EXDEV/i, '跨磁盘移动失败，请换到同一磁盘后重试'],
+  [/Unhandled error|Failed to fetch/i, '网络请求失败，请检查网络或代理设置']
+]
+
 export function errText(e: unknown): string {
-  const msg = e instanceof Error ? e.message : String(e)
-  return msg.replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, '') || '未知错误'
+  const msg = (e instanceof Error ? e.message : String(e))
+    .replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, '')
+    .trim()
+  if (!msg) return '未知错误'
+  for (const [pattern, hint] of ERROR_HINTS) {
+    if (pattern.test(msg)) return `${hint}（原始信息：${msg}）`
+  }
+  return msg
 }
 
 /** 复制文本到剪贴板（带降级方案），返回是否成功 */
