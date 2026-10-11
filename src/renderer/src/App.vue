@@ -44,6 +44,7 @@ import {
 } from './api'
 import type { ReleaseInfo } from '@shared/types'
 import UpdateModal from './components/UpdateModal.vue'
+import DownloadModal from './components/DownloadModal.vue'
 import { applyLaunchState, dismissTask, enterEditMode, exitEditMode, finalizeTask, markNoticesRead, recordLastPlayed, refreshAccounts, refreshInstalled, resetProgressMono, stageLabel, store, toast, upsertTaskProgress } from './store'
 import type { ViewName } from './store'
 import type {
@@ -225,6 +226,13 @@ const win = async (action: 'minimize' | 'maximize' | 'close') => {
 }
 
 // ---------------- 启动器自更新弹窗 ----------------
+// 统一下载弹窗：任何下载任务（版本/整合包/模组/存档/Java/更新）开始即自动弹出
+const downloadModal = reactive({ open: false })
+watch(
+  () => store.tasks.some((t) => t.status === 'running'),
+  (anyRunning) => { if (anyRunning) downloadModal.open = true }
+)
+
 const updateModal = reactive<{
   open: boolean
   release: ReleaseInfo | null
@@ -1505,6 +1513,8 @@ onUnmounted(() => {
     <Toasts />
 
     <!-- 启动器自更新弹窗（发现新版本/下载中/下载完成三态） -->
+    <DownloadModal :open="downloadModal.open" @close="downloadModal.open = false" />
+
     <UpdateModal
       v-if="updateModal.open && updateModal.release"
       :release="updateModal.release"
