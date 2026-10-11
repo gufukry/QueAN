@@ -248,9 +248,9 @@ function openUpdateModal(release: ReleaseInfo) {
 // 设置页手动检查/任意页面写入 store.updatePrompt → 统一在此打开弹窗
 watch(
   () => store.updatePrompt,
-  (req) => {
-    if (req) {
-      openUpdateModal(req.release)
+  (release) => {
+    if (release) {
+      openUpdateModal(release)
       store.updatePrompt = null
     }
   }
