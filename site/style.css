@@ -191,3 +191,51 @@ html.motion .reveal.in{opacity:1;animation:riseIn 700ms var(--ease) both}
   .btn,.btn-lg{width:100%}
   .cta-row .link{width:auto}
 }
+
+/* ============ 字体与首屏版式重做 v17 ============ */
+/* 1) 字体：换更清晰的字重栈；中文不再用负字距，行高放宽 */
+:root{
+  --font:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,
+         "PingFang SC","HarmonyOS Sans SC","Source Han Sans SC","Noto Sans CJK SC",
+         "Microsoft YaHei UI","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  --font-display:"Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,
+         "PingFang SC","HarmonyOS Sans SC","Microsoft YaHei UI","Microsoft YaHei",sans-serif;
+  --font-mono:"Cascadia Mono","SF Mono",ui-monospace,SFMono-Regular,Consolas,"Courier New",monospace;
+}
+body{font-family:var(--font);font-size:16.5px;line-height:1.75;letter-spacing:0;
+  font-feature-settings:"kern" 1,"liga" 1;text-rendering:optimizeLegibility}
+.display,.display--sm,.hero h1,.section-title,.nums h3,.steps h3,.tile h3,.rel-head b,
+.dl-ver,.faq summary,.sec-head h2{font-family:var(--font-display);letter-spacing:-.01em}
+.eyebrow,.step-num,.ver-pill,.kv,.footnote,.lane,.shot-label,.copyright,.foot-grid,
+.release time,.faq p,.checks li{letter-spacing:0}
+code,kbd,.mono{font-family:var(--font-mono)}
+/* 字号与行高（中文更宽松） */
+.display{font-size:clamp(38px,5.6vw,72px);line-height:1.12;letter-spacing:-.012em}
+.display--sm{font-size:clamp(28px,3.8vw,48px);line-height:1.16;letter-spacing:-.008em}
+.lead{font-size:clamp(16.5px,1.35vw,19px);line-height:1.8;letter-spacing:0}
+.checks li,.faq p,.release li,.tile p,.steps p,.nums p{line-height:1.8;letter-spacing:0}
+.tile h3,.steps h3{letter-spacing:-.005em}
+
+/* 2) 首屏：左文右图，编辑式排版 */
+.hero{padding-top:clamp(64px,9vh,120px);padding-bottom:clamp(56px,8vh,96px);text-align:left}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
+  gap:clamp(36px,5vw,76px);align-items:center}
+.hero-copy{max-width:560px}
+.hero .lead{margin-left:0;margin-right:0;max-width:34ch;text-align:left}
+.cta-row{justify-content:flex-start}
+.hero .shot{margin:0;max-width:none}
+.hero .shot::before{aspect-ratio:4/3;border-radius:var(--r-lg);box-shadow:0 24px 70px rgba(0,0,0,.12)}
+.hero .eyebrow{margin-bottom:16px}
+/* 黑底区文字也放宽行高 */
+.band--dark .lead,.steps p{line-height:1.75}
+@media(max-width:900px){
+  .hero-grid{grid-template-columns:1fr;gap:34px}
+  .hero-copy{max-width:none}
+  .hero .lead{max-width:46ch}
+  .hero .shot::before{aspect-ratio:16/10}
+}
+@media(max-width:734px){
+  .display{font-size:clamp(30px,8.4vw,40px);line-height:1.18}
+  .btn,.btn-lg{width:auto}
+  .cta-row .btn-primary{width:100%}
+}
