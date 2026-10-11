@@ -233,3 +233,85 @@ figure{margin-inline:0}
   .container{padding:0 18px}
   .section{padding:60px 0}
 }
+
+/* ============ 主题 v3：靛蓝紫（与启动器图标同色系）+ 丰富过渡动画 ============ */
+:root{
+  --brand:#6366f1; --brand-2:#8b93f8; --brand-3:#4338ca; --brand-soft:rgba(99,102,241,.16);
+  --cyan:#22d3ee;
+  --bg:#0b0c0e; --surface:#111317; --surface-2:#171a1f; --surface-3:#20242b;
+  --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.17);
+  --text:#f3f4f6; --text-dim:#9ca3af;
+  --shadow:0 14px 40px rgba(0,0,0,.42); --shadow-lg:0 30px 80px rgba(0,0,0,.55);
+  --glow:0 0 0 1px rgba(99,102,241,.35), 0 14px 44px rgba(99,102,241,.22);
+  --ease-spring:cubic-bezier(.22,1,.36,1);
+}
+body{color:var(--text);
+  background-image:
+    radial-gradient(900px 420px at 12% -8%,rgba(99,102,241,.22),transparent 62%),
+    radial-gradient(760px 400px at 92% 4%,rgba(34,211,238,.14),transparent 60%),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.014) 0 1px,transparent 1px 4px);
+  background-attachment:fixed}
+.chip{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.28);color:#c7cbfb}
+.ver-pill,.lane,.pill{color:#c7cbfb;background:var(--brand-soft);border-color:rgba(99,102,241,.32)}
+.section-title,.dl-ver,.brand{letter-spacing:-.02em}
+.checks li::before{border-color:var(--brand-2)}
+.num{color:var(--brand-2)}
+.ficon{background:linear-gradient(180deg,#8b93f8,var(--brand-3));color:#f4f5ff}
+.btn-primary{color:#f6f7ff;background:linear-gradient(180deg,#8b93f8,var(--brand) 62%,var(--brand-3));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 2px 0 #3730a3, 0 12px 30px rgba(99,102,241,.32)}
+.btn-primary:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.34), 0 2px 0 #3730a3, 0 16px 40px rgba(99,102,241,.45)}
+.pm-bar span,.conn-bar span{background:linear-gradient(90deg,#8b93f8,var(--brand-3))}
+code{color:#a5f3fc}
+.shot{border-color:var(--line);background-color:#0e1013}
+.shot-label{background:rgba(15,17,20,.88);border-color:rgba(99,102,241,.35);color:#c7cbfb}
+h1 .hl{background:linear-gradient(120deg,#c7cbfb,#8b93f8 45%,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* —— 过渡动画 —— */
+@keyframes floatOrb{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(0,-26px,0) scale(1.06)}}
+@keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+.hero{position:relative;overflow:hidden}
+.hero::before,.hero::after{content:'';position:absolute;z-index:-1;border-radius:50%;filter:blur(70px);pointer-events:none}
+.hero::before{width:520px;height:520px;left:-8%;top:-160px;background:rgba(99,102,241,.28);animation:floatOrb 14s var(--ease) infinite}
+.hero::after{width:420px;height:420px;right:-6%;top:-60px;background:rgba(34,211,238,.16);animation:floatOrb 18s var(--ease) infinite reverse}
+.nav-links a{position:relative}
+.nav-links a::after{content:'';position:absolute;left:13px;right:13px;bottom:4px;height:2px;border-radius:2px;
+  background:linear-gradient(90deg,var(--brand-2),var(--cyan));transform:scaleX(0);transform-origin:left;
+  transition:transform 260ms var(--ease-spring)}
+.nav-links a:hover::after{transform:scaleX(1)}
+header.nav.scrolled{box-shadow:0 10px 30px rgba(0,0,0,.45);background:color-mix(in srgb,var(--bg) 90%,transparent)}
+.card,.nums li,.faq details,.dl-card,.release,.feature,.shot{position:relative;
+  transition:transform 280ms var(--ease-spring),border-color 240ms var(--ease),box-shadow 280ms var(--ease)}
+.card::after,.nums li::after,.release::after,.feature::after,.dl-card::after{content:'';position:absolute;inset:0;border-radius:inherit;
+  padding:1px;background:linear-gradient(135deg,rgba(139,147,248,.65),rgba(34,211,238,.35),transparent 70%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:0;transition:opacity 280ms var(--ease);pointer-events:none}
+.card:hover::after,.nums li:hover::after,.release:hover::after,.feature:hover::after,.dl-card:hover::after{opacity:1}
+.feature:hover,.card:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg),var(--glow)}
+.nums li:hover{transform:translateX(4px)}
+.release:hover{transform:translateY(-3px)}
+.faq details[open]{border-color:var(--line-2);box-shadow:var(--glow)}
+.faq details[open] summary{color:#c7cbfb}
+.btn{position:relative;overflow:hidden}
+.btn-primary::after{content:'';position:absolute;inset:0;transform:translateX(-130%);
+  background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.5) 50%,transparent 66%);
+  transition:transform 700ms var(--ease)}
+.btn-primary:hover::after{transform:translateX(130%)}
+.shot::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.06) 50%,transparent 80%);
+  animation:shimmer 2.6s linear infinite;pointer-events:none}
+html.motion .reveal{opacity:0;transform:translateY(22px)}
+html.motion .reveal.in{opacity:1;animation:rise 560ms var(--ease-spring) both}
+html.motion .grid .reveal.in,html.motion .log .reveal.in{animation-name:pop}
+html.motion .grid>*:nth-child(2),html.motion .log>*:nth-child(2){animation-delay:70ms}
+html.motion .grid>*:nth-child(3),html.motion .log>*:nth-child(3){animation-delay:140ms}
+html.motion .grid>*:nth-child(4),html.motion .log>*:nth-child(4){animation-delay:210ms}
+html.motion .grid>*:nth-child(5){animation-delay:280ms}
+html.motion .grid>*:nth-child(6){animation-delay:350ms}
+html.motion .preview,html.motion .shot{animation:rise 700ms var(--ease-spring) both;animation-delay:120ms}
+@media(prefers-reduced-motion:reduce){.hero::before,.hero::after,.shot::after{animation:none}}
+.btn-quiet{background:rgba(255,255,255,.04);box-shadow:inset 0 0 0 1px var(--line)}
+.nav-ext{display:inline-flex;align-items:center;gap:6px}
+.nav-ext::before{content:'';width:7px;height:7px;border-radius:2px;background:linear-gradient(135deg,var(--brand-2),var(--cyan))}
+.foot-grid{grid-template-columns:1.6fr 1fr 1fr 1.2fr}
+@media(max-width:900px){.foot-grid{grid-template-columns:1fr 1fr}}
