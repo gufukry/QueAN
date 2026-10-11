@@ -573,3 +573,23 @@ html{scroll-behavior:smooth}
   .hero-cta{gap:18px}
   .btn-hero{min-height:50px;font-size:15.5px}
 }
+
+/* ============ 首屏精简 v7：只留 标题 / 一句说明 / 一个按钮 / 截图 ============ */
+.hero{padding:clamp(56px,10vh,132px) 0 0}
+.hero-head{max-width:680px}
+.hero h1{margin:0 0 18px;font-size:clamp(36px,5.6vw,68px);line-height:1.08;letter-spacing:-.032em}
+.hero-sub{margin:0 0 32px;font-size:clamp(15px,1.25vw,17px);line-height:1.75;color:var(--text-dim);max-width:48ch}
+.hero-cta{display:block}
+.btn-hero{min-height:54px;padding:0 28px;font-size:16px;border-radius:14px}
+.hero-note{margin:14px 0 0;font-size:12.5px;color:var(--text-dim);font-variant-numeric:tabular-nums}
+.hero .shot{margin:52px 0 0}
+/* 首屏光斑收敛：只留右侧一抹，且更淡 */
+.hero::before{width:420px;height:420px;left:auto;right:-6%;top:-120px;background:rgba(59,130,246,.13);animation:floatOrb 20s var(--ease) infinite}
+.hero::after{display:none}
+/* 首屏截图去掉光晕，避免与文字抢视觉 */
+.hero .shot::after{display:none}
+.hero .shot::before{box-shadow:0 30px 70px rgba(15,23,42,.16)}
+@media(max-width:900px){
+  .hero{padding:44px 0 0}
+  .hero .shot{margin:32px 0 0}
+}
