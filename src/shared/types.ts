@@ -265,15 +265,15 @@ export const THEME_PRESETS: Record<
 > = {
   macos: {
     label: 'macOS',
-    description: '苹果系统风格的浅灰玻璃与系统蓝强调色',
+    description: '浅色简约：近白背景、克制的系统蓝强调色与极浅边框',
     colors: {
       accent: '#0a84ff',
-      bg: '#eceef2',
+      bg: '#f5f5f7',
       card: '#ffffff',
       text: '#1d1d1f',
       textDim: '#6e6e73',
-      border: '#d9d9de',
-      sidebarBg: '#e7e7ec',
+      border: '#e4e5ea',
+      sidebarBg: '#f0f0f2',
       sidebarText: '#48484a',
       bannerText: '#ffffff'
     }

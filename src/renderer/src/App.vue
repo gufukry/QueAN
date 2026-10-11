@@ -1226,7 +1226,7 @@ onUnmounted(() => {
       <!-- Logo 区 -->
       <div data-ui="App:fc5fc8ba7e96" class="logo-area">
         <div class="brand-slot">
-        <img data-ui="App:0f39bd9dbfd2" class="brand-head" :src="brandHead" alt="KaMuaMua 的 Minecraft 头像" />
+        <img data-ui="App:0f39bd9dbfd2" class="brand-head" :src="brandHead" alt="QueAN" />
         </div>
         <div data-ui="App:7494cda29e47" class="logo-text">
           <span data-ui="App:c396a9ff34cb" class="logo-name">QueAN</span>
@@ -1776,8 +1776,8 @@ onUnmounted(() => {
   flex-shrink: 0;
   object-fit: contain;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(255,255,255,.26);
-  box-shadow: 0 3px 12px rgba(0,0,0,.18);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,.10);
 }
 .logo-text {
   display: flex;

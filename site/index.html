@@ -50,7 +50,7 @@
       <h2 class="display display--sm">一个启动器全搞定</h2>
       <p class="lead lead--dim">不用在多个工具间切换。</p>
       <ol class="steps">
-        <li><span class="step-num">01</span><h3>免费、开源且独立</h3><p>基于 MIT 许可，免费使用、无广告。第三方非官方版本，与上游作者无隶属关系。</p></li>
+        <li><span class="step-num">01</span><h3>免费、开源且独立</h3><p>基于 MIT 许可，免费使用、无广告。</p></li>
         <li><span class="step-num">02</span><h3>中文社区资源</h3><p>中文关键词直接列出相关模组，查看详情、选版本、装进实例，依赖与更新交给启动器。</p></li>
         <li><span class="step-num">03</span><h3>下载快、装得稳</h3><p>多线程分片与断点续传，国内镜像自动兜底；下载完成做完整性校验。</p></li>
       </ol>
@@ -178,7 +178,7 @@
       <h2 class="display display--sm">常见问题</h2>
       <div class="faq">
         <details open><summary>QueAN 支持哪些系统？</summary><p>目前在 Windows 10/11 x64 上提供便携版（解压即用、不写注册表）。其他平台尚未提供正式安装包。</p></details>
-        <details><summary>它是免费的吗？</summary><p>免费。QueAN 是基于 KAMUCL v1.1.15（MIT）二次开发的第三方非官方版本，保留原始版权与许可声明。</p></details>
+        <details><summary>它是免费的吗？</summary><p>免费、开源、无广告。</p></details>
         <details><summary>可以使用正版账户和离线账户吗？</summary><p>都可以：支持 Microsoft 正版登录、本地离线身份，以及外置登录（内置 LittleSkin 预设）。</p></details>
       </div>
     </div>
@@ -191,42 +191,20 @@
       <div class="log">
         <!--LOG:START-->
           <article class="release">
-            <div class="rel-head"><b>QueAN v1.0.3</b><span class="tag">最新</span><time>2026-10-11 20:10</time></div>
+            <div class="rel-head"><b>QueAN v1.0.0</b><span class="tag">最新</span><time>2026-10-11 20:26</time></div>
             <ul>
-            <li>「关于与更新」页新增「前往官网」与「赞助」入口：官网有完整功能说明与常见问题，赞助走爱发电</li>
-            <li>精简关于页文案：移除已由官网承载的项目说明与更新机制描述</li>
+            <li>全新界面：浅色苹果风设计系统——近白背景、系统蓝强调色、统一圆角与极浅投影，多套主题可选</li>
+            <li>「关于与更新」页新增「前往官网」与「赞助」入口</li>
+            <li>自带更新更省心：下载并通过 SHA256 校验后立即安装并自动重启，不再需要手动重启，也不在桌面留下备份文件夹</li>
+            <li>自建更新源：更新检查优先走官网服务器，读取失败时自动回落 GitHub</li>
+            <li>存档导入显示真实进度：区分「下载并安装目标实例」与「复制存档文件」两个阶段，弹窗内带百分比进度条</li>
+            <li>下载进度集中在右上角「下载中心」，整合包／模组／版本安装不再被额外弹窗打断</li>
+            <li>报错汉化：磁盘空间不足、权限不足、文件被占用、连接超时、域名解析失败等系统错误都给出中文提示</li>
+            <li>Java 更灵活：可单独下载所需 Java 运行时，可选大版本扩展到 8/11/16/17/21/22/23/24/25</li>
+            <li>中文社区资源：中文关键词直接列出全部相关模组；多线程分片下载配国内镜像兜底</li>
+            <li>多游戏文件夹与实例隔离，支持整合包导入安装；外置登录内置 LittleSkin 预设</li>
             </ul>
           </article>
-          <details class="history">
-            <summary class="collapse-btn"><span class="cb-label">展开历史版本（3）</span><span class="cb-state">收起</span></summary>
-          <article class="release">
-            <div class="rel-head"><b>QueAN v1.0.2</b><time>2026-10-11 15:35</time></div>
-            <ul>
-            <li>下载进度统一放在右上角「下载中心」：移除了会额外弹出的下载窗口，整合包/模组/版本安装等不再被弹窗打断</li>
-            <li>报错信息汉化：磁盘空间不足、没有写入权限、文件被占用、连接超时、域名解析失败等系统错误都给出中文提示（并附原始信息便于排查）</li>
-            </ul>
-          </article>
-          <article class="release">
-            <div class="rel-head"><b>QueAN v1.0.1</b><time>2026-10-11 15:35</time></div>
-            <ul>
-            <li>存档导入显示真实进度：区分「下载并安装目标实例」与「复制存档文件」两个阶段，弹窗内带百分比进度条，不再只有一个「正在导入…」</li>
-            <li>更新流程更省事：下载并通过 SHA256 校验后立即安装并自动重启，不再需要手动重启启动器；替换前不再在桌面留下备份文件夹</li>
-            <li>新增自建更新源：更新检查优先走本站服务器，读取失败时自动回落 GitHub</li>
-            <li>Java 更灵活：设置中可单独下载所需 Java 运行时，可选大版本扩展到 8/11/16/17/21/22/23/24/25</li>
-            <li>下载与搜索体验：内容 CDN 原站优先、社区搜索与筛选状态会记住、启动阶段少一次全盘扫描</li>
-            </ul>
-          </article>
-          <article class="release">
-            <div class="rel-head"><b>QueAN v1.0.0</b><time>2026-10-10 13:20</time></div>
-            <ul>
-            <li>首个正式版本：基于 KAMUCL v1.1.15（MIT）二次开发的 QueAN，保留原始版权与许可声明；本项目为第三方非官方版本</li>
-            <li>中文社区资源：中文关键词直接列出全部相关模组，无需输入完整名称</li>
-            <li>下载提速与容错：多线程分片下载、国内镜像自动兜底，差网络也能装完</li>
-            <li>多游戏文件夹与实例隔离，支持整合包导入安装</li>
-            <li>外置登录支持 LittleSkin 预设</li>
-            </ul>
-          </article>
-          </details>
         <!--LOG:END-->
       </div>
     </div>
@@ -236,10 +214,10 @@
 <footer class="footer">
   <div class="container">
     <div class="foot-grid">
-      <div><b>QueAN</b><p>基于 KAMUCL v1.1.15（MIT）二次开发的第三方非官方 Minecraft Java 版启动器。</p></div>
+      <div><b>QueAN</b><p>面向国内网络的第三方 Minecraft Java 版启动器，基于 MIT 许可发布。</p></div>
       <div><b>下载</b><p><a href="#download">Windows 便携版</a></p><p><a href="#changelog">更新日志</a></p></div>
-      <div><b>开源</b><p><a href="https://github.com/kamubaba-i/KAMUCL/releases/tag/v1.1.15" target="_blank" rel="noopener noreferrer">上游 KAMUCL v1.1.15</a></p><p>MIT 许可</p></div>
-      <div><b>说明</b><p>与上游作者及 Mojang 无隶属关系</p><p>Minecraft 是 Mojang Studios 的商标</p></div>
+      <div><b>致谢</b><p>借鉴 PCL、HMCL、Prism Launcher、XMCL、Modrinth、ATLauncher、MultiMC 等启动器的设计与实现。</p><p>仅致谢，不代表隶属或背书。</p></div>
+      <div><b>说明</b><p>与 Mojang 无隶属关系</p><p>Minecraft 是 Mojang Studios 的商标</p></div>
     </div>
     <p class="copyright">本站仅提供启动器本体下载，不含任何游戏内容。</p>
   </div>

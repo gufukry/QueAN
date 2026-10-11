@@ -2,7 +2,7 @@
    QueAN 全局样式 —— 六套主题共用的组件基线（色板由 App.vue 注入）
    ============================================================ */
 
-/* -------- 图一深色绿玻璃的首帧回退值（设置加载后由主题色板覆盖） -------- */
+/* -------- 浅色简约的首帧回退值（设置加载后由主题色板覆盖） -------- */
 /* Keep the native traffic lights clear of branding and editable page content. */
 html[data-platform="darwin"] .sidebar { padding-top: 38px; }
 html[data-platform="darwin"] .shell { border-radius: 0; }
@@ -13,34 +13,34 @@ html[data-platform="win32"] body,
 html[data-platform="win32"] #app { background: var(--bg); }
 
 :root {
-  --bg: #10191b;
-  --bg-2: rgba(13, 23, 26, 0.72);
-  --card: rgba(23, 34, 37, 0.66);
-  --card-2: rgba(37, 50, 52, 0.58);
-  --border: rgba(194, 214, 203, 0.18);
-  --text: #f4f8f5;
-  --text-dim: #abb8b0;
-  --accent: #55c96b;
-  --accent-2: #7bdf88;
-  --accent-deep: #349d4c;
-  --accent-grad: linear-gradient(135deg, #71dc83 0%, #55c96b 55%, #349d4c 100%);
-  --accent-soft: rgba(85, 201, 107, 0.16);
+  --bg: #f5f5f7;
+  --bg-2: rgba(245, 245, 247, 0.86);
+  --card: #ffffff;
+  --card-2: #f2f2f5;
+  --border: #e4e5ea;
+  --text: #1d1d1f;
+  --text-dim: #6e6e73;
+  --accent: #0a84ff;
+  --accent-2: #3d9bff;
+  --accent-deep: #0066d6;
+  --accent-grad: linear-gradient(180deg, #4aa3ff 0%, #0a84ff 100%);
+  --accent-soft: rgba(10, 132, 255, 0.12);
   --on-accent: #ffffff;
-  --danger: #ff7278;
-  --ok: #67d77d;
-  --shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
-  --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.46);
-  --hover: rgba(255, 255, 255, 0.07);
+  --danger: #e5484d;
+  --ok: #30a46c;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.14);
+  --hover: rgba(0, 0, 0, 0.045);
   /* 派生语义色 */
-  --border-strong: #cbd3e3;
-  --scroll: rgba(27, 36, 55, 0.2);
+  --border-strong: #cfd1d8;
+  --scroll: rgba(0, 0, 0, 0.18);
   --danger-soft: rgba(220, 38, 38, 0.08);
-  --danger-border: rgba(220, 38, 38, 0.3);
+  --danger-border: rgba(220, 38, 38, 0.28);
   --ok-soft: rgba(22, 163, 74, 0.1);
-  --cyan: #0e7490;
-  --cyan-soft: rgba(14, 116, 144, 0.1);
-  --mask: rgba(32, 42, 66, 0.4);
-  --radius: 14px;
+  --cyan: #0b7285;
+  --cyan-soft: rgba(11, 114, 133, 0.1);
+  --mask: rgba(0, 0, 0, 0.32);
+  --radius: 16px;
   /* -------- 统一设计令牌：间距/字号/圆角/控件尺寸（组件一律引用，禁止散落魔数） --------
      修复目标：板块内元素贴挤、间距不统一、字号混乱。
      用法：卡片内边距 var(--card-pad)；卡片之间 var(--card-gap)；区块之间 var(--sec-gap)；
@@ -60,9 +60,9 @@ html[data-platform="win32"] #app { background: var(--bg); }
   --text-lg: 16px;
   --text-xl: 20px;
   --text-2xl: 26px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   /* Shared interaction rhythm: short response, restrained deceleration. */
   --motion-fast: 120ms;
   --motion-normal: 180ms;
