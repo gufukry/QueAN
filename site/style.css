@@ -325,3 +325,15 @@ code{background:rgba(37,99,235,.07);color:#1d4ed8}
   .steps h3{font-size:19.5px}
   .steps p{font-size:15.5px}
 }
+
+/* ============ 按钮文字被覆盖修正 v20 ============ */
+/* 原因：.band--dark a{color:#2563eb}（权重 0,1,1）压过 .btn-primary{color:#fff}（0,1,0），
+   下载按钮文字变成蓝底蓝字 → 看起来是空按钮。这里提高按钮的选择器权重。 */
+.band a.btn-primary,.band--dark a.btn-primary,.band--light a.btn-primary,.band--grey a.btn-primary,
+a.btn-primary,.btn-primary,.btn-primary:link,.btn-primary:visited,.btn-primary:hover,.btn-primary:active{
+  color:#ffffff
+}
+.btn-primary:hover{color:#ffffff}
+.btn-primary:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+/* 其它深色区里的普通链接保持蓝色，但按钮内一律白字 */
+.band--dark a:not(.btn){color:#2563eb}
