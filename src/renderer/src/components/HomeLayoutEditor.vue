@@ -369,8 +369,8 @@ async function resetBg() {
 .group+.group{margin-top:0}
 
 .layout-setting { padding:0; }
-.layout-setting>summary { display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;font-weight:600;font-size:14px; }
-.layout-setting>summary::after { content:'⌄';margin-left:auto;color:var(--text-dim);transition:rotate 180ms; }
+.layout-setting>summary { display:flex;align-items:center;gap:10px;padding:11px 18px;cursor:pointer;font-weight:600;font-size:13.5px; }
+.layout-setting>summary::after { content:'⌄';margin-left:auto;color:var(--text-dim);font-size:12px;transition:rotate 180ms; }
 .layout-setting[open]>summary::after { rotate:180deg; }
 .layout-setting>summary small { font-size:12px;color:var(--text-dim);font-weight:400; }
 .layout-setting-body { padding:0 18px 14px; }
