@@ -28,7 +28,7 @@ const renderRelease = (rel, isLatest) => {
 const latest = renderRelease(notes[0], true)
 const older = notes.slice(1)
 const history = older.length
-  ? `          <details class="history">\n            <summary>历史版本（${older.length}）</summary>\n${older.map((r) => renderRelease(r, false)).join('\n')}\n          </details>`
+  ? `          <details class="history">\n            <summary class="collapse-btn"><span class="cb-label">展开历史版本（${older.length}）</span><span class="cb-state">收起</span></summary>\n${older.map((r) => renderRelease(r, false)).join('\n')}\n          </details>`
   : ''
 const rows = [latest, history].filter(Boolean).join('\n')
 

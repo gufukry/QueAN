@@ -129,10 +129,11 @@ code{font-family:var(--mono);font-size:13px;background:rgba(255,255,255,.1);bord
 .faq summary{display:flex;align-items:center;justify-content:space-between;gap:16px;
   padding:22px 4px;font-size:19px;font-weight:500;cursor:pointer;list-style:none}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary::after{content:'';flex:none;width:9px;height:9px;margin-right:6px;
-  border-right:2px solid var(--text-3);border-bottom:2px solid var(--text-3);
-  transform:rotate(45deg) translate(-2px,-2px);transition:transform var(--normal) var(--ease)}
-.faq details[open] summary::after{transform:rotate(225deg) translate(-1px,-1px);border-color:var(--btn)}
+.faq summary::after{content:'';flex:none;width:13px;height:13px;margin-right:6px;background:var(--text-3);
+  -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>") center/contain no-repeat;
+  mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>") center/contain no-repeat;
+  transition:transform var(--normal) var(--ease),background var(--fast) var(--ease)}
+.faq details[open] summary::after{transform:rotate(180deg);background:var(--btn)}
 .faq p{margin:0 0 24px;color:var(--text-2);font-size:17px;padding-right:32px}
 
 /* ---------- 更新日志 ---------- */
@@ -382,3 +383,33 @@ details.history > summary::after {
 details.history[open] > summary::after { transform: rotate(225deg) translate(-1px,-1px); border-color: var(--btn) }
 details.history[open] > summary { color: var(--text-2) }
 details.history .release:last-child { border-bottom: 0 }
+
+/* ============ 折叠按钮重做：胶囊按钮 + 内嵌 SVG 箭头 ============ */
+/* 之前用两条边框旋转拼箭头，边缘发虚且不像按钮；现在做成真正的按钮控件 */
+.collapse-btn {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 10px 18px; border: 1px solid var(--line); border-radius: var(--pill);
+  background: #fff; color: var(--text); font-size: 15px; font-weight: 500;
+  cursor: pointer; list-style: none; width: fit-content;
+  box-shadow: 0 1px 2px rgba(27,36,55,.05);
+  transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease)
+}
+.collapse-btn::-webkit-details-marker { display: none }
+.collapse-btn:hover { background: #f7f9fc; border-color: var(--line-2); box-shadow: 0 4px 12px rgba(27,36,55,.08) }
+.collapse-btn:active { background: #f2f5fa }
+/* 箭头：内嵌 SVG（不需外部资源），展开时翻转 180° */
+.collapse-btn::after {
+  content: ''; width: 12px; height: 12px; flex: none; background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>") center / contain no-repeat;
+  mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>") center / contain no-repeat;
+  transition: transform 280ms var(--ease-spring)
+}
+.collapse-btn .cb-state { display: none; color: var(--text-2) }
+details[open] > .collapse-btn::after { transform: rotate(180deg) }
+details[open] > .collapse-btn .cb-label { display: none }
+details[open] > .collapse-btn .cb-state { display: inline }
+/* 历史版本块间距 */
+details.history { margin-top: 10px }
+details.history .release { padding-left: 4px; padding-right: 4px }
+/* 常见问题沿用同一套按钮视觉（默认收起时才像按钮，展开的高亮为首条） */
+.faq summary.collapse-btn[open] { color: var(--text-2) }
