@@ -16,7 +16,29 @@ export interface UpdateTransaction {
   helperPid?: number
 }
 
-export const updateMarker = (exe: string): string => path.join(path.dirname(exe), '.queanupdate')
+export const PORTABLE_RUNTIME_DIR = 'QueAN-runtime'
+
+/**
+ * 便携运行时目录：exe 的祖先里名为 QueAN-runtime 的那一层（electron-builder 便携包固定结构）。
+ * 该目录在 Windows 上被设为隐藏，更新暂存放进去就不会在桌面/目录里多出文件夹。
+ */
+export function portableRuntimeDirOf(execPath: string): string | null {
+  let dir = path.dirname(execPath)
+  for (let depth = 0; depth < 4; depth++) {
+    if (path.basename(dir) === PORTABLE_RUNTIME_DIR) return dir
+    const parent = path.dirname(dir)
+    if (parent === dir) break
+    dir = parent
+  }
+  return null
+}
+
+/** 更新暂存目录：优先放进（已隐藏的）便携运行时目录，非便携运行退回 exe 同级。 */
+export function updateStageDir(exe: string): string {
+  return path.join(portableRuntimeDirOf(exe) || path.dirname(exe), 'QueAN-update')
+}
+
+export const updateMarker = (exe: string): string => path.join(updateStageDir(exe), '.queanupdate')
 export function atomicUpdateJson(file: string, data: unknown): void {
   fs.mkdirSync(path.dirname(file), { recursive: true })
   const tmp = file + '.' + randomUUID() + '.tmp'
@@ -28,7 +50,7 @@ export function atomicUpdateJson(file: string, data: unknown): void {
 export function readUpdateTransaction(file: string, target: string): UpdateTransaction | null {
   try {
     const t = JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '')) as UpdateTransaction
-    const rel = path.relative(path.join(path.dirname(target), 'QueAN-update'), t.file)
+    const rel = path.relative(updateStageDir(target), t.file)
     const key = (p: string) => process.platform === 'win32' ? path.resolve(p).toLowerCase() : path.resolve(p)
     if (t.schema !== 1 || !/^[a-f\d-]{36}$/i.test(t.id) || key(t.target) !== key(target)
       || !rel || rel.startsWith('..') || path.isAbsolute(rel) || !/^[a-f\d]{64}$/i.test(t.sha256)

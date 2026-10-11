@@ -3,7 +3,8 @@ import path from 'node:path'
 import os from 'node:os'
 import { execFile } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
-import { atomicUpdateJson, buildUpdaterScript, readUpdateTransaction, updateMarker, validateUpdatePayload, type UpdateTransaction, type UpdaterScriptSpec } from './updateTransaction'
+import { atomicUpdateJson, buildUpdaterScript, portableRuntimeDirOf, readUpdateTransaction, updateMarker, updateStageDir, validateUpdatePayload, type UpdateTransaction, type UpdaterScriptSpec } from './updateTransaction'
+export { PORTABLE_RUNTIME_DIR, portableRuntimeDirOf } from './updateTransaction'
 export { buildUpdaterScript } from './updateTransaction'
 import { app } from 'electron'
 import type { LocalUpdateCheck, ProgressEvent, ReleaseInfo, Settings } from '../../shared/types'
@@ -44,25 +45,6 @@ export function currentPortableExe(): string | null {
   return (isolatedUpdateTest() && process.env.QueAN_UPDATE_TARGET_EXE) || process.env.PORTABLE_EXECUTABLE_FILE || null
 }
 
-/** 便携版运行时解压目录名（electron-builder 便携包的固定子目录） */
-export const PORTABLE_RUNTIME_DIR = 'QueAN-runtime'
-
-/**
- * 便携运行时目录：exe 的祖先里名为 QueAN-runtime 的那一层。
- * 便携包实际解压到 QueAN-runtime\<构建缓存键>\，所以不能只看直接父目录；
- * 非便携运行（开发模式、安装版）返回 null。
- */
-export function portableRuntimeDirOf(execPath: string): string | null {
-  let dir = path.dirname(execPath)
-  for (let depth = 0; depth < 4; depth++) {
-    if (path.basename(dir) === PORTABLE_RUNTIME_DIR) return dir
-    const parent = path.dirname(dir)
-    if (parent === dir) break
-    dir = parent
-  }
-  return null
-}
-
 /**
  * Windows 上把便携运行时目录设为隐藏：它就在 exe 旁边，不隐藏的话
  * 会和启动器 exe 并列显示在桌面/目录里。失败不影响启动。
@@ -86,7 +68,7 @@ export function updateSupported(): boolean {
 function updateDirOf(exe: string): string {
   if (process.platform === 'darwin') return macUpdateDir()
   if (process.platform === 'linux') return linuxUpdateDir()
-  return path.join(path.dirname(exe), 'QueAN-update')
+  return updateStageDir(exe)
 }
 function userDataDir(): string {
   return isolatedUpdateTest() ? process.env.QueAN_USERDATA_DIR! : app.getPath('userData')
@@ -243,7 +225,8 @@ export function cleanupUpdateLeftovers(): void {
   if (!exe) return
   if (readUpdateTransaction(updateMarker(exe), exe)) return
   const dir = path.dirname(exe)
-  for (const target of [updateDirOf(exe)]) {
+  // 现位置在（隐藏的）便携运行时目录内；后两个是旧版留在 exe 同级的目录，一并清掉
+  for (const target of [updateDirOf(exe), path.join(dir, 'QueAN-update'), path.join(dir, 'QueAN-backup')]) {
     try { fs.rmSync(target, { recursive: true, force: true }) } catch (e) { updateLog.warn(`清理更新残留失败：${target}`, e) }
   }
   const exeName = path.basename(exe)
