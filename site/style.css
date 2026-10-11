@@ -863,3 +863,18 @@ html.motion .shot.loaded::before{animation:none}
 /* 兜底：任何动画失效时，正文与标题永远可见 */
 h1,.hero-sub,.hero-note,.section-title,.section-sub,.nums li,.feature,.card,.release,
 .faq details,.dl-card,.shot,.shot figcaption{opacity:1}
+
+/* ============ 横向滚动修正 v15 ============ */
+/* 原因：首屏浮动光斑(right:-8%)与截图模糊光晕会溢出视口，父级又是 overflow:visible，
+   于是页面出现横向滚动条。改用 overflow-x:clip —— 横向裁掉但不产生滚动容器，
+   因此不会破坏吸顶导航（overflow:hidden 才会）。 */
+html{overflow-x:clip}
+body{overflow-x:clip;max-width:100%}
+.hero,main > section,body > section,.shot{overflow-x:clip}
+.hero{overflow-y:visible}
+/* 光斑与光晕再往里收一点，双保险 */
+.hero::before{right:-4%}
+.shot::after{left:8%;right:8%}
+@supports not (overflow:clip){
+  html,body{overflow-x:hidden}
+}
