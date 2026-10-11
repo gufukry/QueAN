@@ -23,4 +23,4 @@ export const UPDATE_MIRRORS = [
  *                "digest": "sha256:<64位小写十六进制>", "size": 12345678 }] }
  * 服务器侧用 deploy/quean-update-setup.sh 生成（扫描目录里的 exe/zip）。
  */
-export const UPDATE_ENDPOINT = 'https://xfmod.cc.cd/quean-update/latest.json'
+export const UPDATE_ENDPOINT = 'https://qafaka.cc.cd/quean-update/latest.json'

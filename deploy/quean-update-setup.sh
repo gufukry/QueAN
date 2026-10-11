@@ -21,7 +21,7 @@ BODY="$(head -1 body.txt 2>/dev/null | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
     SIZE="$(stat -c %s "$f")"
     SHA="$(sha256sum "$f" | cut -d' ' -f1)"
     BASE="$(grep -oE 'https?://[^ ]+' config.url 2>/dev/null | head -1)"
-    [ -n "$BASE" ] || BASE="https://xfmod.cc.cd/quean-update"
+    [ -n "$BASE" ] || BASE="https://qafaka.cc.cd/quean-update"
     [ "$FIRST" = 0 ] && printf ',\n'
     FIRST=0
     printf '    { "name": "%s", "browser_download_url": "%s/%s", "digest": "sha256:%s", "size": %s }' "$f" "$BASE" "$f" "$SHA" "$SIZE"
@@ -31,7 +31,7 @@ BODY="$(head -1 body.txt 2>/dev/null | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
 echo "已生成 $DIR/latest.json（版本 $VERSION）"
 SCRIPT
 chmod +x "$DIR/build-manifest.sh"
-printf '%s' 'https://xfmod.cc.cd/quean-update' > "$DIR/config.url"
+printf '%s' 'https://qafaka.cc.cd/quean-update' > "$DIR/config.url"
 printf '%s' '在这里写更新说明（一行纯文本；支持换行）' > "$DIR/body.txt"
 echo "目录就绪：$DIR"
 echo "下一步：把 exe/zip 放进该目录，然后执行 sh $DIR/build-manifest.sh"
