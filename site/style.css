@@ -847,3 +847,19 @@ article.feature:nth-child(4),.grid>*:nth-child(4){animation-delay:240ms}
   .hero h1{font-size:clamp(27px,8.8vw,34px)}
   .nums li{padding:18px;gap:12px}
 }
+
+/* ============ 文字消失修正 v14：浮现动画改为「绝不隐藏」 ============ */
+/* 原因：滚动浮现用 opacity:0 打底，等 JS 加 .in 才显形；往回滚时元素可能已取消观察，
+   就永久停在透明状态（文字消失）。现在改为位移式浮现——元素始终可见，最坏情况只是偏一点。 */
+@keyframes riseSafe{from{transform:translateY(16px)}to{transform:none}}
+@keyframes popSafe{from{transform:translateY(10px) scale(.985)}to{transform:none}}
+html.motion .reveal{opacity:1 !important;animation:none;transform:translateY(18px)}
+html.motion .reveal.in{opacity:1 !important;animation:riseSafe 520ms var(--ease) both}
+html.motion .grid .reveal.in,html.motion .log .reveal.in{animation-name:popSafe}
+/* 首屏：从 both 改为 backwards——即使动画没跑，最终态也是可见的 */
+html.motion .hero-head>*{animation:riseSafe var(--enter) var(--ease) backwards}
+html.motion .preview,html.motion .shot{animation:riseSafe 700ms var(--ease) backwards;animation-delay:120ms}
+html.motion .shot.loaded::before{animation:none}
+/* 兜底：任何动画失效时，正文与标题永远可见 */
+h1,.hero-sub,.hero-note,.section-title,.section-sub,.nums li,.feature,.card,.release,
+.faq details,.dl-card,.shot,.shot figcaption{opacity:1}
