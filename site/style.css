@@ -390,3 +390,41 @@ details.sha p{margin:14px 0 0}
 /* 图片位：探测到真实图片后隐藏占位标签与骨架微光 */
 .shot.loaded .shot-label{display:none}
 .shot.loaded::after{animation:none;background:none}
+
+/* ============ 图片呈现 v2：清晰截图 + 同图模糊光晕（参考现代启动器官网） ============ */
+.shot{
+  position:relative;margin:52px 0 64px;padding:0;overflow:visible;
+  background:transparent;border:0;border-radius:0;box-shadow:none
+}
+/* 本体：清晰截图，圆角 + 细描边 + 柔和投影 */
+.shot::before{
+  content:'';display:block;position:relative;z-index:2;border-radius:var(--r-lg);
+  background-image:var(--shot);background-size:cover;background-position:center top;background-repeat:no-repeat;
+  border:1px solid var(--line);box-shadow:var(--shadow-lg), 0 2px 0 rgba(0,0,0,.3);
+  transition:transform 420ms var(--ease-spring), box-shadow 420ms var(--ease)
+}
+/* 光晕：同一张图放大 + 强模糊，铺在背后 */
+.shot::after{
+  content:'';position:absolute;left:3%;right:3%;top:6%;bottom:-4%;z-index:1;border-radius:var(--r-lg);
+  background-image:var(--shot);background-size:cover;background-position:center;
+  filter:blur(52px) saturate(1.35);opacity:.42;transform:scale(.94) translateY(10px);
+  transition:opacity 420ms var(--ease), transform 520ms var(--ease-spring);pointer-events:none
+}
+.shot:hover::before{transform:translateY(-4px) scale(1.006)}
+.shot:hover::after{opacity:.62;transform:scale(.97) translateY(14px)}
+/* 未放图时：灰底占位（无光晕） */
+.shot:not(.loaded)::before{background-color:var(--surface-2);background-image:none;
+  box-shadow:inset 0 0 0 1px var(--line)}
+.shot:not(.loaded)::after{display:none}
+/* 淡入 */
+.shot.loaded::before{animation:fadeIn 620ms var(--ease) both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* 图注放在光晕之上 */
+.shot figcaption{position:relative;z-index:3;margin-top:-1px;border-radius:0 0 var(--r-lg) var(--r-lg);
+  border:1px solid var(--line);border-top:0;background:rgba(15,17,20,.72);padding:14px 18px}
+.shot .shot-label{position:absolute;z-index:4}
+.shot-band .shot{margin-top:0}
+@media(max-width:660px){
+  .shot{margin:36px 0 48px}
+  .shot::after{filter:blur(34px);opacity:.38}
+}
