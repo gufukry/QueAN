@@ -315,3 +315,74 @@ html.motion .preview,html.motion .shot{animation:rise 700ms var(--ease-spring) b
 .nav-ext::before{content:'';width:7px;height:7px;border-radius:2px;background:linear-gradient(135deg,var(--brand-2),var(--cyan))}
 .foot-grid{grid-template-columns:1.6fr 1fr 1fr 1.2fr}
 @media(max-width:900px){.foot-grid{grid-template-columns:1fr 1fr}}
+
+/* ============ 控件 v4：扁平圆角、去掉生硬立体边，统一交互反馈 ============ */
+.btn{
+  border-radius:12px;font-weight:600;letter-spacing:.005em;padding:0 22px;
+  transition:transform 200ms var(--ease-spring),background 200ms var(--ease),border-color 200ms var(--ease),box-shadow 240ms var(--ease),filter 200ms var(--ease)
+}
+.btn:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
+.btn-primary{
+  color:#f7f8ff;background:linear-gradient(180deg,#7c84f6,var(--brand));
+  box-shadow:0 8px 24px rgba(99,102,241,.34), inset 0 1px 0 rgba(255,255,255,.22)
+}
+.btn-primary:hover{background:linear-gradient(180deg,#8b93f8,#7073f4);box-shadow:0 14px 34px rgba(99,102,241,.46);transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(1px);box-shadow:0 4px 14px rgba(99,102,241,.3)}
+/* 次级按钮：描边幽灵风 */
+.btn:not(.btn-primary){
+  background:rgba(255,255,255,.035);border:1px solid var(--line-2);box-shadow:none;color:var(--text)
+}
+.btn:not(.btn-primary):hover{background:rgba(255,255,255,.075);border-color:rgba(255,255,255,.26);transform:translateY(-1px)}
+.btn:not(.btn-primary):active{transform:translateY(1px);background:rgba(255,255,255,.05)}
+.btn-sm{min-height:34px;padding:0 14px;font-size:13.5px;border-radius:10px}
+.btn-lg{min-height:52px;padding:0 26px;font-size:16px;border-radius:14px}
+.btn-xs{min-height:28px;padding:0 10px;font-size:12px;border-radius:8px}
+
+/* 标签：更矮更轻 */
+.chips{gap:8px}
+.chip{display:inline-flex;align-items:center;height:25px;padding:0 12px;font-size:12px;font-weight:600;
+  color:var(--text-dim);background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:var(--pill)}
+.lane,.pill{display:inline-flex;align-items:center;height:24px;padding:0 11px;font-size:12px;font-weight:600;
+  color:#c7cbfb;background:var(--brand-soft);border:1px solid rgba(99,102,241,.3);border-radius:var(--pill)}
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-size:11.5px;font-weight:700;
+  color:#2b2205;background:linear-gradient(180deg,#f7d67e,var(--gold));border-radius:var(--pill);box-shadow:none}
+
+/* FAQ 折叠条：旋转箭头替代 +/- */
+.faq details{padding:0 20px;transition:background 220ms var(--ease),border-color 220ms var(--ease),box-shadow 280ms var(--ease)}
+.faq details:hover{background:var(--surface-3)}
+.faq summary{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 0;font-size:15.5px;cursor:pointer}
+.faq summary::after{content:'';flex:none;width:9px;height:9px;margin-right:2px;border-right:2px solid var(--text-dim);
+  border-bottom:2px solid var(--text-dim);border-radius:1px;transform:rotate(45deg) translate(-2px,-2px);
+  transition:transform 300ms var(--ease-spring),border-color 220ms var(--ease)}
+.faq details[open] summary::after{transform:rotate(225deg) translate(-1px,-1px);border-color:var(--brand-2)}
+.faq details[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px}
+.faq p{padding-right:24px}
+
+/* SHA 折叠：变成一个小胶囊按钮 */
+details.sha{margin-top:20px}
+details.sha summary{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:10px;font-size:13px;
+  background:rgba(255,255,255,.035);border:1px solid var(--line);color:var(--text-dim);
+  transition:background 200ms var(--ease),border-color 200ms var(--ease),color 200ms var(--ease)}
+details.sha summary:hover{background:rgba(255,255,255,.07);border-color:var(--line-2);color:var(--text)}
+details.sha summary::marker{content:''}
+details.sha[open] summary{background:var(--brand-soft);border-color:rgba(99,102,241,.3);color:#c7cbfb}
+details.sha p{margin:14px 0 0}
+
+/* 下载卡：信息行更像键值对 */
+.dl-head{gap:24px}
+.dl-head>div{display:flex;flex-direction:column;gap:8px}
+.kv{gap:6px 18px}
+.kv span{position:relative;padding-left:12px}
+.kv span::before{content:'';position:absolute;left:0;top:50%;width:4px;height:4px;border-radius:50%;
+  background:var(--brand-2);transform:translateY(-50%);opacity:.75}
+.dl-foot{max-width:76ch}
+
+/* 页脚链接：下划线随悬停展开 */
+.footer a{position:relative}
+.footer a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1px;background:var(--brand-2);
+  transform:scaleX(0);transform-origin:left;transition:transform 240ms var(--ease-spring)}
+.footer a:hover::after{transform:scaleX(1)}
+@media(max-width:660px){
+  .btn-lg{min-height:48px}
+  .faq p{padding-right:0}
+}
