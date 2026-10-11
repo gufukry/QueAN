@@ -755,3 +755,95 @@ html{scroll-padding-top:0}
   html{scroll-padding-top:var(--nav-h)}
   .hero,main > section,body > section{min-height:auto;height:auto;max-height:none}
 }
+
+/* ============ 吸附回跳修正 v12 ============ */
+/* 原因：吸顶导航 header.nav 也被写成 scroll-snap-align:start，它位于文档最顶端，
+   mandatory 吸附总在找"最近的吸附点"，于是每次滚动都被拉回第一页。
+   现在只让真正的屏（hero 与各 section）参与吸附，导航与其它装饰元素退出。 */
+header.nav{scroll-snap-align:none !important}
+.shot-band,.hero,main > section,body > section{scroll-snap-align:start}
+/* 一页一页切换：每屏都强制整屏停靠，快速滑动也不会跨屏 */
+.hero,main > section,body > section{scroll-snap-stop:always}
+body > footer,footer{scroll-snap-align:end;scroll-snap-stop:normal}
+/* 过渡期间不允许浏览器把吸附点在屏内乱对齐 */
+html{scroll-snap-type:y mandatory}
+
+/* ============ 自由滚动 + 双端版式升级 v13（替代锁屏翻页） ============ */
+html{scroll-snap-type:none;scroll-padding-top:calc(var(--nav-h) + 12px);scroll-behavior:smooth}
+.hero,main > section,body > section{
+  height:auto;max-height:none;min-height:0;overflow:visible;
+  scroll-snap-align:none;scroll-snap-stop:normal;
+  padding:clamp(76px,9vh,132px) 0
+}
+.hero{padding:clamp(64px,8vh,116px) 0 clamp(48px,7vh,88px)}
+header.nav{scroll-snap-align:none}
+body > footer,footer{scroll-snap-align:none;scroll-snap-stop:normal;padding:56px 0 68px}
+
+/* 隔屏交替底色，滚动时更有段落感 */
+main > section:nth-of-type(even),body > section:nth-of-type(even){background:linear-gradient(180deg,rgba(37,99,235,.035),rgba(37,99,235,0) 60%)}
+main > section,body > section{position:relative}
+main > section::before,body > section::before{content:'';position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(37,99,235,.22),transparent)}
+
+/* —— 更强的首屏：更大标题 + 更宽的截图 + 双层光晕 —— */
+.hero h1{font-size:clamp(40px,6.6vw,88px);line-height:1.02;letter-spacing:-.04em;margin-bottom:20px}
+.hero h1 .hl{background:linear-gradient(120deg,#2563eb 8%,#3b82f6 46%,#0ea5e9 92%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-sub{font-size:clamp(16px,1.5vw,19px);max-width:56ch;margin-bottom:30px}
+.hero::before{width:620px;height:620px;right:-8%;top:-200px;background:rgba(59,130,246,.16);animation:floatOrb 22s var(--ease) infinite}
+.hero .shot{margin-top:clamp(34px,5vh,64px)}
+.hero .shot::after{display:block;opacity:.22;filter:blur(70px) saturate(1.2)}   /* 首屏也恢复光晕 */
+.hero .shot::before{height:auto;aspect-ratio:16/9;box-shadow:0 40px 90px rgba(15,23,42,.22)}
+/* 内容区块标题加大、加渐变 */
+.section-title{font-size:clamp(28px,3.6vw,44px);letter-spacing:-.028em;margin-bottom:12px}
+.section-sub{font-size:clamp(15px,1.3vw,17.5px);max-width:70ch}
+/* 卡片网格恢复三列，留白更大 */
+.grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:20px}
+.grid .reveal.in:nth-child(n){animation-delay:0ms}
+article.feature:nth-child(2),.grid>*:nth-child(2){animation-delay:80ms}
+article.feature:nth-child(3),.grid>*:nth-child(3){animation-delay:160ms}
+article.feature:nth-child(4),.grid>*:nth-child(4){animation-delay:240ms}
+.nums li{padding:26px 28px}
+.nums h3{font-size:18px}.nums p{font-size:14.5px;line-height:1.7}
+.num{font-size:28px}
+.feature{padding:26px}.feature h3{font-size:17.5px}.feature p{font-size:14px;line-height:1.7}
+.two-col{gap:clamp(32px,4vw,64px)}
+.checks li{font-size:15px}
+.faq summary{font-size:16px;padding:18px 0}.faq p{font-size:14.5px}
+.dl-card{padding:30px}
+.release{padding:24px}
+/* 截图屏：更大、居中、带轻微上浮入场 */
+.shot{margin:clamp(40px,6vh,72px) 0 clamp(48px,7vh,88px)}
+.shot::before{height:auto;aspect-ratio:16/10;background-size:contain}
+.shot figcaption{font-size:13.5px;margin-top:12px}
+/* —— 大屏(≥1280)：更宽的版心 + 三列 —— */
+@media(min-width:1280px){
+  .container{max-width:1240px}
+  .grid{grid-template-columns:repeat(3,1fr)}
+  .hero .shot::before{aspect-ratio:16/8.6}
+}
+@media(min-width:1024px) and (max-width:1279px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+}
+/* —— 移动端：单栏、紧凑、触控友好 —— */
+@media(max-width:760px){
+  html{scroll-padding-top:calc(var(--nav-h) + 8px)}
+  .hero,main > section,body > section{padding:58px 0;min-height:0;height:auto;max-height:none}
+  .hero{padding:34px 0 46px}
+  .hero h1{font-size:clamp(30px,9vw,44px);line-height:1.08}
+  .hero-sub{font-size:15.5px;margin-bottom:24px}
+  .btn-hero{width:100%}
+  .section-title{font-size:clamp(22px,6.6vw,30px)}
+  .grid{grid-template-columns:1fr;gap:14px}
+  .two-col{grid-template-columns:1fr;gap:26px}
+  .two-col.reverse .card{order:0}
+  .shot::before{aspect-ratio:16/10}
+  .shot{margin:30px 0 38px}
+  .faq summary{font-size:15.5px;padding:16px 0}
+  .dl-head{flex-direction:column;align-items:stretch}
+  .dl-head .btn{width:100%}
+  .hero::before{width:420px;height:420px;right:-24%;top:-160px}
+}
+@media(max-width:420px){
+  .hero h1{font-size:clamp(27px,8.8vw,34px)}
+  .nums li{padding:18px;gap:12px}
+}
