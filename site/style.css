@@ -605,3 +605,45 @@ section.shot-band .shot{margin:0}
 @media(max-width:900px){
   section.shot-band{min-height:auto;padding:48px 0}
 }
+
+/* ============ 整屏幻灯片 v9：每屏锁死一屏高，内容必须放得下 ============ */
+html{scroll-snap-type:y mandatory}
+.hero,main > section,body > section{
+  height:100svh;min-height:0;max-height:100svh;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;
+  scroll-snap-align:start;scroll-snap-stop:always;padding:0
+}
+.hero{padding-top:calc(var(--nav-h) + 8px)}
+.container{width:100%}
+/* 屏内元素统一压缩，保证不溢出 */
+.section-title{font-size:clamp(24px,2.9vw,34px);margin-bottom:8px}
+.section-sub{margin-bottom:18px;font-size:15.5px}
+.nums li{padding:18px 20px}
+.nums h3{font-size:15.5px}.nums p{font-size:13.5px;line-height:1.6}
+.grid{gap:14px}
+.feature{padding:20px}
+.feature h3{font-size:15.5px;margin:8px 0 4px}.feature p{font-size:13px;line-height:1.6}
+.two-col{gap:36px}
+.checks li{font-size:14px}
+.faq details{padding:0 18px}.faq summary{padding:14px 0;font-size:15px}.faq p{margin:0 0 12px;font-size:13.5px}
+.dl-card{padding:22px}.dl-ver{font-size:18px}
+.release{padding:18px}
+/* 截图：整张可见（contain），高度锁在屏内 */
+.shot::before{height:clamp(180px,44vh,520px);background-size:contain;background-position:center;
+  background-color:#var(--surface-2)}
+.hero .shot{margin-top:clamp(14px,3vh,32px)}
+.hero .shot::before{height:clamp(150px,40vh,460px)}
+.hero h1{font-size:clamp(30px,4.4vw,58px);margin-bottom:12px}
+.hero-sub{margin-bottom:22px;font-size:15.5px}
+.btn-hero{min-height:48px;font-size:15.5px}
+.hero-note{margin-top:10px}
+/* 页脚：不占整屏 */
+body > footer, footer{height:auto;max-height:none;min-height:auto;overflow:visible;
+  scroll-snap-align:end;scroll-snap-stop:normal;padding:28px 0 36px}
+.foot-grid{gap:22px;margin-bottom:14px}
+/* 小屏：锁屏会切内容，改为自然流式 */
+@media(max-width:760px){
+  .hero,main > section,body > section{height:auto;max-height:none;min-height:auto;overflow:visible;padding:56px 0}
+  .hero{padding:36px 0 24px}
+  .shot::before{height:auto;aspect-ratio:16/10}
+}
