@@ -43,6 +43,19 @@ const allowMismatch = ref(false)
 const acknowledgeUnknownMods = ref(false)
 const busy = ref(false)
 const error = ref('')
+
+/** 主进程按 stage:'world' 上报导入进度；据此在弹窗内显示阶段与百分比 */
+const importTask = computed(() => store.tasks.find((t) => t.status === 'running' && t.stage === 'world') ?? null)
+const importPercent = computed(() => Math.round((importTask.value?.progress ?? 0) * 100))
+const importText = computed(() => importTask.value?.text ?? '')
+const importDownloading = computed(() => importText.value.startsWith('创建目标实例'))
+const importStageLabel = computed(() => {
+  const text = importText.value
+  if (text.startsWith('创建目标实例')) return '正在下载并安装目标实例'
+  if (text.startsWith('导入存档文件')) return '正在复制存档文件'
+  if (text.startsWith('验证')) return '正在校验存档与实例'
+  return '正在导入'
+})
 let folderLoadSequence = 0
 let loaderLoadSequence = 0
 
@@ -303,6 +316,13 @@ async function submit() {
             <span v-for="warning in info.warnings" :key="warning">{{ warning }}</span>
           </div>
           <p v-if="error" class="error-text">{{ error }}</p>
+          <div v-if="busy" class="import-progress">
+            <div class="ip-head"><span>{{ importStageLabel }}</span><b>{{ importPercent }}%</b></div>
+            <div class="ip-bar"><span :style="{ width: importPercent + '%' }"></span></div>
+            <p class="ip-note">
+              {{ importText || '正在准备…' }}<template v-if="importDownloading"> · 下载进度也可在「下载中心」查看</template>
+            </p>
+          </div>
           <div class="modal-actions">
             <button class="btn btn-ghost" :disabled="busy" @click="emit('close')">取消</button>
             <button class="btn btn-gold" :disabled="!canSubmit" @click="submit">
@@ -337,5 +357,13 @@ async function submit() {
 .world-notes { display: grid; gap: var(--space-1); margin-top: var(--space-3); color: var(--text-dim); font-size: var(--text-xs); line-height: 1.5; }
 .error-text { color: var(--danger); font-size: var(--text-xs); line-height: 1.45; }
 .modal-actions { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-5); }
+
+/* 导入进度：阶段 + 百分比 + 进度条 */
+.import-progress { margin-top: var(--space-5); padding: var(--space-4); border-radius: var(--radius-md); background: var(--accent-soft); }
+.ip-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); font-size: var(--text-sm); }
+.ip-head b { font-size: var(--text-lg); font-variant-numeric: tabular-nums; }
+.ip-bar { height: 6px; margin: 10px 0 8px; border-radius: 99px; background: rgba(255,255,255,.18); overflow: hidden; }
+.ip-bar > span { display: block; height: 100%; border-radius: 99px; background: var(--accent-grad); transition: width var(--motion-normal) var(--ease-out); }
+.ip-note { margin: 0; color: var(--text-dim); font-size: var(--text-xs); }
 @media (max-width: 620px) { .new-grid { grid-template-columns: 1fr; } }
 </style>
