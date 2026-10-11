@@ -179,3 +179,57 @@ html.motion .reveal.in{opacity:1;animation:rise 520ms var(--ease) both}
   .theme-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ============ 风格升级（更接近现代启动器官网的观感） ============ */
+:root{
+  --bg:#111214; --surface:#161719; --surface-2:#1b1d20; --surface-3:#23262a;
+  --line:rgba(255,255,255,.075); --line-2:rgba(255,255,255,.14);
+  --text:#f1f3f1; --text-dim:#a0a69f;
+  --shadow:0 14px 40px rgba(0,0,0,.34); --shadow-lg:0 30px 70px rgba(0,0,0,.45);
+  --r-sm:10px; --r-md:16px; --r-lg:22px; --r-xl:28px;
+}
+body{font-size:15.5px;background-image:radial-gradient(1200px 520px at 50% -14%,rgba(91,154,61,.22),transparent 60%)}
+.container{max-width:1160px;padding:0 28px}
+.section{padding:88px 0}
+.section-title{font-size:clamp(26px,3.4vw,38px);font-weight:800;letter-spacing:-.022em;margin-bottom:14px}
+.section-sub{font-size:16.5px;max-width:62ch}
+h1{font-weight:800;letter-spacing:-.025em;font-size:clamp(34px,5.4vw,58px)}
+.hero{padding:76px 0 40px}
+.hero-sub{font-size:18px;color:#adb3ac}
+.chip{border-radius:var(--pill);padding:5px 14px;background:var(--surface-2)}
+.btn{border-radius:var(--r-sm);min-height:44px}
+.btn-lg{min-height:54px;border-radius:14px}
+.card,.nums li,.faq details,.dl-card,.release,.release,.feature,.pm-card,.pm-row{
+  border-radius:var(--r-md);border-color:var(--line)}
+.nums li{padding:26px;border-radius:var(--r-lg)}
+.num{font-size:26px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,258px),1fr));gap:18px}
+.feature{padding:26px;border-radius:var(--r-lg);background:var(--surface-2);border:1px solid var(--line);
+  transition:transform var(--normal) var(--ease),border-color var(--normal) var(--ease)}
+.feature:hover{transform:translateY(-4px);border-color:var(--line-2);box-shadow:var(--shadow)}
+.feature h3{font-size:17.5px;margin-bottom:8px}
+.dl-card{padding:28px;border-radius:var(--r-xl)}
+.footer{padding:56px 0 68px}
+.foot-grid{gap:36px}
+
+/* ---------- 图片位置（截图占位） ---------- */
+.shot{margin:44px 0 0;padding:0;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;
+  background-color:var(--surface-2);box-shadow:var(--shadow-lg);position:relative}
+.shot::before{content:'';display:block;background-image:var(--shot);background-size:cover;background-position:center top}
+.shot-hero::before{aspect-ratio:16/10}
+.shot-wide::before{aspect-ratio:16/10}
+.shot-mid::before{aspect-ratio:10/7}
+.shot-label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;
+  font-size:13px;font-weight:650;color:var(--text-dim);background:rgba(20,22,24,.86);
+  border:1px dashed var(--line-2);border-radius:var(--pill);padding:8px 18px;white-space:nowrap}
+.shot figcaption{padding:14px 18px;border-top:1px solid var(--line);color:var(--text-dim);font-size:13px;
+  background:rgba(20,22,24,.7)}
+.shot-band{padding:0 0 88px}
+.shot-band .shot{margin-top:0}
+.shot-wide{margin-top:36px}
+figure{margin-inline:0}
+@media(max-width:660px){
+  .shot-label{white-space:normal;text-align:center;max-width:80%}
+  .container{padding:0 18px}
+  .section{padding:60px 0}
+}

@@ -6,7 +6,7 @@
 <title>QueAN —— 为国内玩家打造的 Minecraft Java 版启动器</title>
 <meta name="description" content="QueAN 是一款免费、开源、无广告的 Minecraft Java 版启动器：中文搜索模组、多线程下载与镜像兜底、多实例隔离、整合包导入、外置登录与联机。">
 <meta name="theme-color" content="#0f1012">
-<link rel="stylesheet" href="./style.css?v=5">
+<link rel="stylesheet" href="./style.css?v=6">
 <link rel="icon" type="image/png" href="./logo.png">
 <meta property="og:image" content="./logo.png">
 </head>
@@ -38,26 +38,11 @@
         </div>
         <p class="hero-note" id="heroNote">正在获取最新版本…</p>
       </div>
-      <!-- 自绘的启动器窗口预览（非截图） -->
-      <div class="preview" aria-hidden="true">
-        <div class="preview-bar"><span class="dots"><i></i><i></i><i></i></span><span class="preview-title">QueAN</span></div>
-        <div class="preview-body">
-          <aside class="preview-side">
-            <span class="side-item active">主页</span><span class="side-item">社区资源</span><span class="side-item">实例</span>
-            <span class="side-item">账户</span><span class="side-item">联机</span><span class="side-item">设置</span>
-          </aside>
-          <div class="preview-main">
-            <div class="pm-row"><span class="pm-avatar"></span><div><b>正版账户</b><em>已登录 · LittleSkin 预设可用</em></div><span class="btn btn-primary btn-xs">启动游戏</span></div>
-            <div class="pm-cards">
-              <div class="pm-card"><b>1.20.1 · Fabric</b><em>模组 42 · 资源包 6</em></div>
-              <div class="pm-card"><b>1.19.4 · Forge</b><em>模组 18</em></div>
-              <div class="pm-card"><b>整合包实例</b><em>一键导入完成</em></div>
-            </div>
-            <div class="pm-bar"><span style="width:62%"></span></div>
-            <p class="pm-hint">下载中 62% · 8 线程分片 · 镜像自动兜底</p>
-          </div>
-        </div>
-      </div>
+      <!-- 截图位置：主界面 -->
+      <figure class="shot shot-hero" style="--shot:url('./shots/hero.png')">
+        <span class="shot-label">主界面截图 · 建议 1600×1000</span>
+        <figcaption>QueAN 主界面：账户、实例与启动入口在同一屏完成</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -71,6 +56,11 @@
         <li><span class="num">02</span><div><h3>中文社区资源</h3><p>用中文关键词直接列出全部相关模组，不必记英文名；查看详情、选版本、装内容，依赖与更新交给启动器处理。</p></div></li>
         <li><span class="num">03</span><div><h3>下载快、装得稳</h3><p>多线程分片下载与断点续传，国内镜像自动兜底；下载完成还会做完整性校验，差网络也能装完。</p></div></li>
       </ol>
+      <!-- 截图位置：社区资源搜索 -->
+      <figure class="shot shot-wide" style="--shot:url('./shots/content.png')">
+        <span class="shot-label">社区资源搜索截图 · 建议 1600×1000</span>
+        <figcaption>中文关键词直接搜模组，查看详情、选版本、装进实例</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -86,27 +76,20 @@
           <li>外置登录支持 LittleSkin 预设，也可自定义认证服务器</li>
         </ul>
       </div>
-      <div class="card">
-        <div class="acct-row"><span class="acct-dot"></span><div><b>正版账户</b><em>已登录</em></div></div>
-        <div class="acct-row"><span class="acct-dot off"></span><div><b>离线账户</b><em>点击创建</em></div></div>
-        <div class="acct-row"><span class="acct-dot off"></span><div><b>LittleSkin</b><em>预设可用</em></div></div>
-      </div>
+      <figure class="shot shot-mid" style="--shot:url('./shots/accounts.png')">
+        <span class="shot-label">账户 / 外置登录截图 · 建议 1200×840</span>
+        <figcaption>正版、离线与外置登录（内置 LittleSkin 预设）</figcaption>
+      </figure>
     </div>
   </section>
 
   <!-- 个性化 -->
   <section id="themes" class="section">
     <div class="container two-col reverse">
-      <div class="card themes">
-        <div class="theme-grid">
-          <span class="theme" style="--t:#55c96b">绿玻璃</span>
-          <span class="theme" style="--t:#f0a13a">黑橙</span>
-          <span class="theme" style="--t:#7aa2ff">深蓝</span>
-          <span class="theme" style="--t:#c77dff">紫罗兰</span>
-          <span class="theme" style="--t:#f4f8f5;color:#1b1d20">浅色</span>
-          <span class="theme" style="--t:#101010">纯黑</span>
-        </div>
-      </div>
+      <figure class="shot shot-mid" style="--shot:url('./shots/themes.png')">
+        <span class="shot-label">主题外观截图 · 建议 1200×840</span>
+        <figcaption>多套内置主题，切换后界面整体跟随</figcaption>
+      </figure>
       <div>
         <h2 class="section-title">每台设备，都有合适的外观</h2>
         <p class="section-sub">内置多套主题与统一的设计令牌，切换后界面整体跟随。</p>
@@ -132,6 +115,16 @@
     </div>
   </section>
 
+  <!-- 截图位置：实例管理 -->
+  <section class="section shot-band">
+    <div class="container">
+      <figure class="shot shot-wide" style="--shot:url('./shots/instances.png')">
+        <span class="shot-label">实例管理截图 · 建议 1600×1000</span>
+        <figcaption>创建、导入与批量管理实例；模组、资源包、光影、存档集中管理</figcaption>
+      </figure>
+    </div>
+  </section>
+
   <!-- 联机 -->
   <section class="section">
     <div class="container two-col">
@@ -144,11 +137,10 @@
           <li>启动器只做配置与连接，不参与游戏数据转发</li>
         </ul>
       </div>
-      <div class="card connect">
-        <div class="conn-row"><b>房间</b><span class="pill">已就绪</span></div>
-        <div class="conn-line"><span>房主</span><div class="conn-bar"><span style="width:88%"></span></div><em>P2P</em></div>
-        <div class="conn-line"><span>成员</span><div class="conn-bar mid"><span style="width:64%"></span></div><em>中转</em></div>
-      </div>
+      <figure class="shot shot-mid" style="--shot:url('./shots/connect.png')">
+        <span class="shot-label">联机界面截图 · 建议 1200×840</span>
+        <figcaption>陶瓦 P2P 直连与樱花 frp 中转，按需切换</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -222,6 +214,6 @@
   </div>
 </footer>
 
-<script src="./app.js?v=5"></script>
+<script src="./app.js?v=6"></script>
 </body>
 </html>
