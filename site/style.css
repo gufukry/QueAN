@@ -386,3 +386,7 @@ details.sha p{margin:14px 0 0}
   .btn-lg{min-height:48px}
   .faq p{padding-right:0}
 }
+
+/* 图片位：探测到真实图片后隐藏占位标签与骨架微光 */
+.shot.loaded .shot-label{display:none}
+.shot.loaded::after{animation:none;background:none}

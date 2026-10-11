@@ -17,6 +17,15 @@
       items.forEach((el) => el.classList.add('in'))
     }
   }
+  // 截图位：图片到位后隐藏占位标签与微光骨架
+  document.querySelectorAll('.shot').forEach((el) => {
+    const url = getComputedStyle(el).getPropertyValue('--shot').trim().replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '')
+    if (!url) return
+    const probe = new Image()
+    probe.onload = () => el.classList.add('loaded')
+    probe.src = url
+  })
+
   const onScroll = () => document.querySelector('.nav')?.classList.toggle('scrolled', window.scrollY > 8)
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
