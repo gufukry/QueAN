@@ -1,5 +1,5 @@
 import { app } from 'electron'
-import { GITHUB_REPO } from '../../shared/branding'
+import { GITHUB_REPO, UPDATE_ENDPOINT } from '../../shared/branding'
 import type { ReleaseInfo } from '../../shared/types'
 import { updateAssetNames, updateArtifactName, type InstallationKind } from '../../shared/platform'
 import { installationKind } from '../platform'
@@ -13,8 +13,16 @@ export function trustedUpdateRelease(release: ReleaseInfo | undefined): boolean 
   if (!release || !/^\d+\.\d+\.\d+$/.test(release.version)) return false
   if (isolatedUpdateTest()) return true
   const names = updateAssetNames(release.version, process.platform, process.arch, installationKind())
+  const fromTrustedSource = names.some(name => release.assetUrl === `https://github.com/${GITHUB_REPO}/releases/download/v${release.version}/${name}`)
   return names.includes(release.assetName) && release.assetSize > 0 &&
-    names.some(name => release.assetUrl === `https://github.com/${GITHUB_REPO}/releases/download/v${release.version}/${name}`)
+    (fromTrustedSource || selfHostedAssetUrls(names).includes(release.assetUrl))
+}
+
+/** 自建更新源的资源直链（由 UPDATE_ENDPOINT 推导目录前缀后，与 GitHub 同样按资产名精确匹配）。 */
+function selfHostedAssetUrls(names: string[]): string[] {
+  if (!UPDATE_ENDPOINT) return []
+  const base = UPDATE_ENDPOINT.replace(/[^/]+$/, '')
+  return names.map(name => `${base}${name}`)
 }
 
 export function updateAssetName(version: string, platform: string = process.platform, arch: string = process.arch, installation: InstallationKind = installationKind()): string {
