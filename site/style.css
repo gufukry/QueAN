@@ -521,3 +521,26 @@ code{background:#eef2f7;border-color:var(--line);color:#1d4ed8}
   .shot{margin:40px 0 56px}
   .shot::after{filter:blur(40px);opacity:.3}
 }
+
+/* ============ 分屏滚动 v5：一屏一屏吸附（scroll-snap） ============ */
+html{
+  scroll-snap-type:y mandatory;      /* 只认整屏吸附；不支持的老浏览器自动退化为自由滚动 */
+  scroll-padding-top:var(--nav-h);
+}
+section,.hero,.shot-band,footer,header.nav{scroll-snap-align:start}
+section,footer{scroll-snap-stop:always}   /* 快速拨动也不跳过中间段落 */
+.hero{scroll-snap-stop:always}
+/* 每个小节至少占大半屏，吸附时才有"翻页"感；内容多的段落自然更高 */
+section{min-height:min(86vh,860px);display:flex;flex-direction:column;justify-content:center}
+section.shot-band{min-height:auto}        /* 纯图片段不强行撑高 */
+section.download{min-height:min(86vh,860px)}
+/* 锚点跳转与吸附对齐（顶部留出吸顶导航高度） */
+section,footer{scroll-margin-top:0}
+.section-title{scroll-margin-top:calc(var(--nav-h) + 16px)}
+@media(max-width:900px){
+  section{min-height:auto;padding:64px 0}
+  section.download{padding-bottom:72px}
+}
+/* 触屏更跟手；桌面保留平滑 */
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
