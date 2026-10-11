@@ -6,7 +6,7 @@
 
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     document.documentElement.classList.add('motion')
-    const items = document.querySelectorAll('.release, .nums li, .feature, .card')
+    const items = document.querySelectorAll('.release, .steps li, .tile, .split-copy, .dl, .faq details, .shot')
     items.forEach((el) => el.classList.add('reveal'))
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver((entries) => {

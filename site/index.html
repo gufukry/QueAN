@@ -3,198 +3,191 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>QueAN —— 为国内玩家打造的 Minecraft Java 版启动器</title>
-<meta name="description" content="QueAN 是一款免费、开源、无广告的 Minecraft Java 版启动器：中文搜索模组、多线程下载与镜像兜底、多实例隔离、整合包导入、外置登录与联机。">
-<meta name="theme-color" content="#0f1012">
-<link rel="stylesheet" href="./style.css?v=25">
+<title>QueAN —— Minecraft Java 版启动器</title>
+<meta name="description" content="QueAN：面向国内网络的 Minecraft Java 版启动器。中文搜模组、多线程下载配国内镜像、实例隔离、整合包一键导入。">
+<meta name="theme-color" content="#ffffff">
+<link rel="stylesheet" href="./style.css?v=26">
 <link rel="icon" type="image/png" href="./logo.png">
 <meta property="og:image" content="./logo.png">
 </head>
 <body>
-<header class="nav">
-  <div class="container nav-in">
-    <a class="brand" href="#top"><img class="brand-logo" src="./logo.png" alt="QueAN" width="34" height="34"><span>QueAN</span></a>
+<header class="nav" id="top">
+  <div class="nav-in container">
+    <a class="brand" href="#top"><img class="brand-logo" src="./logo.png" alt="QueAN" width="26" height="26"><span>QueAN</span></a>
     <nav class="nav-links">
-      <a href="#sources">内容</a>
+      <a href="#features">功能</a>
       <a href="#accounts">账户</a>
-      <a href="#themes">外观</a>
       <a href="#faq">常见问题</a>
-      <a class="nav-ext" href="https://github.com/kamubaba-i/KAMUCL/releases/tag/v1.1.15" target="_blank" rel="noopener noreferrer">开源地址</a>
     </nav>
-    <a class="btn btn-primary btn-sm" href="#download">下载</a>
+    <a class="nav-cta" href="#download">下载</a>
   </div>
 </header>
 
-<main id="top">
-  <!-- 首屏 -->
-  <section class="hero">
+<main>
+  <!-- 1. 首屏 -->
+  <section class="band band--light hero">
     <div class="container">
-      <div class="hero-head">
-        <p class="hero-eyebrow" id="heroVer">QueAN</p>
-        <h1>中文搜模组<br>装完就开</h1>
-        <p class="hero-sub">面向国内网络的 Minecraft Java 版启动器。</p>
-        <div class="hero-actions">
-          <a class="btn btn-primary btn-hero" id="dlBtn" href="#download">下载 Windows 版</a>
-          <a class="link-quiet" href="#sources">了解更多</a>
-        </div>
-        <p class="hero-note" id="heroNote"></p>
+      <p class="eyebrow" id="heroVer">QueAN</p>
+      <h1 class="display">为国内网络而做的<br>Minecraft 启动器</h1>
+      <p class="lead">中文关键词搜模组，多线程分片下载配国内镜像兜底，装完就能开。</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" id="dlBtn" href="#download">下载 Windows 版</a>
+        <a class="link" href="#features">看看功能 <span aria-hidden="true">›</span></a>
       </div>
-      <!-- 截图位置：主界面 -->
-      <figure class="shot shot-hero" style="--shot:url('./shots/hero.webp')">
+      <p class="footnote" id="heroNote"></p>
+      <figure class="shot shot--hero" style="--shot:url('./shots/hero.webp')">
         <span class="shot-label">主界面截图 · 建议 1600×1000</span>
-        <figcaption>QueAN 主界面：账户、实例与启动入口在同一屏完成</figcaption>
+        <figcaption>账户、实例与启动入口在同一屏完成</figcaption>
       </figure>
     </div>
   </section>
 
-  <!-- 01/02/03 -->
-  <section id="sources" class="section">
+  <!-- 2. 黑底大字段 -->
+  <section class="band band--dark">
     <div class="container">
-      <h2 class="section-title">一个启动器，把这些事都做好</h2>
-      <p class="section-sub">不用在多个工具之间来回切换。</p>
-      <ol class="nums">
-        <li><span class="num">01</span><div><h3>免费、开源且独立</h3><p>基于 MIT 许可发布，免费使用且无广告。QueAN 是基于 KAMUCL 二次开发的第三方非官方启动器，与上游作者无隶属关系。</p></div></li>
-        <li><span class="num">02</span><div><h3>中文社区资源</h3><p>用中文关键词直接列出全部相关模组，不必记英文名；查看详情、选版本、装内容，依赖与更新交给启动器处理。</p></div></li>
-        <li><span class="num">03</span><div><h3>下载快、装得稳</h3><p>多线程分片下载与断点续传，国内镜像自动兜底；下载完成还会做完整性校验，差网络也能装完。</p></div></li>
+      <h2 class="display display--sm">一个启动器<br>把这些事都做好</h2>
+      <p class="lead lead--dim">不用在多个工具之间来回切换。</p>
+      <ol class="steps">
+        <li><span class="step-num">01</span><h3>免费、开源且独立</h3><p>基于 MIT 许可，免费使用、无广告。第三方非官方版本，与上游作者无隶属关系。</p></li>
+        <li><span class="step-num">02</span><h3>中文社区资源</h3><p>中文关键词直接列出相关模组，查看详情、选版本、装进实例，依赖与更新交给启动器。</p></li>
+        <li><span class="step-num">03</span><h3>下载快、装得稳</h3><p>多线程分片与断点续传，国内镜像自动兜底；下载完成做完整性校验。</p></li>
       </ol>
     </div>
   </section>
 
-  <!-- 截图：社区资源（独立一屏，避免被吸附跳过） -->
-  <section class="section shot-band">
+  <!-- 3. 功能 Bento -->
+  <section class="band band--light" id="features">
     <div class="container">
-      <figure class="shot shot-wide" style="--shot:url('./shots/content.webp')">
+      <h2 class="display display--sm">每一处都替你想到</h2>
+      <div class="bento">
+        <article class="tile tile--wide"><h3>实例隔离</h3><p>多个游戏文件夹互不影响，实例各自独立，整合包一键导入安装。</p></article>
+        <article class="tile"><h3>Java 管理</h3><p>自动匹配所需版本，缺失可单独下载。</p></article>
+        <article class="tile"><h3>文件与模组</h3><p>模组、资源包、光影、存档集中管理，支持拖拽导入。</p></article>
+        <article class="tile tile--wide"><h3>自带更新</h3><p>发现新版本后下载、校验、替换、重启一步到位，失败保留原版。</p></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 内容截图 -->
+  <section class="band band--grey shot-band">
+    <div class="container">
+      <h2 class="display display--sm">中文搜，直接装</h2>
+      <p class="lead">关键词打中文就行，详情、版本、依赖都由启动器处理。</p>
+      <figure class="shot" style="--shot:url('./shots/content.webp')">
         <span class="shot-label">社区资源搜索截图 · 建议 1600×1000</span>
         <figcaption>中文关键词直接搜模组，查看详情、选版本、装进实例</figcaption>
       </figure>
     </div>
   </section>
 
-  <!-- 账户 -->
-  <section id="accounts" class="section alt">
-    <div class="container two-col">
-      <div>
-        <h2 class="section-title">账户，由你选择</h2>
-        <p class="section-sub">正版、离线或外置登录，都能进游戏。</p>
+  <!-- 5. 账户 -->
+  <section class="band band--light" id="accounts">
+    <div class="container split">
+      <div class="split-copy">
+        <h2 class="display display--sm">账户，由你选择</h2>
+        <p class="lead">正版、离线或外置登录，都能进游戏。</p>
         <ul class="checks">
           <li>Microsoft 正版账户登录</li>
           <li>本地离线身份，没网也能玩</li>
-          <li>外置登录支持 LittleSkin 预设，也可自定义认证服务器</li>
+          <li>外置登录内置 LittleSkin 预设，也可自定义认证服务器</li>
         </ul>
       </div>
-      <figure class="shot shot-mid" style="--shot:url('./shots/accounts.webp')">
-        <span class="shot-label">账户 / 外置登录截图 · 建议 1200×840</span>
-        <figcaption>正版、离线与外置登录（内置 LittleSkin 预设）</figcaption>
+      <figure class="shot shot--side" style="--shot:url('./shots/accounts.webp')">
+        <span class="shot-label">账户截图 · 建议 1200×840</span>
+        <figcaption>正版、离线与外置登录</figcaption>
       </figure>
     </div>
   </section>
 
-  <!-- 个性化 -->
-  <section id="themes" class="section">
-    <div class="container two-col reverse">
-      <figure class="shot shot-mid" style="--shot:url('./shots/themes.webp')">
-        <span class="shot-label">主题外观截图 · 建议 1200×840</span>
-        <figcaption>多套内置主题，切换后界面整体跟随</figcaption>
-      </figure>
-      <div>
-        <h2 class="section-title">每台设备，都有合适的外观</h2>
-        <p class="section-sub">内置多套主题与统一的设计令牌，切换后界面整体跟随。</p>
+  <!-- 6. 外观 -->
+  <section class="band band--grey">
+    <div class="container split split--reverse">
+      <div class="split-copy">
+        <h2 class="display display--sm">每台设备，都有合适的外观</h2>
+        <p class="lead">内置多套主题与统一的设计规范，切换后界面整体跟随。</p>
         <ul class="checks">
           <li>多套内置主题，深浅各有选择</li>
-          <li>统一的间距、圆角与动效规范，界面不散乱</li>
-          <li>减少动态效果的系统设置会被尊重</li>
+          <li>统一的间距、圆角与动效规范</li>
+          <li>尊重系统的「减少动态效果」设置</li>
         </ul>
       </div>
-    </div>
-  </section>
-
-  <!-- 能力网格 -->
-  <section class="section alt">
-    <div class="container">
-      <h2 class="section-title">每个世界都用得上的能力</h2>
-      <div class="grid">
-        <article class="feature"><h3>实例隔离</h3><p>多个游戏文件夹互不影响，整合包一键导入。</p></article>
-        <article class="feature"><h3>Java 管理</h3><p>自动匹配所需 Java 版本，缺失可单独下载。</p></article>
-        <article class="feature"><h3>文件与模组管理</h3><p>模组、资源包、光影与存档集中管理，支持拖拽导入。</p></article>
-        
-        
-        
-      </div>
-    </div>
-  </section>
-
-  <!-- 截图位置：实例管理 -->
-  <section class="section shot-band">
-    <div class="container">
-      <figure class="shot shot-wide" style="--shot:url('./shots/instances.webp')">
-        <span class="shot-label">实例管理截图 · 建议 1600×1000</span>
-        <figcaption>创建、导入与批量管理实例；模组、资源包、光影、存档集中管理</figcaption>
+      <figure class="shot shot--side" style="--shot:url('./shots/themes.webp')">
+        <span class="shot-label">主题截图 · 建议 1200×840</span>
+        <figcaption>多套内置主题</figcaption>
       </figure>
     </div>
   </section>
 
-  <!-- 联机 -->
-  <section class="section">
-    <div class="container two-col">
-      <div>
-        <h2 class="section-title">联机能力</h2>
-        <p class="section-sub">和朋友一起玩，不用折腾端口映射。</p>
+  <!-- 7. 实例 -->
+  <section class="band band--light shot-band">
+    <div class="container">
+      <h2 class="display display--sm">你的游戏，独立管理</h2>
+      <p class="lead">创建、导入与批量管理实例；模组、资源包、光影、存档集中管理。</p>
+      <figure class="shot" style="--shot:url('./shots/instances.webp')">
+        <span class="shot-label">实例管理截图 · 建议 1600×1000</span>
+        <figcaption>实例管理中心</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 8. 联机 -->
+  <section class="band band--grey">
+    <div class="container split">
+      <div class="split-copy">
+        <h2 class="display display--sm">和朋友一起玩</h2>
+        <p class="lead">不用折腾端口映射，两种方式按需选择。</p>
         <ul class="checks">
           <li>樱花穿透（frp 中转）：延迟取决于所选节点</li>
-          <li>陶瓦 EasyTier（P2P 直连）：朋友之间延迟更低，推荐</li>
+          <li>陶瓦 EasyTier（P2P 直连）：朋友之间延迟更低</li>
           <li>启动器只做配置与连接，不参与游戏数据转发</li>
         </ul>
       </div>
-      <figure class="shot shot-mid" style="--shot:url('./shots/connect.webp')">
-        <span class="shot-label">联机界面截图 · 建议 1200×840</span>
-        <figcaption>陶瓦 P2P 直连与樱花 frp 中转，按需切换</figcaption>
+      <figure class="shot shot--side" style="--shot:url('./shots/connect.webp')">
+        <span class="shot-label">联机截图 · 建议 1200×840</span>
+        <figcaption>选择联机方式</figcaption>
       </figure>
     </div>
   </section>
 
-  <!-- 常见问题 -->
-  <section id="faq" class="section alt">
+  <!-- 9. 下载 -->
+  <section class="band band--dark download" id="download">
     <div class="container">
-      <h2 class="section-title">常见问题</h2>
+      <h2 class="display display--sm">下载 QueAN</h2>
+      <p class="lead lead--dim">便携版，解压即用。请从本站下载以获得最新版本。</p>
+      <div class="dl">
+        <div class="dl-info">
+          <span class="lane">稳定版 Release</span>
+          <b class="dl-ver" id="dlVersion">QueAN</b>
+          <div class="kv"><span id="dlSize">—</span><span id="dlPlatform">Windows 便携版</span><span id="dlDigestShort">—</span></div>
+        </div>
+        <a class="btn btn-primary btn-lg" id="dlLink" href="#" rel="noopener">下载 Windows 版</a>
+      </div>
+      <details class="sha"><summary>查看校验值（SHA256）</summary>
+        <p><code id="dlSha">—</code></p>
+        <p class="footnote">下载后可用 <code>certutil -hashfile 文件名 SHA256</code> 校验，与上面的值一致即为完整安装包。</p>
+      </details>
+      <p class="footnote">QueAN 为第三方非官方启动器；Minecraft 是 Mojang Studios 的商标，本站仅提供启动器本体。</p>
+    </div>
+  </section>
+
+  <!-- 10. 常见问题 -->
+  <section class="band band--grey" id="faq">
+    <div class="container">
+      <h2 class="display display--sm">常见问题</h2>
       <div class="faq">
         <details open><summary>QueAN 支持哪些系统？</summary><p>目前在 Windows 10/11 x64 上提供便携版（解压即用、不写注册表）。其他平台尚未提供正式安装包。</p></details>
-        <details><summary>它是免费的吗？</summary><p>免费。QueAN 是基于 KAMUCL v1.1.15（MIT）二次开发的第三方非官方版本，保留原始版权与许可声明，与 Mojang 无隶属关系。</p></details>
-        <details><summary>可以使用正版账户和离线账户吗？</summary><p>都可以：支持 Microsoft 正版登录、本地离线身份，以及外置登录（内置 LittleSkin 预设，也可自定义认证服务器）。</p></details>
-        <details><summary>启动器怎么更新？</summary><p>启动后会自动检查；发现新版本可一键下载。下载会做 SHA256 校验，替换前保留原文件，失败不影响现有安装。</p></details>
+        <details><summary>它是免费的吗？</summary><p>免费。QueAN 是基于 KAMUCL v1.1.15（MIT）二次开发的第三方非官方版本，保留原始版权与许可声明。</p></details>
+        <details><summary>可以使用正版账户和离线账户吗？</summary><p>都可以：支持 Microsoft 正版登录、本地离线身份，以及外置登录（内置 LittleSkin 预设）。</p></details>
       </div>
     </div>
   </section>
 
-  <!-- 下载（底部） -->
-  <section id="download" class="section download">
+  <!-- 11. 更新日志 -->
+  <section class="band band--light" id="changelog">
     <div class="container">
-      <h2 class="section-title">下载 QueAN</h2>
-      <p class="section-sub">便携版，解压即用。请从本站下载以获得最新版本。</p>
-      <div class="dl-card">
-        <div class="dl-head">
-          <div>
-            <span class="lane">稳定版 Release</span>
-            <b class="dl-ver" id="dlVersion">QueAN</b>
-            <div class="kv"><span id="dlSize">—</span><span id="dlPlatform">Windows 便携版</span><span id="dlDigestShort">—</span></div>
-          </div>
-          <a class="btn btn-primary btn-lg" id="dlLink" href="#" rel="noopener">下载 Windows 版</a>
-        </div>
-        <details class="sha"><summary>查看校验值（SHA256）</summary>
-          <p><code id="dlSha">—</code></p>
-          <p class="meta">下载后可用 <code>certutil -hashfile 文件名 SHA256</code> 校验，与上面的值一致即为完整安装包。</p>
-        </details>
-      </div>
-      <p class="dl-foot">QueAN 为第三方非官方启动器；Minecraft 是 Mojang Studios 的商标，本站仅提供启动器本体，不含游戏内容。</p>
-    </div>
-  </section>
-</main>
-
-<!-- 更新日志（由脚本生成，见 scripts/site-versions.cjs） -->
-<section id="changelog" class="section alt">
-  <div class="container">
-    <h2 class="section-title">更新日志</h2>
-    <div class="log">
-      <!--LOG:START-->
+      <h2 class="display display--sm">更新日志</h2>
+      <div class="log">
+        <!--LOG:START-->
         <article class="release">
           <div class="rel-head"><b>QueAN v1.0.0</b><span class="tag">最新</span><time>2026-10-10 13:20</time></div>
           <ul>
@@ -206,22 +199,23 @@
           </ul>
         </article>
         <!--LOG:END-->
+      </div>
     </div>
-  </div>
-</section>
+  </section>
+</main>
 
 <footer class="footer">
   <div class="container">
     <div class="foot-grid">
       <div><b>QueAN</b><p>基于 KAMUCL v1.1.15（MIT）二次开发的第三方非官方 Minecraft Java 版启动器。</p></div>
       <div><b>下载</b><p><a href="#download">Windows 便携版</a></p><p><a href="#changelog">更新日志</a></p></div>
-      <div><b>开源</b><p><a href="https://github.com/kamubaba-i/KAMUCL/releases/tag/v1.1.15" target="_blank" rel="noopener noreferrer">上游 KAMUCL v1.1.15</a></p><p>MIT 许可 · 保留原始版权声明</p></div>
-      <div><b>说明</b><p>第三方非官方版本，与上游作者及 Mojang 无隶属关系</p><p>Minecraft 是 Mojang Studios 的商标</p></div>
+      <div><b>开源</b><p><a href="https://github.com/kamubaba-i/KAMUCL/releases/tag/v1.1.15" target="_blank" rel="noopener noreferrer">上游 KAMUCL v1.1.15</a></p><p>MIT 许可</p></div>
+      <div><b>说明</b><p>与上游作者及 Mojang 无隶属关系</p><p>Minecraft 是 Mojang Studios 的商标</p></div>
     </div>
     <p class="copyright">本站仅提供启动器本体下载，不含任何游戏内容。</p>
   </div>
 </footer>
 
-<script src="./app.js?v=25"></script>
+<script src="./app.js?v=26"></script>
 </body>
 </html>
