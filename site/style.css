@@ -489,3 +489,35 @@ code{background:#eef2f7;border-color:var(--line);color:#1d4ed8}
 .shot figcaption{background:rgba(255,255,255,.88);border-color:var(--line);color:var(--text-dim)}
 .shot-label{background:rgba(255,255,255,.94);border-color:rgba(37,99,235,.35);color:#1d4ed8}
 .shot:not(.loaded)::before{background-color:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line)}
+
+/* ============ 图片融入主题 v3：四边遮罩淡出 + 同图光晕渗出（无硬边框） ============ */
+.shot{margin:56px 0 72px}
+.shot::before{
+  border:0;box-shadow:none;border-radius:var(--r-xl);
+  -webkit-mask-image:
+    linear-gradient(180deg,rgba(0,0,0,0) 0,rgba(0,0,0,.55) 4%,#000 12%,#000 80%,rgba(0,0,0,.45) 92%,transparent 100%),
+    linear-gradient(90deg,transparent 0,rgba(0,0,0,.6) 5%,#000 12%,#000 88%,rgba(0,0,0,.6) 95%,transparent 100%);
+  -webkit-mask-composite:source-in;
+  mask-image:
+    linear-gradient(180deg,rgba(0,0,0,0) 0,rgba(0,0,0,.55) 4%,#000 12%,#000 80%,rgba(0,0,0,.45) 92%,transparent 100%),
+    linear-gradient(90deg,transparent 0,rgba(0,0,0,.6) 5%,#000 12%,#000 88%,rgba(0,0,0,.6) 95%,transparent 100%);
+  mask-composite:intersect;
+  transition:transform 520ms var(--ease-spring)
+}
+/* 光晕贴身，像是屏幕自己透出的光 */
+.shot::after{
+  left:6%;right:6%;top:10%;bottom:2%;border-radius:var(--r-xl);
+  filter:blur(64px) saturate(1.25);opacity:.34;transform:scale(.98) translateY(8px)
+}
+.shot:hover::before{transform:translateY(-3px) scale(1.004)}
+.shot:hover::after{opacity:.5}
+/* 图注：去掉边框，居中淡出，真正长在页面里 */
+.shot figcaption{
+  border:0;background:transparent;margin-top:-6px;padding:6px 8px 0;
+  text-align:center;color:var(--text-dim);font-size:12.5px
+}
+.shot-band{padding:8px 0 72px}
+@media(max-width:660px){
+  .shot{margin:40px 0 56px}
+  .shot::after{filter:blur(40px);opacity:.3}
+}
