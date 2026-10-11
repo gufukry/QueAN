@@ -309,3 +309,19 @@ code{background:rgba(37,99,235,.07);color:#1d4ed8}
 .shot::before{background-color:#f5f7fb}
 .shot:not(.loaded)::before{outline:1px dashed var(--line-2)}
 .shot--hero::before{box-shadow:0 24px 70px rgba(27,36,55,.14)}
+
+/* ============ 步骤网格修正 v19：标题被挤成竖排 ============ */
+/* 原因：.steps li 是两列网格，但 h3 与 p 同为网格子元素，长段落的 max-content 宽度
+   把 auto 列撑大，标题所在列被压到几乎为 0（CJK 只能一字一行）。
+   修法：显式指定 grid 位置，并用 minmax(0,1fr) 让第二列可收缩。 */
+.steps li{grid-template-columns:auto minmax(0,1fr);gap:16px 20px;align-items:start}
+.steps li > .step-num{grid-column:1;grid-row:1;padding-top:4px}
+.steps li > h3{grid-column:2;grid-row:1;margin:0 0 8px}
+.steps li > p{grid-column:2;grid-row:2;margin:0}
+/* 段落不再参与列宽计算 */
+.steps p{min-width:0;overflow-wrap:break-word;word-break:normal}
+@media(max-width:734px){
+  .steps li{grid-template-columns:auto minmax(0,1fr);gap:10px 14px}
+  .steps h3{font-size:19.5px}
+  .steps p{font-size:15.5px}
+}
