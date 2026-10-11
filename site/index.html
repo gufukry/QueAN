@@ -5,77 +5,87 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>QueAN —— Minecraft Java 版启动器</title>
 <meta name="description" content="QueAN：中文社区资源、多线程分片下载与镜像兜底、多游戏文件夹与实例隔离，支持整合包导入安装。">
-<meta name="theme-color" content="#10191b">
-<link rel="stylesheet" href="./style.css">
+<meta name="theme-color" content="#0d0f12">
+<link rel="stylesheet" href="./style.css?v=3">
 <link rel="icon" type="image/png" href="./logo.png">
 <meta property="og:image" content="./logo.png">
 </head>
 <body>
+<div class="sky" aria-hidden="true">
+  <span class="cloud c1"></span><span class="cloud c2"></span><span class="cloud c3"></span>
+</div>
+
 <header class="top">
   <div class="wrap">
     <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
-    <a class="brand" href="#top"><img class="logo" src="./logo.png" alt="QueAN 图标" width="28" height="28">QueAN</a>
-    <nav>
-      <a href="#features">功能</a>
-      <a href="#download">下载</a>
-      <a href="#changelog">更新日志</a>
-    </nav>
+    <a class="brand" href="#top"><img class="logo" src="./logo.png" alt="QueAN 图标" width="30" height="30">QUEAN</a>
+    <span class="top-note">Minecraft Java 版启动器</span>
   </div>
 </header>
 
 <main id="top">
-  <div class="wrap">
-    <section class="hero">
-      <div class="grass" aria-hidden="true"></div>
-      <img class="hero-logo" src="./logo.png" alt="QueAN" width="96" height="96">
-      <span class="badge" id="verBadge">Minecraft Java 版启动器</span>
-      <h1>为<em>国内玩家</em>打造的<br>Minecraft 启动器</h1>
-      <p class="lede">中文关键词直接搜模组、多线程分片下载加国内镜像兜底、多游戏文件夹与实例隔离、整合包一键导入。基于 KAMUCL v1.1.15（MIT）二次开发。</p>
-      <div class="cta">
-        <a class="btn btn-gold btn-lg" id="dlBtn" href="#download">下载 Windows 版</a>
-        <a class="btn btn-lg" href="#changelog">查看更新日志</a>
-      </div>
-      <p class="meta" id="dlMeta">正在读取最新版本信息…</p>
-    </section>
+  <section class="menu-hero">
+    <div class="title-block">
+      <img class="hero-logo" src="./logo.png" alt="QueAN" width="120" height="120">
+      <h1>QUEAN</h1>
+      <p class="subtitle">为国内玩家打造的 Minecraft 启动器</p>
+      <p class="version" id="verBadge">正在读取版本…</p>
+    </div>
+    <div class="menu-buttons">
+      <a class="btn btn-primary" id="dlBtn" href="#download">下载 Windows 版</a>
+      <a class="btn" href="#features">都有什么功能</a>
+      <a class="btn" href="#changelog">更新日志</a>
+    </div>
+    <p class="hero-meta" id="dlMeta"></p>
+  </section>
 
+  <div class="wrap">
     <section id="features">
-      <div class="sec-head"><h2>能做什么</h2><span>重点功能</span></div>
-      <div class="grid">
-        <div class="card reveal" style="--i:0"><div class="icon">中</div><h3>中文社区资源</h3><p>用中文关键词直接列出全部相关模组，无需输入完整英文名称。</p></div>
-        <div class="card reveal" style="--i:1"><div class="icon">速</div><h3>下载提速与容错</h3><p>多线程分片下载、断点续传，国内镜像自动兜底，差网络也能装完。</p></div>
-        <div class="card reveal" style="--i:2"><div class="icon">隔</div><h3>多文件夹与实例隔离</h3><p>多个游戏文件夹互不影响，实例各自独立，支持整合包一键导入安装。</p></div>
-        <div class="card reveal" style="--i:3"><div class="icon">登</div><h3>外置登录</h3><p>内置 LittleSkin 预设，外置登录即选即用。</p></div>
+      <h2 class="sec-title"><span class="cube"></span>能做什么</h2>
+      <div class="inventory">
+        <div class="slot reveal" style="--i:0"><span class="slot-icon">中</span><b>中文社区资源</b><em>中文关键词直接列出全部相关模组</em></div>
+        <div class="slot reveal" style="--i:1"><span class="slot-icon">速</span><b>下载提速容错</b><em>多线程分片、断点续传、镜像兜底</em></div>
+        <div class="slot reveal" style="--i:2"><span class="slot-icon">隔</span><b>实例隔离</b><em>多游戏文件夹互不影响</em></div>
+        <div class="slot reveal" style="--i:3"><span class="slot-icon">包</span><b>整合包导入</b><em>一键导入安装</em></div>
+        <div class="slot reveal" style="--i:4"><span class="slot-icon">登</span><b>外置登录</b><em>内置 LittleSkin 预设</em></div>
       </div>
     </section>
 
     <section id="download">
-      <div class="sec-head"><h2>下载</h2><span>便携版，解压即用</span></div>
-      <div class="card reveal">
-        <div class="dl">
-          <div class="dl-info">
-            <strong id="dlVersion">QueAN</strong>
-            <div class="kv">
-              <span id="dlPlatform">Windows 便携版</span>
-              <span id="dlSize">—</span>
-              <span id="dlDate">—</span>
-            </div>
-          </div>
-          <a class="btn btn-gold btn-lg" id="dlLink" href="#" rel="noopener">立即下载</a>
+      <h2 class="sec-title"><span class="cube"></span>下载</h2>
+      <div class="craft">
+        <div class="craft-grid" aria-hidden="true">
+          <span class="cell">W</span><span class="cell">I</span><span class="cell">N</span>
+          <span class="cell">便</span><span class="cell">携</span><span class="cell">版</span>
+          <span class="cell">·</span><span class="cell">·</span><span class="cell">·</span>
         </div>
-        <details class="sha">
-          <summary>校验信息（SHA256）</summary>
-          <p><code id="dlSha">—</code></p>
-          <p class="meta">下载后可用 <code>certutil -hashfile 文件名 SHA256</code> 校验，与上面的值一致即为完整安装包。</p>
-        </details>
+        <div class="craft-arrow" aria-hidden="true">➜</div>
+        <div class="craft-out">
+          <strong id="dlVersion">QueAN</strong>
+          <div class="kv"><span id="dlSize">—</span><span id="dlPlatform">Windows 便携版</span></div>
+          <a class="btn btn-primary btn-lg" id="dlLink" href="#download" rel="noopener">立即下载</a>
+        </div>
       </div>
+      <details class="sha">
+        <summary>校验信息（SHA256）</summary>
+        <p><code id="dlSha">—</code></p>
+        <p class="meta">下载后可用 <code>certutil -hashfile 文件名 SHA256</code> 校验，与上面的值一致即为完整安装包。</p>
+      </details>
     </section>
 
     <section id="changelog">
-      <div class="sec-head"><h2>更新日志</h2><span>按版本倒序</span></div>
+      <h2 class="sec-title"><span class="cube"></span>更新日志</h2>
       <div class="log" id="log"><div class="skeleton">正在加载…</div></div>
     </section>
   </div>
 </main>
+
+<nav class="hotbar" aria-label="页面导航">
+  <a class="hot-slot" href="#top" aria-label="回到顶部"><img src="./logo.png" alt="" width="22" height="22"></a>
+  <a class="hot-slot" href="#features"><span>功能</span></a>
+  <a class="hot-slot" href="#download"><span>下载</span></a>
+  <a class="hot-slot" href="#changelog"><span>日志</span></a>
+</nav>
 
 <footer>
   <div class="wrap">
@@ -84,6 +94,6 @@
   </div>
 </footer>
 
-<script src="./app.js"></script>
+<script src="./app.js?v=3"></script>
 </body>
 </html>

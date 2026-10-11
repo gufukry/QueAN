@@ -37,7 +37,7 @@
     .then((manifest) => {
       const version = String(manifest.tag_name || '').replace(/^v/, '')
       const asset = (manifest.assets || [])[0] || {}
-      setText('verBadge', version ? '最新版本 v' + version : null)
+      setText('verBadge', version ? '最新版本 v' + version : '')
       setText('dlVersion', version ? 'QueAN v' + version : null)
       setText('dlSize', fmtSize(asset.size))
       setText('dlDate', manifest.published_at ? fmtDate(manifest.published_at) : '')
