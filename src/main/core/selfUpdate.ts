@@ -10,7 +10,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { app } from 'electron'
-import { GITHUB_REPO } from '../../shared/branding'
+import { GITHUB_REPO, UPDATE_ENDPOINT } from '../../shared/branding'
 import { compareSemver, isNewerVersion } from '../../shared/semver'
 import type { ReleaseInfo, UpdateCheckResult } from '../../shared/types'
 import { httpFetch } from './httpClient'
@@ -145,6 +145,22 @@ export async function checkLatest(force = false): Promise<UpdateCheckResult> {
     return { ok: true, hasUpdate: has, release: cache.latest ?? undefined, fromCache: true }
   }
   try {
+    // 自建端点优先（与 GitHub Release 同构）；任何失败都静默回落 GitHub
+    if (UPDATE_ENDPOINT) {
+      try {
+        const res = await httpFetch(UPDATE_ENDPOINT, { signal: AbortSignal.timeout(8000) })
+        if (res.ok) {
+          const latest = toReleaseInfo((await res.json()) as GhRelease)
+          if (latest) {
+            writeCache({ etag: cache?.etag, checkedAt: Date.now(), latest })
+            return { ok: true, hasUpdate: isNewerVersion(latest.version, current), release: latest }
+          }
+          updateLog.info('自建更新端点清单不可用，改用 GitHub')
+        } else {
+          updateLog.info(`自建更新端点 HTTP ${res.status}，改用 GitHub`)
+        }
+      } catch (e) { updateLog.info('自建更新端点不可用，改用 GitHub', e) }
+    }
     const res = await ghFetch(`${apiBase()}/repos/${GITHUB_REPO}/releases/latest`, cache?.etag)
     if (res.status === 304) {
       // 未变化：刷新缓存时间，沿用上次结果（304 不计限流）
