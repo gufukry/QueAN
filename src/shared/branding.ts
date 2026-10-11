@@ -24,3 +24,9 @@ export const UPDATE_MIRRORS = [
  * 服务器侧用 deploy/quean-update-setup.sh 生成（扫描目录里的 exe/zip）。
  */
 export const UPDATE_ENDPOINT = 'https://qafaka.cc.cd/quean-update/latest.json'
+
+/** 官网地址（设置 → 关于与更新页的「前往官网」入口） */
+export const SITE_URL = 'https://qafaka.cc.cd/'
+
+/** 赞助链接（设置 → 关于与更新页的「赞助」入口，爱发电） */
+export const SPONSOR_URL = 'https://afdian.com/a/QueAN'

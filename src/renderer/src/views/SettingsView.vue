@@ -27,6 +27,7 @@ import {
 } from '../api'
 import { enterEditMode, store, toast } from '../store'
 import { DEFAULT_CUSTOM_THEME, THEME_PRESETS } from '@shared/types'
+import { SITE_URL, SPONSOR_URL } from '@shared/branding'
 import { autoMemoryMB } from '@shared/memory'
 import MemoryOrganizer from '../components/MemoryOrganizer.vue'
 import type { PluginInfo, ReleaseInfo, Settings, ThemeName } from '@shared/types'
@@ -1062,6 +1063,12 @@ async function onRemovePlugin(p: PluginInfo) {
             <span data-ui="SettingsView:cd41281572d3" v-if="updateCheckState === 'latest'" class="upd-latest">已是最新 ✓</span>
           </div>
           <div class="upd-row">
+            <span class="upd-label">帮助与支持</span>
+            <span class="muted">官网有完整功能说明与常见问题；如果 QueAN 帮到了你，可以赞助支持后续开发。</span>
+            <a class="btn btn-ghost btn-sm" :href="SITE_URL" target="_blank" rel="noopener noreferrer">前往官网</a>
+            <a class="btn btn-ghost btn-sm" :href="SPONSOR_URL" target="_blank" rel="noopener noreferrer">赞助</a>
+          </div>
+          <div class="upd-row">
             <span class="upd-label">启动时自动检查更新</span>
             <span class="muted">每次打开启动器检查新版本，发现更新会弹窗询问「立即更新 / 稍后 / 跳过此版本」</span>
             <label class="switch">
@@ -1084,8 +1091,6 @@ async function onRemovePlugin(p: PluginInfo) {
             <span data-ui="SettingsView:0447f8159ad6" class="upd-pending-text">{{ updateReadyMessage(`v${pendingUpdate.release.version} 已就绪`) }}</span>
             <button data-ui="SettingsView:5bd17b41383a" class="btn btn-gold btn-sm" @click="onApplyPending">{{ installAction }}</button>
           </div>
-          <p class="muted group-hint">QueAN 是基于 KAMUCL v1.1.15（MIT 许可）的二次开发（二开）项目，保留原始版权与许可声明；为第三方非官方版本，与上游作者无关。</p>
-          <p class="muted group-hint">更新包发布在 GitHub Releases，下载自动走镜像加速；启动自动检查关闭后，仍可用上方「检查更新」手动检查。仅提供「检查更新」与「立即更新」。</p>
         </div>
       </details>
 

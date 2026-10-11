@@ -11,6 +11,14 @@ export interface UpdateNote {
 /** 按版本倒序；latest 为当前版本。只写版本级重点，不记流水账 */
 export const updateNotes: UpdateNote[] = [
   {
+    "version": "1.0.3",
+    "date": "2026-10-11 20:10",
+    "changes": [
+      "「关于与更新」页新增「前往官网」与「赞助」入口：官网有完整功能说明与常见问题，赞助走爱发电",
+      "精简关于页文案：移除已由官网承载的项目说明与更新机制描述"
+    ]
+  },
+  {
     "version": "1.0.2",
     "date": "2026-10-11 15:35",
     "changes": [
