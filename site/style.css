@@ -737,3 +737,21 @@ a,button,.btn,.hot-slot{-webkit-tap-highlight-color:transparent}
   .hero,main > section,body > section{min-height:auto;padding:28px 0}
   .shot::before{height:clamp(160px,52vh,260px);aspect-ratio:auto}
 }
+
+/* ============ 吸附抖动修正 v11：屏高扣除吸顶导航，吸附点归零 ============ */
+/* 原因：导航是 sticky 且占 60px 文档高度，吸附位置却按视口顶端计算，
+   每次吸附就会把内容再往上顶一个导航的高度。现在屏高 = 视口高 - 导航高，
+   scroll-padding-top 归零，两者严格对齐，不再出现"往上移动一下"。 */
+html{scroll-padding-top:0}
+:root{--slide-h:calc(100svh - var(--nav-h))}
+@supports not (height:100svh){:root{--slide-h:calc(100vh - var(--nav-h))}}
+.hero,main > section,body > section{
+  height:var(--slide-h);max-height:var(--slide-h)
+}
+.hero{padding-top:0}
+/* 锚点跳转仍要给导航留位置（只影响点击导航，不影响吸附） */
+#sources,#accounts,#themes,#faq,#download,#changelog{scroll-margin-top:var(--nav-h)}
+@media(max-width:760px){
+  html{scroll-padding-top:var(--nav-h)}
+  .hero,main > section,body > section{min-height:auto;height:auto;max-height:none}
+}
