@@ -363,3 +363,22 @@ a.btn-primary,.btn-primary,.btn-primary:link,.btn-primary:visited,.btn-primary:h
   .display{font-size:clamp(25px,7.4vw,30px)}
   .display--sm{font-size:clamp(20px,5.8vw,24px)}
 }
+
+/* ============ 更新日志：默认只展开最新，其余折叠 ============ */
+.log .release:first-child { padding-top: 26px; }
+details.history { margin-top: 4px; }
+details.history > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 18px 4px; cursor: pointer; list-style: none; color: var(--text);
+  font-size: 17px; font-weight: 500;
+}
+details.history > summary::-webkit-details-marker { display: none }
+details.history > summary::after {
+  content: ''; flex: none; width: 9px; height: 9px; margin-right: 6px;
+  border-right: 2px solid var(--text-3); border-bottom: 2px solid var(--text-3);
+  transform: rotate(45deg) translate(-2px,-2px);
+  transition: transform var(--normal) var(--ease);
+}
+details.history[open] > summary::after { transform: rotate(225deg) translate(-1px,-1px); border-color: var(--btn) }
+details.history[open] > summary { color: var(--text-2) }
+details.history .release:last-child { border-bottom: 0 }

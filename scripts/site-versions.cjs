@@ -18,11 +18,19 @@ const versionsFile = path.join(root, 'site/versions.json')
 fs.writeFileSync(versionsFile, JSON.stringify({ generatedAt: new Date().toISOString(), versions: notes }, null, 2) + '\n', 'utf-8')
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-const rows = notes.map((rel, index) => {
-  const items = (rel.changes || []).map((line) => `          <li>${esc(line)}</li>`).join('\n')
-  const tag = index === 0 ? '<span class="tag">最新</span>' : ''
-  return `        <article class="release">\n          <div class="rel-head"><b>QueAN v${esc(rel.version)}</b>${tag}<time>${esc(rel.date || '')}</time></div>\n          <ul>\n${items}\n          </ul>\n        </article>`
-}).join('\n')
+/** 单条版本卡片；isLatest 时挂「最新」标签 */
+const renderRelease = (rel, isLatest) => {
+  const items = (rel.changes || []).map((line) => `            <li>${esc(line)}</li>`).join('\n')
+  const tag = isLatest ? '<span class="tag">最新</span>' : ''
+  return `          <article class="release">\n            <div class="rel-head"><b>QueAN v${esc(rel.version)}</b>${tag}<time>${esc(rel.date || '')}</time></div>\n            <ul>\n${items}\n            </ul>\n          </article>`
+}
+// 默认只展开最新版本，其余收进折叠的「历史版本」
+const latest = renderRelease(notes[0], true)
+const older = notes.slice(1)
+const history = older.length
+  ? `          <details class="history">\n            <summary>历史版本（${older.length}）</summary>\n${older.map((r) => renderRelease(r, false)).join('\n')}\n          </details>`
+  : ''
+const rows = [latest, history].filter(Boolean).join('\n')
 
 const htmlFile = path.join(root, 'site/index.html')
 let html = fs.readFileSync(htmlFile, 'utf-8')
