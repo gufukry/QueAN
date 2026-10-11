@@ -36,7 +36,7 @@
       const version = String(m.tag_name || '').replace(/^v/, '')
       const asset = (m.assets || [])[0] || {}
       const digest = String(asset.digest || '').replace(/^sha256:/, '')
-      if (version) { set('dlVersion', 'QueAN v' + version); set('heroNote', `最新版本 v${version} · ${fmt(asset.size)}`) }
+      if (version) { set('dlVersion', 'QueAN v' + version); set('heroVer', 'v' + version); set('heroNote', `${fmt(asset.size)} · SHA256 校验后可用`) }
       set('dlSize', fmt(asset.size))
       set('dlDigestShort', digest ? 'SHA256 ' + digest.slice(0, 12) + '…' : '')
       set('dlSha', digest || '—')

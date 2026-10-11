@@ -544,3 +544,32 @@ section,footer{scroll-margin-top:0}
 /* 触屏更跟手；桌面保留平滑 */
 html{scroll-behavior:smooth}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* ============ 首屏重做 v6：左对齐、强层级、去堆砌 ============ */
+.hero{padding:clamp(48px,8vh,110px) 0 0;text-align:left}
+.hero-head{max-width:760px;margin:0}
+.hero-eyebrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 20px;
+  font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--text-dim)}
+.hero-eyebrow i{width:4px;height:4px;border-radius:50%;background:rgba(37,99,235,.45)}
+.hero-eyebrow span:first-child{color:#1d4ed8}
+.hero h1{font-size:clamp(38px,6.4vw,76px);line-height:1.06;letter-spacing:-.035em;margin:0 0 22px;font-weight:800}
+.hero h1 .hl{background:linear-gradient(180deg,#3b82f6,#1d4ed8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-sub{max-width:62ch;margin:0 0 34px;font-size:clamp(15px,1.35vw,18px);line-height:1.8;color:var(--text-dim)}
+.hero-cta{display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+.btn-hero{min-height:56px;padding:0 26px;font-size:16.5px;border-radius:14px;gap:14px}
+.btn-hint{font-size:12px;font-weight:600;opacity:.85;background:rgba(255,255,255,.16);padding:3px 8px;border-radius:6px}
+.link-arrow{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:var(--text)}
+.link-arrow span{transition:transform 260ms var(--ease-spring);color:var(--brand)}
+.link-arrow:hover{color:var(--brand)}
+.link-arrow:hover span{transform:translateX(5px)}
+.hero-note{margin:18px 0 0;color:var(--text-dim);font-size:12.5px;font-variant-numeric:tabular-nums}
+/* 首屏截图：更宽、更靠下，像产品页主视觉 */
+.hero .shot{margin:44px 0 0;padding:0}
+.hero .shot::before{-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 5%,#000 78%,transparent 100%),linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0,#000 5%,#000 78%,transparent 100%),linear-gradient(90deg,transparent 0,#000 7%,#000 93%,transparent 100%)}
+.hero .shot figcaption{text-align:left;padding-left:2px}
+@media(max-width:900px){
+  .hero{padding:40px 0 0}
+  .hero-cta{gap:18px}
+  .btn-hero{min-height:50px;font-size:15.5px}
+}
