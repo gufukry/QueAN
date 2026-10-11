@@ -17,6 +17,20 @@
     if (el && text) el.textContent = text
   }
 
+  // 滚动浮现与顶栏状态
+  const reveal = (el) => el && el.classList.add('in')
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { reveal(e.target); io.unobserve(e.target) } })
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 })
+    document.querySelectorAll('.reveal').forEach((el) => io.observe(el))
+  } else {
+    document.querySelectorAll('.reveal').forEach(reveal)
+  }
+  const onScroll = () => document.querySelector('header.top')?.classList.toggle('scrolled', window.scrollY > 8)
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+
   // 下载区：数据来自站点旁 /quean-update/latest.json（与你上传的包永远一致）
   fetch(UPDATE_MANIFEST, { cache: 'no-store' })
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))))
@@ -49,7 +63,8 @@
       box.innerHTML = ''
       versions.forEach((rel, index) => {
         const card = document.createElement('article')
-        card.className = 'rel'
+        card.className = 'rel reveal'
+        card.style.setProperty('--i', String(index))
         const head = document.createElement('div')
         head.className = 'rel-head'
         const title = document.createElement('b')
@@ -73,6 +88,9 @@
         })
         card.appendChild(list)
         box.appendChild(card)
+      })
+      requestAnimationFrame(() => {
+        box.querySelectorAll('.reveal').forEach((el) => el.classList.add('in'))
       })
     })
     .catch(() => {

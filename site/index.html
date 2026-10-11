@@ -7,13 +7,14 @@
 <meta name="description" content="QueAN：中文社区资源、多线程分片下载与镜像兜底、多游戏文件夹与实例隔离，支持整合包导入安装。">
 <meta name="theme-color" content="#10191b">
 <link rel="stylesheet" href="./style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='9' fill='%2355c96b'/></svg>">
+<link rel="icon" type="image/png" href="./logo.png">
+<meta property="og:image" content="./logo.png">
 </head>
 <body>
 <header class="top">
   <div class="wrap">
     <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
-    <a class="brand" href="#top"><span class="logo" aria-hidden="true"></span>QueAN</a>
+    <a class="brand" href="#top"><img class="logo" src="./logo.png" alt="QueAN 图标" width="28" height="28">QueAN</a>
     <nav>
       <a href="#features">功能</a>
       <a href="#download">下载</a>
@@ -25,6 +26,7 @@
 <main id="top">
   <div class="wrap">
     <section class="hero">
+      <img class="hero-logo" src="./logo.png" alt="QueAN" width="96" height="96">
       <span class="badge" id="verBadge">Minecraft Java 版启动器</span>
       <h1>为国内玩家打造的<br>Minecraft 启动器</h1>
       <p class="lede">中文关键词直接搜模组、多线程分片下载加国内镜像兜底、多游戏文件夹与实例隔离、整合包一键导入。基于 KAMUCL v1.1.15（MIT）二次开发。</p>
@@ -38,16 +40,16 @@
     <section id="features">
       <div class="sec-head"><h2>能做什么</h2><span>重点功能</span></div>
       <div class="grid">
-        <div class="card"><div class="icon">中</div><h3>中文社区资源</h3><p>用中文关键词直接列出全部相关模组，无需输入完整英文名称。</p></div>
-        <div class="card"><div class="icon">速</div><h3>下载提速与容错</h3><p>多线程分片下载、断点续传，国内镜像自动兜底，差网络也能装完。</p></div>
-        <div class="card"><div class="icon">隔</div><h3>多文件夹与实例隔离</h3><p>多个游戏文件夹互不影响，实例各自独立，支持整合包一键导入安装。</p></div>
-        <div class="card"><div class="icon">登</div><h3>外置登录</h3><p>内置 LittleSkin 预设，外置登录即选即用。</p></div>
+        <div class="card reveal" style="--i:0"><div class="icon">中</div><h3>中文社区资源</h3><p>用中文关键词直接列出全部相关模组，无需输入完整英文名称。</p></div>
+        <div class="card reveal" style="--i:1"><div class="icon">速</div><h3>下载提速与容错</h3><p>多线程分片下载、断点续传，国内镜像自动兜底，差网络也能装完。</p></div>
+        <div class="card reveal" style="--i:2"><div class="icon">隔</div><h3>多文件夹与实例隔离</h3><p>多个游戏文件夹互不影响，实例各自独立，支持整合包一键导入安装。</p></div>
+        <div class="card reveal" style="--i:3"><div class="icon">登</div><h3>外置登录</h3><p>内置 LittleSkin 预设，外置登录即选即用。</p></div>
       </div>
     </section>
 
     <section id="download">
       <div class="sec-head"><h2>下载</h2><span>便携版，解压即用</span></div>
-      <div class="card">
+      <div class="card reveal">
         <div class="dl">
           <div class="dl-info">
             <strong id="dlVersion">QueAN</strong>
