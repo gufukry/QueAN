@@ -80,6 +80,9 @@ fun QueApp(state: AppState) {
             surfaceVariant = Color(0xFFF5F5F7), onSurfaceVariant = Color(0xFF808080)
         )
         MaterialTheme(colorScheme = colors) {
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.material3.LocalContentColor provides colors.onBackground
+            ) {
             var splash by remember { mutableStateOf(true) }
             var uiReady by remember { mutableStateOf(false) }
             Box(Modifier.fillMaxSize().background(colors.background)) {
@@ -171,6 +174,7 @@ fun QueApp(state: AppState) {
                         }
                     )
                 }
+            }
             }
         }
     }
