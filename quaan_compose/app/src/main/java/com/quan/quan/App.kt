@@ -435,6 +435,8 @@ private fun DevicePage(state: AppState) {
         HairLine()
         KvRow("内核版本", state.kernelVer)
         HairLine()
+        KvRow("本机内核", System.getProperty("os.version") ?: "-")
+        HairLine()
         KvRow(
             "核心状态", if (state.online) "运行中" else "需要检查",
             if (state.online) Color(0xFF00B578) else Color(0xFFFA5151)
@@ -460,6 +462,46 @@ private fun DevicePage(state: AppState) {
 
 @Composable
 private fun ConfigPage(state: AppState) {
+    CardC {
+        CardTitle("切换游戏")
+        state.gameNames.forEachIndexed { i, name ->
+            OptionRadio(name, "", state.game == i) {
+                state.updateGame(i)
+                state.checkUpdate()
+            }
+        }
+        Body("切换后会按对应游戏读取内核文件与云更新版本。")
+    }
+
+    CardC {
+        CardTitle("内核配置")
+        Body("输入配置码（HXCFG1.…）或服务器数字码，导入后写入内核读取位置。")
+        Box(
+            Modifier.fillMaxWidth().height(56.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
+                .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            if (state.cfgInput.isEmpty()) {
+                Text(
+                    "粘贴配置码 / 数字码", fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            BasicTextField(
+                value = state.cfgInput,
+                onValueChange = { state.cfgInput = it },
+                singleLine = true,
+                textStyle = TextStyle(
+                    fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        DarkButton("导入配置") { state.importKernelCfg() }
+        if (state.cfgStatus.isNotBlank()) Body(state.cfgStatus)
+    }
+
     CardC {
         androidx.compose.material3.Icon(
             Icons.Rounded.Settings, null,

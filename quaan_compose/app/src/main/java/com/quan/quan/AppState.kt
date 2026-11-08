@@ -42,6 +42,8 @@ class AppState(ctx: Context) {
     var loginMsg by mutableStateOf("")
     var needKernel by mutableStateOf(false)
     var showKernelPrompt by mutableStateOf(false)
+    var cfgInput by mutableStateOf("")
+    var cfgStatus by mutableStateOf("")
 
     val gameNames = listOf("和平精英", "PUBG MOBILE")
 
@@ -94,6 +96,35 @@ class AppState(ctx: Context) {
     }
 
     /** 首次打开检查：没内核就弹提示 */
+    /** 导入内核配置：纯数字走服务器取码，HXCFG1. 开头直接解析 */
+    fun importKernelCfg() {
+        val input = cfgInput.trim()
+        if (input.isEmpty()) { cfgStatus = "请先输入配置码或数字码"; return }
+        cfgStatus = "正在处理…"
+        Thread {
+            var code = input
+            if (input.all { it.isDigit() }) {
+                val fetched = KernelCfg.fetchByNumber(input)
+                if (fetched == null) {
+                    cfgStatus = "配置码不存在或服务器无返回"
+                    return@Thread
+                }
+                code = fetched
+            }
+            val (cfg, err) = KernelCfg.decode(code)
+            if (cfg == null) {
+                cfgStatus = err ?: "解析失败"
+                return@Thread
+            }
+            val ok = KernelCfg.write(cfg, app.filesDir) { cmd -> sh(cmd) }
+            cfgStatus = if (ok) "配置已导入，重启内核后生效" else "写入失败（需要 root）"
+            if (ok) {
+                File(app.filesDir, "last_cfg_code.txt").writeText(code)
+                appendLog("> 内核配置已导入")
+            }
+        }.start()
+    }
+
     fun checkFirstRun() {
         val downloaded = prefs.getBoolean("first_dl_" + gameKey(), false)
         needKernel = !hasKernel()
@@ -214,7 +245,14 @@ class AppState(ctx: Context) {
         return list.firstOrNull()
     }
 
-    fun kvNow(): String = sh("uname -r").takeWhile { it.isDigit() || it == '.' }.ifBlank { "-" }
+    /** 本机内核版本：优先系统属性（无需 root），再用 uname 兜底 */
+    fun kvNow(): String {
+        val prop = System.getProperty("os.version") ?: ""
+        if (prop.isNotBlank()) return prop
+        val u = sh("uname -r")
+        if (u.startsWith("执行失败")) return "-"
+        return u.ifBlank { "-" }
+    }
 
     fun runDriver() {
         if (drvSel.isBlank()) { appendLog("> 还没有选驱动"); return }
