@@ -75,13 +75,15 @@ class AppState(ctx: Context) {
         scanDrivers()
     }
 
-    fun shCode(cmd: String): Pair<String, Int> = try {
-        val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
-        val out = p.inputStream.bufferedReader().readText()
-        p.waitFor()
-        out to p.exitValue()
-    } catch (t: Throwable) {
-        ("执行失败: ${t.message}") to -1
+    fun shCode(cmd: String): Pair<String, Int> {
+        return try {
+            val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
+            val out: String = p.inputStream.bufferedReader().readText()
+            p.waitFor()
+            Pair(out, p.exitValue())
+        } catch (t: Throwable) {
+            Pair("执行失败: " + t.message, -1)
+        }
     }
 
     /** 长驻进程：边跑边把输出塞进日志 */
