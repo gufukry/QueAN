@@ -19,7 +19,9 @@ class AppState(ctx: Context) {
     var online by mutableStateOf(false)
     var running by mutableStateOf(false)
     var log by mutableStateOf("")
-    var drv by mutableStateOf(prefs.getString("drv", "paradise") ?: "paradise")
+    var drv by mutableStateOf(
+        (prefs.getString("drv", "paradise") ?: "paradise").ifBlank { "paradise" }
+    )
     var drvSel by mutableStateOf(prefs.getString("drv_sel", "") ?: "")
     var drvList by mutableStateOf(listOf<String>())
     var drvState by mutableStateOf("未知")
@@ -142,6 +144,17 @@ class AppState(ctx: Context) {
 
     /** 自动初始化：驱动就绪 → 起内核（不启动游戏） */
     private fun runDriverBlocking(): Boolean {
+        // 自动刷驱动默认走 paradise
+        val hasParadise = try {
+            (app.assets.list("drivers/paradise") ?: emptyArray()).isNotEmpty()
+        } catch (t: Throwable) {
+            false
+        }
+        if (hasParadise && drv != "paradise") {
+            drv = "paradise"
+            drvSel = ""
+            prefs.edit().putString("drv", "paradise").remove("drv_sel").apply()
+        }
         if (drvSel.isBlank()) scanDrivers()
         if (drvSel.isBlank()) {
             appendLog("> 没有找到可用驱动，跳过驱动步骤")
