@@ -17,6 +17,8 @@ class AppState(ctx: Context) {
     var game by mutableStateOf(prefs.getInt("game", 0))
     var mode by mutableStateOf(prefs.getInt("mode", 0))
     var online by mutableStateOf(false)
+    var hasRoot by mutableStateOf(false)
+    var failed by mutableStateOf(false)
     var running by mutableStateOf(false)
     var log by mutableStateOf("")
     var drv by mutableStateOf(
@@ -94,6 +96,7 @@ class AppState(ctx: Context) {
             appendLog("> 内核进程退出（码 ${p.exitValue()}）")
         } catch (t: Throwable) {
             appendLog("> 运行失败：${t.message}")
+            failed = true
         }
     }
 
@@ -118,7 +121,19 @@ class AppState(ctx: Context) {
         val pid = sh("pidof quean_kernel.bin quean_kernel.sh heping heping_dfm | head -1")
         online = pid.isNotBlank() && !pid.startsWith("执行失败")
         running = online
+        checkRoot()
     }
+
+    /** 是否拿到 root：有 root 就视为"已成功" */
+    fun checkRoot() {
+        val out = sh("id")
+        hasRoot = out.contains("uid=0")
+    }
+
+    /** 顶部状态：有 root 且没失败过 = 已成功，否则需检查 */
+    fun statusOk(): Boolean = hasRoot && !failed
+
+    fun statusText(): String = if (statusOk()) "已成功" else "需检查"
 
     /* ---------------- 卡密 ---------------- */
 
@@ -222,6 +237,7 @@ class AppState(ctx: Context) {
             }
             val mods = sh("cat /proc/modules 2>/dev/null; lsmod 2>/dev/null")
             drvState = if (mods.contains("drv")) "已加载" else if (ok) "已执行" else "失败"
+            if (!ok) failed = true
             appendLog("> 驱动状态：$drvState")
             ok
         } catch (t: Throwable) {
@@ -233,6 +249,7 @@ class AppState(ctx: Context) {
     /** 登录 → 驱动 → 内核（悬浮窗由内核自己弹，不启动游戏） */
     fun startFlow() {
         if (logging) return
+        failed = false
         if (kami.isBlank()) { loginMsg = "请输入卡密"; return }
         logging = true
         loginMsg = "正在验证…"
@@ -347,6 +364,7 @@ class AppState(ctx: Context) {
         if (src.length() < 1024) {
             appendLog("> 还没有内核文件，先在配置页「检查内核更新」下载")
             running = false
+            failed = true
             return
         }
         running = true

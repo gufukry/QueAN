@@ -496,8 +496,8 @@ private fun HomePage(state: AppState) {
             CardTitle("运行模式")
             Spacer(Modifier.weight(1f))
             ChipC(
-                if (state.online) "运行中" else "需检查",
-                if (state.online) Color(0xFF00B578) else Color(0xFFFA5151)
+                if (state.online) "运行中" else state.statusText(),
+                if (state.online || state.statusOk()) Color(0xFF00B578) else Color(0xFFFA5151)
             )
         }
         OptionRadio("内核ROOT模式", "保留现有内核驱动与 ELF 核心流程", true) { }
@@ -540,10 +540,16 @@ private fun DevicePage(state: AppState) {
         )
         Body("当前连接的 Android 设备")
         ChipC(
-            if (state.online) "正常" else "需检查",
-            if (state.online) Color(0xFF00B578) else Color(0xFFFA5151)
+            if (state.online) "运行中" else state.statusText(),
+            if (state.online || state.statusOk()) Color(0xFF00B578) else Color(0xFFFA5151)
         )
-        Body(if (state.online) "核心运行状态 正常。" else "检查核心运行状态 失败。")
+        Body(
+            when {
+                state.online -> "核心运行状态 正常。"
+                state.statusOk() -> "Root 权限已获取，可以初始化。"
+                else -> "检查 Root 权限 / 核心运行状态 失败。"
+            }
+        )
     }
 
     CardC {
@@ -558,8 +564,8 @@ private fun DevicePage(state: AppState) {
         StackedRow("本机内核", System.getProperty("os.version") ?: "-")
         HairLine()
         StackedRow(
-            "核心状态", if (state.online) "运行中" else "需要检查",
-            if (state.online) Color(0xFF00B578) else Color(0xFFFA5151)
+            "核心状态", if (state.online) "运行中" else state.statusText(),
+            if (state.online || state.statusOk()) Color(0xFF00B578) else Color(0xFFFA5151)
         )
         LightButton("复制设备信息") { state.copyDevice() }
     }
