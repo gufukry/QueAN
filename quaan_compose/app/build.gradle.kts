@@ -1,7 +1,5 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -21,9 +19,13 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions { jvmTarget = "17" }
-    buildFeatures { compose = true }
-    lint { abortOnError = false }
+    buildFeatures {
+        compose = true
+    }
+
+    lint {
+        abortOnError = false
+    }
 }
 
 dependencies {
