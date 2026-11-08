@@ -9,6 +9,7 @@ object Wy {
     const val HOST = "wy.llua.cn"
     const val APPID = "34202"
     const val RC4KEY = "uc79fbccf0cd3cb613793ef317a3eeb7d8b"
+    const val APPKEY = "j678e201b22de2975315e2b186183fd8"
     const val UA = "Mozilla/5.0 (Linux; Android) QueAN"
 }
 

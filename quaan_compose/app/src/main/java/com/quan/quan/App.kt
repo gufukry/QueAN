@@ -222,6 +222,45 @@ private fun MainScreen(state: AppState, bg: Color) {
 /* ---------------- 启动页 ---------------- */
 
 @Composable
+private fun LogCard(state: AppState) {
+    val scroll = rememberScrollState()
+    LaunchedEffect(state.log) { scroll.animateScrollTo(scroll.maxValue) }
+    CardC {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            CardTitle("日志")
+            Spacer(Modifier.weight(1f))
+            Text(
+                "清空", fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { state.clearLog() }
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+        }
+        Box(
+            Modifier.fillMaxWidth().height(180.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
+                .padding(12.dp)
+        ) {
+            Column(Modifier.verticalScroll(scroll)) {
+                Text(
+                    if (state.log.isBlank()) "暂无日志" else state.log,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    color = if (state.log.isBlank())
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    else Color(0xFF3A7D44)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun HomePage(state: AppState) {
     CardC {
         CardTitle("开始使用")
@@ -286,11 +325,9 @@ private fun HomePage(state: AppState) {
         }
         OptionRadio("内核ROOT模式", "保留现有内核驱动与 ELF 核心流程", true) { }
         if (state.online) LightButton("停止内核") { state.stopKernel() }
-        if (state.log.isNotBlank()) {
-            HairLine()
-            Body(state.log.takeLast(600), size = 12)
-        }
     }
+
+    LogCard(state)
 
     CardC {
         CardTitle("内核初始化方式")
@@ -398,6 +435,8 @@ private fun ConfigPage(state: AppState) {
             Body(state.noticeText)
         }
     }
+
+    LogCard(state)
 
     CardC {
         CardTitle("导入与备份")

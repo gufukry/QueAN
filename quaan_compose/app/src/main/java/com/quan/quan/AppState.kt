@@ -43,6 +43,14 @@ class AppState(ctx: Context) {
 
     val gameNames = listOf("和平精英", "PUBG MOBILE")
 
+    /** 设备码（微验的 markcode） */
+    fun deviceId(): String {
+        val id = android.provider.Settings.Secure.getString(
+            app.contentResolver, android.provider.Settings.Secure.ANDROID_ID
+        )
+        return if (id.isNullOrBlank()) "unknown_device" else id
+    }
+
     fun updateDark(v: Boolean) { dark = v; prefs.edit().putBoolean("dark", v).apply() }
     fun updateGame(v: Int) { game = v; prefs.edit().putInt("game", v).apply() }
     fun updateMode(v: Int) { mode = v; prefs.edit().putInt("mode", v).apply() }
@@ -88,7 +96,7 @@ class AppState(ctx: Context) {
         logging = true
         loginMsg = "正在验证…"
         Thread {
-            val r = wyLogin(kami.trim())
+            val r = wyLogin(kami.trim(), deviceId())
             logging = false
             licensed = r.ok
             loginMsg = r.msg
@@ -356,6 +364,10 @@ class AppState(ctx: Context) {
             }
             downloading = false
         }.start()
+    }
+
+    fun clearLog() {
+        log = ""
     }
 
     private fun appendLog(s: String) {
