@@ -153,14 +153,14 @@ private fun DeviceScreen(state: AppState) {
 private fun SettingsScreen(state: AppState) {
     Panel("外观") {
         Row2("深色模式", if (state.dark) "开" else "关")
-        top.yukonga.miuix.kmp.basic.Button(onClick = { state.setDark(!state.dark) },
+        top.yukonga.miuix.kmp.basic.Button(onClick = { state.updateDark(!state.dark) },
             modifier = Modifier.fillMaxWidth()) {
             top.yukonga.miuix.kmp.basic.Text("切换主题")
         }
     }
     Panel("目标游戏") {
         state.gameNames.forEachIndexed { i, name ->
-            top.yukonga.miuix.kmp.basic.Button(onClick = { state.setGame(i) },
+            top.yukonga.miuix.kmp.basic.Button(onClick = { state.updateGame(i) },
                 modifier = Modifier.fillMaxWidth()) {
                 top.yukonga.miuix.kmp.basic.Text(if (state.game == i) "✓ $name" else name)
             }
@@ -168,7 +168,7 @@ private fun SettingsScreen(state: AppState) {
     }
     Panel("初始化方式") {
         listOf("自动", "普通", "内核").forEachIndexed { i, name ->
-            top.yukonga.miuix.kmp.basic.Button(onClick = { state.setMode(i) },
+            top.yukonga.miuix.kmp.basic.Button(onClick = { state.updateMode(i) },
                 modifier = Modifier.fillMaxWidth()) {
                 top.yukonga.miuix.kmp.basic.Text(if (state.mode == i) "✓ $name" else name)
             }

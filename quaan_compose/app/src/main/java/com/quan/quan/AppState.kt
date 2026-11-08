@@ -21,9 +21,9 @@ class AppState(ctx: Context) {
     val gameNames = listOf("和平精英", "PUBG MOBILE")
     val gamePackages = listOf("com.tencent.tmgp.pubgmhd", "com.tencent.ig")
 
-    fun setDark(v: Boolean) { dark = v; prefs.edit().putBoolean("dark", v).apply() }
-    fun setGame(v: Int) { game = v; prefs.edit().putInt("game", v).apply() }
-    fun setMode(v: Int) { mode = v; prefs.edit().putInt("mode", v).apply() }
+    fun updateDark(v: Boolean) { dark = v; prefs.edit().putBoolean("dark", v).apply() }
+    fun updateGame(v: Int) { game = v; prefs.edit().putInt("game", v).apply() }
+    fun updateMode(v: Int) { mode = v; prefs.edit().putInt("mode", v).apply() }
 
     /** 执行 su 命令，返回输出 */
     fun sh(cmd: String): String = try {
