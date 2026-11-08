@@ -1,10 +1,12 @@
 plugins {
     id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
     namespace = "com.quan.quan"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.quaan.loader"
@@ -19,13 +21,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    buildFeatures {
-        compose = true
-    }
-
-    lint {
-        abortOnError = false
-    }
+    kotlinOptions { jvmTarget = "17" }
+    buildFeatures { compose = true }
+    lint { abortOnError = false }
 }
 
 dependencies {
