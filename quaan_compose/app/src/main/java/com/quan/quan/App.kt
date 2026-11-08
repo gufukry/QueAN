@@ -85,8 +85,38 @@ fun QueApp(state: AppState) {
                     state.scanDrivers()
                     state.checkUpdate()
                     state.checkFirstRun()
+                    state.autoCheckUpdate()
                 }
                 if (splash) SplashOverlay { splash = false }
+                if (state.updatePrompt) {
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = { state.dismissUpdatePrompt() },
+                        title = { Text("发现新版本", fontWeight = FontWeight.SemiBold) },
+                        text = {
+                            Text(
+                                "${state.gameNames[state.promptGame]} 内核 v${state.promptVer} 已发布，前往更新页下载？",
+                                fontSize = 14.sp
+                            )
+                        },
+                        confirmButton = {
+                            Text(
+                                "前往更新", fontSize = 15.sp, fontWeight = FontWeight.Medium,
+                                modifier = Modifier
+                                    .clickable { state.gotoUpdateFromPrompt() }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+                        },
+                        dismissButton = {
+                            Text(
+                                "稍后", fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .clickable { state.dismissUpdatePrompt() }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+                        }
+                    )
+                }
                 if (state.showKernelPrompt) {
                     androidx.compose.material3.AlertDialog(
                         onDismissRequest = { },

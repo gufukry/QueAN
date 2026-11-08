@@ -44,6 +44,9 @@ class AppState(ctx: Context) {
     var showKernelPrompt by mutableStateOf(false)
     var upGame by mutableStateOf(0)          // 更新页选中的游戏
     var showUpdatePage by mutableStateOf(false)
+    var updatePrompt by mutableStateOf(false)
+    var promptGame by mutableStateOf(0)
+    var promptVer by mutableStateOf("")
     var cfgInput by mutableStateOf("")
     var cfgStatus by mutableStateOf("")
 
@@ -461,6 +464,35 @@ class AppState(ctx: Context) {
         }.start()
     }
 
+    /** 启动时静默检查当前游戏：有新版就弹提示（不跳页） */
+    fun autoCheckUpdate() {
+        Thread {
+            val raw = fetchNotice() ?: return@Thread
+            noticeRaw = raw
+            noticeText = stripUpdateLines(raw)
+            applyUpdateFor(raw, game)
+            val local = localKernelVer(game)
+            val newer = !hasKernel(game) ||
+                    (upVer.isNotBlank() && (local.isBlank() || compareVersion(upVer, local) > 0))
+            if (newer && upUrl.isNotBlank()) {
+                promptGame = game
+                promptVer = upVer
+                updatePrompt = true
+            }
+        }.start()
+    }
+
+    /** 弹窗里点「前往更新」：打开更新页并选好对应游戏 */
+    fun gotoUpdateFromPrompt() {
+        upGame = promptGame
+        updatePrompt = false
+        openUpdatePage(promptGame)
+    }
+
+    fun dismissUpdatePrompt() {
+        updatePrompt = false
+    }
+
     fun openUpdatePage(g: Int) {
         upGame = g
         applyUpdateFor(noticeRaw)
@@ -481,8 +513,8 @@ class AppState(ctx: Context) {
         }
     }
 
-    private fun applyUpdateFor(raw: String) {
-        val block = updateBlock(raw, if (upGame == 0) "" else gameKey(upGame))
+    private fun applyUpdateFor(raw: String, g: Int = upGame) {
+        val block = updateBlock(raw, if (g == 0) "" else gameKey(g))
             ?: updateBlock(raw, "")
         if (block == null) { upVer = ""; upUrl = ""; return }
         val bar1 = block.indexOf('|')
