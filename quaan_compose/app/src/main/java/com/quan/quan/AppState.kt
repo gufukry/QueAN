@@ -133,6 +133,7 @@ class AppState(ctx: Context) {
     }
 
     fun checkFirstRun() {
+        upGame = game
         val downloaded = prefs.getBoolean("first_dl_" + gameKey(), false)
         needKernel = !hasKernel()
         showKernelPrompt = needKernel && !downloaded
@@ -479,6 +480,7 @@ class AppState(ctx: Context) {
 
     /** 启动时静默检查当前游戏：有新版就弹提示（不跳页） */
     fun autoCheckUpdate() {
+        if (showKernelPrompt || needKernel) return   // 首次使用只提示下载内核
         Thread {
             val raw = fetchNotice() ?: return@Thread
             noticeRaw = raw
@@ -561,6 +563,8 @@ class AppState(ctx: Context) {
                     .putBoolean("first_dl_${gameKey(upGame)}", true).apply()
                 needKernel = false
                 upStatus = "已更新到 v$upVer"
+                Thread.sleep(600)
+                showUpdatePage = false
                 appendLog("> 内核已更新到 v$upVer")
             } else {
                 upStatus = "下载失败，请重试"

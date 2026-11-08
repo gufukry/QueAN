@@ -68,11 +68,16 @@ fun QueApp(state: AppState) {
     }
     MiuixTheme(controller = controller) {
         val c = MiuixTheme.colorScheme
-        val colors = (if (state.dark) darkColorScheme() else lightColorScheme()).copy(
+        val colors = if (state.dark) darkColorScheme(
             primary = c.primary, onPrimary = c.onPrimary,
-            background = c.background, onBackground = c.onBackground,
-            surface = c.surface, onSurface = c.onSurface,
-            surfaceVariant = c.surfaceContainer, onSurfaceVariant = c.onSurface
+            background = Color(0xFF000000), onBackground = Color(0xFFF2F2F2),
+            surface = Color(0xFF1C1C1E), onSurface = Color(0xFFF2F2F2),
+            surfaceVariant = Color(0xFF2C2C2E), onSurfaceVariant = Color(0xFF8C8C8C)
+        ) else lightColorScheme(
+            primary = c.primary, onPrimary = c.onPrimary,
+            background = Color(0xFFF2F3F5), onBackground = Color(0xFF0D0D0D),
+            surface = Color(0xFFFFFFFF), onSurface = Color(0xFF0D0D0D),
+            surfaceVariant = Color(0xFFF5F5F7), onSurfaceVariant = Color(0xFF808080)
         )
         MaterialTheme(colorScheme = colors) {
             var splash by remember { mutableStateOf(true) }
@@ -122,18 +127,26 @@ fun QueApp(state: AppState) {
                         onDismissRequest = { },
                         title = { Text("首次使用", fontWeight = FontWeight.SemiBold) },
                         text = {
-                            Text(
-                                "还没有下载内核本体。需要先下载一次才能初始化，下载完会自动替换并生效。",
-                                fontSize = 14.sp
-                            )
+                            Column {
+                                Text(
+                                    "还没有下载内核本体。先选要下载哪个游戏的内核：",
+                                    fontSize = 14.sp
+                                )
+                                Spacer(Modifier.height(10.dp))
+                                state.gameNames.forEachIndexed { i, name ->
+                                    OptionRadio(name, "", state.upGame == i) {
+                                        state.upGame = i
+                                    }
+                                }
+                            }
                         },
                         confirmButton = {
                             Text(
                                 "立即下载", fontSize = 15.sp, fontWeight = FontWeight.Medium,
                                 modifier = Modifier
                                     .clickable {
-                                        state.upGame = state.game
-                                        state.openUpdatePage(state.game)
+                                        state.showKernelPrompt = false
+                                        state.openUpdatePage(state.upGame)
                                         state.startUpdate()
                                     }
                                     .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -527,16 +540,16 @@ private fun DevicePage(state: AppState) {
 
     CardC {
         CardTitle("系统信息")
-        KvRow(
+        StackedRow(
             "Android",
             "${android.os.Build.VERSION.RELEASE} · API ${android.os.Build.VERSION.SDK_INT}"
         )
         HairLine()
-        KvRow("内核版本", state.kernelVer)
+        StackedRow("内核版本", state.kernelVer)
         HairLine()
-        KvRow("本机内核", System.getProperty("os.version") ?: "-")
+        StackedRow("本机内核", System.getProperty("os.version") ?: "-")
         HairLine()
-        KvRow(
+        StackedRow(
             "核心状态", if (state.online) "运行中" else "需要检查",
             if (state.online) Color(0xFF00B578) else Color(0xFFFA5151)
         )

@@ -87,6 +87,20 @@ fun KvRow(k: String, v: String, vColor: Color = Color.Unspecified) {
     }
 }
 
+/** 上下结构的信息行：标签一行、值一行（长文本不会挤压） */
+@Composable
+fun StackedRow(label: String, value: String, vColor: Color = Color.Unspecified) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Text(label, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            value, fontSize = 15.sp, fontWeight = FontWeight.Medium,
+            lineHeight = 21.sp,
+            color = if (vColor == Color.Unspecified) MaterialTheme.colorScheme.onSurface else vColor
+        )
+    }
+}
+
 @Composable
 fun HairLine() {
     Box(
