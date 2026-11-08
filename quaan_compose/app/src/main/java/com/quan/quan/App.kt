@@ -701,6 +701,7 @@ private fun HomePage(state: AppState) {
     }
 }
 
+@Composable
 private fun DevicePage(state: AppState) {
     CardC {
         androidx.compose.material3.Icon(
