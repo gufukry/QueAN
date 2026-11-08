@@ -73,6 +73,38 @@ class AppState(ctx: Context) {
         scanDrivers()
     }
 
+    fun shCode(cmd: String): Pair<String, Int> = try {
+        val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
+        val out = p.inputStream.bufferedReader().readText()
+        p.waitFor() to p.exitValue()
+    } catch (t: Throwable) {
+        ("执行失败: ${t.message}") to -1
+    }
+
+    /** 长驻进程：边跑边把输出塞进日志 */
+    private fun shStream(cmd: String) {
+        try {
+            val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
+            val r = p.inputStream.bufferedReader()
+            while (true) {
+                val line = r.readLine() ?: break
+                if (line.isNotBlank()) appendLog(line)
+            }
+            p.waitFor()
+            appendLog("> 内核进程退出（码 ${p.exitValue()}）")
+        } catch (t: Throwable) {
+            appendLog("> 运行失败：${t.message}")
+        }
+    }
+
+    private fun isElf(f: File): Boolean = try {
+        val h = f.inputStream().use { it.readNBytes(4) }
+        h.size == 4 && h[0].toInt() == 0x7F &&
+                h[1].toInt() == 'E'.code && h[2].toInt() == 'L'.code && h[3].toInt() == 'F'.code
+    } catch (t: Throwable) {
+        false
+    }
+
     fun sh(cmd: String): String = try {
         val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
         val out = p.inputStream.bufferedReader().readText()
@@ -143,9 +175,8 @@ class AppState(ctx: Context) {
         showKernelPrompt = false
     }
 
-    /** 自动初始化：驱动就绪 → 起内核（不启动游戏） */
+    /** 刷驱动：默认输入 1（insmod），失败自动换 2（ksud） */
     private fun runDriverBlocking(): Boolean {
-        // 自动刷驱动默认走 paradise
         val hasParadise = try {
             (app.assets.list("drivers/paradise") ?: emptyArray()).isNotEmpty()
         } catch (t: Throwable) {
@@ -163,22 +194,36 @@ class AppState(ctx: Context) {
         }
         appendLog("> ① 自动导入驱动：$drv / $drvSel")
         return try {
-            val dir = "/data/local/qdrv"
             val names = app.assets.list("drivers/$drv") ?: emptyArray()
-            sh("rm -rf $dir && mkdir -p $dir && chmod 777 $dir")
+            val tmp = File(app.filesDir, "qdrv").also { it.mkdirs() }
             for (n in names) {
-                val bytes = app.assets.open("drivers/$drv/$n").readBytes()
-                val f = File(app.filesDir, "drv_$n")
-                f.writeBytes(bytes)
-                sh("cp '" + f.absolutePath + "' '$dir/$n' && chmod 777 '$dir/$n'")
+                if (!n.contains(".")) continue
+                File(tmp, n).writeBytes(app.assets.open("drivers/$drv/$n").readBytes())
             }
-            val pre = if (drv == "twt") "sh Executemefirst.sh < /dev/null; " else ""
-            val out = sh("cd $dir && $pre sh '$drvSel' < /dev/null")
-            appendLog(if (out.isBlank()) "> 驱动已执行" else out)
+            val inFile = File(app.filesDir, "user_driver.in").also { it.writeText("1") }
+            val pre = if (drv == "twt")
+                names.filter { it.lowercase().contains("executemefirst") }
+                    .joinToString("") { "sh '$it' < /dev/null; " } else ""
+            fun build(input: String) = "rm -rf /data/local/qdrv && mkdir -p /data/local/qdrv && " +
+                    "cp -f '${tmp.absolutePath}'/* /data/local/qdrv/ && " +
+                    "chmod -R 777 /data/local/qdrv && " +
+                    "cp '${inFile.absolutePath}' /data/local/tmp/quean_in.txt && " +
+                    "cd /data/local/qdrv && $pre sh '$drvSel' '$input' " +
+                    "< /data/local/tmp/quean_in.txt"
+
+            val (out1, code1) = shCode(build("1"))
+            if (out1.isNotBlank()) appendLog(out1)
+            var ok = code1 == 0
+            if (!ok) {
+                appendLog("> insmod 方式失败（退出码 $code1），改用 ksud 重试")
+                val (out2, code2) = shCode(build("2"))
+                if (out2.isNotBlank()) appendLog(out2)
+                ok = code2 == 0
+            }
             val mods = sh("cat /proc/modules 2>/dev/null; lsmod 2>/dev/null")
-            drvState = if (mods.contains("drv")) "已加载" else "已执行"
+            drvState = if (mods.contains("drv")) "已加载" else if (ok) "已执行" else "失败"
             appendLog("> 驱动状态：$drvState")
-            true
+            ok
         } catch (t: Throwable) {
             appendLog("> 驱动执行失败：${t.message}")
             false
@@ -275,28 +320,8 @@ class AppState(ctx: Context) {
 
     fun runDriver() {
         if (drvSel.isBlank()) { appendLog("> 还没有选驱动"); return }
-        appendLog("> 执行驱动：$drv / $drvSel")
-        Thread {
-            try {
-                val dir = "/data/local/qdrv"
-                val names = app.assets.list("drivers/$drv") ?: emptyArray()
-                sh("rm -rf $dir && mkdir -p $dir && chmod 777 $dir")
-                for (n in names) {
-                    val bytes = app.assets.open("drivers/$drv/$n").readBytes()
-                    val f = File(app.filesDir, "drv_$n")
-                    f.writeBytes(bytes)
-                    sh("cp '" + f.absolutePath + "' '$dir/$n' && chmod 777 '$dir/$n'")
-                }
-                val pre = if (drv == "twt") "sh Executemefirst.sh < /dev/null; " else ""
-                val out = sh("cd $dir && $pre sh '$drvSel' < /dev/null")
-                appendLog(if (out.isBlank()) "> 无输出" else out)
-                val mods = sh("cat /proc/modules 2>/dev/null; lsmod 2>/dev/null")
-                drvState = if (mods.contains("drv")) "已加载" else "已执行"
-                appendLog("> 驱动状态：$drvState")
-            } catch (t: Throwable) {
-                appendLog("> 驱动执行失败：${t.message}")
-            }
-        }.start()
+        appendLog("> 手动刷驱动：$drv / $drvSel")
+        Thread { runDriverBlocking() }.start()
     }
 
     /* ---------------- 内核 ---------------- */
@@ -314,30 +339,30 @@ class AppState(ctx: Context) {
     fun hasKernel(g: Int = game): Boolean = kernelFile(g).length() > 1024
 
     fun startKernel() {
-        if (running) { appendLog("内核已在运行"); return }
+        if (running) {
+            appendLog("> 内核已在运行")
+            return
+        }
+        val src = kernelFile(game)
+        if (src.length() < 1024) {
+            appendLog("> 还没有内核文件，先在配置页「检查内核更新」下载")
+            running = false
+            return
+        }
         running = true
-        appendLog("> 正在准备内核…")
+        appendLog("> ② 正在启动内核…")
         Thread {
-            try {
-                val f = File(app.filesDir, "quean_kernel.sh")
-                if (kernelFile().length() > 1024) {
-                    kernelFile().copyTo(f, overwrite = true)
-                    appendLog("> 使用云端内核 v" + localKernelVer())
-                } else {
-                    f.writeBytes(app.assets.open("loader/heping_dfm.sh").readBytes())
-                }
-                val out = sh(
-                    "cp '" + f.absolutePath + "' /data/local/tmp/quean_kernel.sh && " +
-                            "chmod 777 /data/local/tmp/quean_kernel.sh && " +
-                            "cd /data/local/tmp && sh quean_kernel.sh < /dev/null"
-                )
-                appendLog(if (out.isBlank()) "> 无输出" else out)
-            } catch (t: Throwable) {
-                appendLog("> 启动失败：${t.message}")
-            } finally {
-                refreshStatus()
-                if (!online) running = false
-            }
+            val elf = isElf(src)
+            val target = if (elf) "quean_kernel.bin" else "quean_kernel.sh"
+            val run = if (elf) "./$target" else "sh $target"
+            val cmd = "pkill -f quean_kernel; sleep 0.3; " +
+                    "cp '${src.absolutePath}' /data/local/tmp/$target && " +
+                    "chmod 777 /data/local/tmp/$target && cd /data/local/tmp && " +
+                    "HX_DRV=$drv HX_NORECORD=false $run < /dev/null"
+            appendLog("> 运行内核（${if (elf) "ELF" else "脚本"}）：$target  驱动=$drv")
+            shStream(cmd)
+            refreshStatus()
+            running = false
         }.start()
     }
 
