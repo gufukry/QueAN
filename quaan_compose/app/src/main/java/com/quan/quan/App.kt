@@ -1,6 +1,12 @@
 package com.quan.quan
 
 import android.graphics.BitmapFactory
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -178,18 +184,32 @@ private fun MainScreen(state: AppState, bg: Color) {
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
             )
 
-            Column(
-                Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                when (state.page) {
-                    0 -> HomePage(state)
-                    1 -> DevicePage(state)
-                    2 -> ConfigPage(state)
-                    else -> GuidePage()
+            AnimatedContent(
+                targetState = state.page,
+                transitionSpec = {
+                    // 往右边的页签切 → 新页从右侧推进来；往左返回 → 从左侧
+                    val dir = if (targetState > initialState) 1 else -1
+                    (slideInHorizontally(tween(260)) { full -> dir * full } +
+                            fadeIn(tween(180))) togetherWith
+                            (slideOutHorizontally(tween(260)) { full -> -dir * full } +
+                                    fadeOut(tween(180)))
+                },
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                label = "page"
+            ) { page ->
+                Column(
+                    Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    when (page) {
+                        0 -> HomePage(state)
+                        1 -> DevicePage(state)
+                        2 -> ConfigPage(state)
+                        else -> GuidePage()
+                    }
+                    Spacer(Modifier.height(96.dp))
                 }
-                Spacer(Modifier.height(96.dp))
             }
         }
         Box(Modifier.align(Alignment.BottomCenter).padding(horizontal = 24.dp, vertical = 10.dp)) {
