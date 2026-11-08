@@ -8,14 +8,14 @@ data class LoginResult(val ok: Boolean, val msg: String, val expireText: String,
 private fun rc4hex(data: String, key: String): String {
     val out = rc4(data.toByteArray(), key.toByteArray())
     val sb = StringBuilder()
-    for (b in out) sb.append(String.format("%02x", b.toInt() and 0xFF))
+    for (b in out) sb.append((b.toInt() and 0xFF).toString(16).padStart(2, '0'))
     return sb.toString()
 }
 
 fun md5(s: String): String {
     val d = MessageDigest.getInstance("MD5").digest(s.toByteArray())
     val sb = StringBuilder()
-    for (b in d) sb.append(String.format("%02x", b.toInt() and 0xFF))
+    for (b in d) sb.append((b.toInt() and 0xFF).toString(16).padStart(2, '0'))
     return sb.toString()
 }
 
@@ -30,7 +30,7 @@ private fun jsonStr(js: String, k: String): String =
 private fun loginOnce(kami: String, deviceId: String): LoginResult {
     val t = System.currentTimeMillis() / 1000L
     val sign = md5("kami=$kami&markcode=$deviceId&t=$t&${Wy.APPKEY}")
-    val value = String.valueOf(t) + (100000 + (Math.random() * 900000).toInt())
+    val value = t.toString() + (100000 + (Math.random() * 900000).toInt())
     val plain = "kami=$kami&markcode=$deviceId&t=$t&sign=$sign&value=$value"
     val enc = rc4hex(plain, Wy.RC4KEY)
     val url = "https://${Wy.HOST}/api/?id=kmlogin&app=${Wy.APPID}"
