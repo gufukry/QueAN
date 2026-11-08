@@ -391,12 +391,12 @@ private fun SplashOverlay(done: () -> Unit) {
 @Composable
 private fun MainScreen(state: AppState, bg: Color) {
     val backdrop = rememberLayerBackdrop { drawRect(bg); drawContent() }
-    val titles = listOf("启动", "运行环境", "配置管理", "使用指南")
+    val titles = listOf("启动", "本机", "设置", "说明")
     val subs = listOf(
-        "选择初始化方式，输入卡密后开始使用。",
-        "查看设备信息与当前运行状态。",
-        "保存当前参数，或导入已有配置。",
-        "了解初始化流程与配置保存方法。"
+        "填好卡密即可一键初始化并启动内核。",
+        "本机信息、驱动与内核状态一览。",
+        "切换游戏、导入配置、检查内核更新。",
+        "启动流程与常见问题。"
     )
 
     Box(Modifier.fillMaxSize().safeDrawingPadding()) {
@@ -591,8 +591,24 @@ private fun LogCard(state: AppState) {
 @Composable
 private fun HomePage(state: AppState) {
     CardC {
-        CardTitle("开始使用")
-        Text("单码卡密", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            CardTitle("当前状态")
+            Spacer(Modifier.weight(1f))
+            ChipC(
+                if (state.online) "运行中" else state.statusText(),
+                if (state.online || state.statusOk()) Color(0xFF00B578) else Color(0xFFFA5151)
+            )
+        }
+        HairLine()
+        StackedRow("目标游戏", state.gameNames[state.game])
+        HairLine()
+        StackedRow("内核版本", state.kernelVer)
+        HairLine()
+        StackedRow("驱动通道", state.drv + " · " + state.drvSel.ifBlank { "待选择" })
+    }
+
+    CardC {
+        CardTitle("卡密")
         Box(
             Modifier.fillMaxWidth().height(56.dp)
                 .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
@@ -601,7 +617,7 @@ private fun HomePage(state: AppState) {
         ) {
             if (state.kami.isEmpty()) {
                 Text(
-                    "请输入卡密", fontSize = 15.sp,
+                    "在此粘贴卡密", fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -617,19 +633,19 @@ private fun HomePage(state: AppState) {
         }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("记住卡密", fontSize = 16.sp)
+                Text("自动填写", fontSize = 16.sp)
                 Text(
-                    "下次打开时自动填写", fontSize = 12.5.sp,
+                    "下次打开时自动填入卡密", fontSize = 12.5.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Switch(checked = state.remember, onCheckedChange = { state.updateRemember(it) })
         }
         DarkButton(
-            if (state.licensed) "重新验证并启动" else "初始化并启动",
+            if (state.licensed) "重新验证并启动" else "一键初始化",
             enabled = !state.logging
         ) { state.startFlow() }
-        Body("选择方式只保存设置，点击上方按钮后才执行初始化。")
+        Body("上面只是保存设置，点按钮才会刷驱动并起内核。")
         if (state.loginMsg.isNotBlank()) {
             Body(
                 if (state.licensed) "已登录 ${state.expireText}" else state.loginMsg,
@@ -637,48 +653,53 @@ private fun HomePage(state: AppState) {
             )
         }
         if (state.licensed) {
-            Body("当前卡密：${state.kami}", size = 12)
-            LightButton("退出登录") { state.logout() }
+            Spacer(Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Body("当前卡密 ${state.kami}", size = 12)
+                Spacer(Modifier.weight(1f))
+                Text(
+                    "退出", fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { state.logout() }
+                        .padding(horizontal = 6.dp, vertical = 4.dp)
+                )
+            }
         }
     }
 
     CardC {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            CardTitle("运行模式")
-            Spacer(Modifier.weight(1f))
-            ChipC(
-                if (state.online) "运行中" else state.statusText(),
-                if (state.online || state.statusOk()) Color(0xFF00B578) else Color(0xFFFA5151)
-            )
+        CardTitle("初始化方式")
+        val names = listOf("自动初始化", "普通初始化", "内核初始化")
+        names.forEachIndexed { i, n ->
+            OptionRadio(n, "", state.mode == i) { state.updateMode(i) }
         }
-        OptionRadio("内核ROOT模式", "保留现有内核驱动与 ELF 核心流程", true) { }
-        if (state.online) LightButton("停止内核") { state.stopKernel() }
+        Body("自动挑可用的入口，初始化成功后才拉起核心。")
+    }
+
+    CardC {
+        CardTitle("运行方式")
+        OptionRadio("内核ROOT模式", "使用内核驱动与 ELF 核心", true) { }
+        HairLine()
+        Text("当前内核", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(state.kernelVer, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+        if (state.online) {
+            Spacer(Modifier.height(4.dp))
+            LightButton("停止内核") { state.stopKernel() }
+        }
     }
 
     LogCard(state)
 
     CardC {
-        CardTitle("内核初始化方式")
-        val names = listOf("自动初始化", "普通初始化", "内核初始化")
-        names.forEachIndexed { i, n ->
-            OptionRadio(n, "", state.mode == i) { state.updateMode(i) }
-        }
-        Body("自动检测可用初始化入口；初始化成功后才启动核心。")
-        HairLine()
-        Text("当前内核", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(state.kernelVer, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-        Body("匹配对应内核版本并检测加载能力；实际加载失败不会反复尝试或启动核心。")
-    }
-
-    CardC {
-        CardTitle("启动小贴士")
-        Body("等待初始化与验证完成后，再手动进入游戏。")
+        CardTitle("提示")
+        Body("初始化完成后回到桌面，再进入游戏即可看到悬浮窗。")
     }
 }
 
-/* ---------------- 设备页 ---------------- */
-
-@Composable
 private fun DevicePage(state: AppState) {
     CardC {
         androidx.compose.material3.Icon(
