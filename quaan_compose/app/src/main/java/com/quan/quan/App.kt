@@ -104,6 +104,89 @@ fun QueApp(state: AppState) {
                         uiReady = true
                     }
                 }
+                if (state.driverDialog) {
+                    val dScroll = rememberScrollState()
+                    LaunchedEffect(state.driverLog) { dScroll.animateScrollTo(dScroll.maxValue) }
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = { state.closeDriverDialog() },
+                        title = { Text("刷驱动", fontWeight = FontWeight.SemiBold) },
+                        text = {
+                            Column {
+                                Text(
+                                    "${state.drv} · ${state.drvSel}",
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(Modifier.height(10.dp))
+                                Box(
+                                    Modifier.fillMaxWidth().height(52.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.surfaceVariant,
+                                            RoundedCornerShape(14.dp)
+                                        )
+                                        .padding(horizontal = 14.dp),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    if (state.driverInput.isEmpty()) {
+                                        Text(
+                                            "输入菜单序号，默认 1",
+                                            fontSize = 14.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    BasicTextField(
+                                        value = state.driverInput,
+                                        onValueChange = { state.driverInput = it },
+                                        singleLine = true,
+                                        textStyle = TextStyle(
+                                            fontSize = 15.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        ),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                                Spacer(Modifier.height(10.dp))
+                                Box(
+                                    Modifier.fillMaxWidth().height(150.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.surfaceVariant,
+                                            RoundedCornerShape(14.dp)
+                                        )
+                                        .padding(10.dp)
+                                ) {
+                                    Column(Modifier.verticalScroll(dScroll)) {
+                                        Text(
+                                            if (state.driverLog.isBlank()) "日志会显示在这里"
+                                            else state.driverLog,
+                                            fontSize = 12.sp, lineHeight = 17.sp,
+                                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                            color = if (state.driverLog.isBlank())
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                            else Color(0xFF3A7D44)
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            Text(
+                                "执行", fontSize = 15.sp, fontWeight = FontWeight.Medium,
+                                modifier = Modifier
+                                    .clickable { state.runDriverManual() }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+                        },
+                        dismissButton = {
+                            Text(
+                                "关闭", fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .clickable { state.closeDriverDialog() }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+                        }
+                    )
+                }
                 if (uiReady && state.updatePrompt) {
                     androidx.compose.material3.AlertDialog(
                         onDismissRequest = { state.dismissUpdatePrompt() },
@@ -584,7 +667,7 @@ private fun DevicePage(state: AppState) {
         state.drvList.forEach { n ->
             OptionRadio(n, "", state.drvSel == n) { state.drvSel = n }
         }
-        DarkButton("执行驱动") { state.runDriver() }
+        DarkButton("执行驱动") { state.openDriverDialog() }
     }
 }
 

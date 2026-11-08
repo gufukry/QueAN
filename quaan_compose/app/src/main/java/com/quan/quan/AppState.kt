@@ -338,6 +338,75 @@ class AppState(ctx: Context) {
         return u.ifBlank { "-" }
     }
 
+    var driverDialog by mutableStateOf(false)
+    var driverInput by mutableStateOf("1")
+    var driverLog by mutableStateOf("")
+
+    fun openDriverDialog() {
+        driverLog = ""
+        driverDialog = true
+    }
+
+    fun closeDriverDialog() {
+        driverDialog = false
+    }
+
+    private fun execStream(cmd: String, sink: (String) -> Unit): Int = try {
+        val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
+        val r = p.inputStream.bufferedReader()
+        while (true) {
+            val line = r.readLine() ?: break
+            if (line.isNotBlank()) sink(line)
+        }
+        p.waitFor()
+        p.exitValue()
+    } catch (t: Throwable) {
+        sink("执行失败：" + t.message)
+        -1
+    }
+
+    /** 手动刷驱动：输入框里的内容（默认 1）同时作为 argv 和 stdin */
+    fun runDriverManual() {
+        if (drvSel.isBlank()) {
+            driverLog = "还没有选驱动"
+            return
+        }
+        val input = driverInput.trim().ifBlank { "1" }
+        driverLog = "> 驱动：$drv / $drvSel   输入：$input\n"
+        Thread {
+            try {
+                val names = app.assets.list("drivers/$drv") ?: emptyArray()
+                val tmp = File(app.filesDir, "qdrv").also { it.mkdirs() }
+                for (n in names) {
+                    if (!n.contains(".")) continue
+                    File(tmp, n).writeBytes(app.assets.open("drivers/$drv/$n").readBytes())
+                }
+                val inFile = File(app.filesDir, "user_driver.in").also { it.writeText(input) }
+                val pre = if (drv == "twt")
+                    names.filter { it.lowercase().contains("executemefirst") }
+                        .joinToString("") { "sh '$it' < /dev/null; " } else ""
+                val cmd = "rm -rf /data/local/qdrv && mkdir -p /data/local/qdrv && " +
+                        "cp -f '${tmp.absolutePath}'/* /data/local/qdrv/ && " +
+                        "chmod -R 777 /data/local/qdrv && " +
+                        "cp '${inFile.absolutePath}' /data/local/tmp/quean_in.txt && " +
+                        "cd /data/local/qdrv && $pre sh '$drvSel' '$input' " +
+                        "< /data/local/tmp/quean_in.txt"
+                val code = execStream(cmd) { line ->
+                    driverLog = (driverLog + line + "\n").takeLast(4000)
+                    appendLog(line)
+                }
+                driverLog += "> 退出码 $code\n"
+                val mods = sh("cat /proc/modules 2>/dev/null; lsmod 2>/dev/null")
+                drvState = if (mods.contains("drv")) "已加载" else if (code == 0) "已执行" else "失败"
+                driverLog += "> 驱动状态：$drvState\n"
+                appendLog("> 驱动状态：$drvState")
+                if (code != 0) failed = true
+            } catch (t: Throwable) {
+                driverLog += "> 失败：${t.message}\n"
+            }
+        }.start()
+    }
+
     fun runDriver() {
         if (drvSel.isBlank()) { appendLog("> 还没有选驱动"); return }
         appendLog("> 手动刷驱动：$drv / $drvSel")
