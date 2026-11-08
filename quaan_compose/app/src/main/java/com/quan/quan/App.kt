@@ -256,7 +256,7 @@ private fun HomePage(state: AppState) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Switch(checked = state.remember, onCheckedChange = { state.setRemember(it) })
+            Switch(checked = state.remember, onCheckedChange = { state.updateRemember(it) })
         }
         DarkButton(
             if (state.licensed) "重新验证并启动" else "初始化并启动",

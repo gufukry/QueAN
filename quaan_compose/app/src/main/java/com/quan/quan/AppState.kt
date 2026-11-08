@@ -76,7 +76,7 @@ class AppState(ctx: Context) {
         if (remember) prefs.edit().putString("kami", v).apply()
     }
 
-    fun setRemember(v: Boolean) {
+    fun updateRemember(v: Boolean) {
         remember = v
         prefs.edit().putBoolean("remember", v).apply()
         if (!v) prefs.edit().remove("kami").apply()
