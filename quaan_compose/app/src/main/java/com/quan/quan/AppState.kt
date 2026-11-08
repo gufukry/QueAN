@@ -151,9 +151,12 @@ class AppState(ctx: Context) {
     fun importConfig(text: String?): String {
         if (text.isNullOrBlank()) return "没有读取到内容"
         return try {
-            Regex("\"game\"\s*:\s*(\d+)").find(text)?.let { updateGame(it.groupValues[1].toInt()) }
-            Regex("\"mode\"\s*:\s*(\d+)").find(text)?.let { updateMode(it.groupValues[1].toInt()) }
-            Regex("\"drv\"\s*:\s*\"([^\"]*)\"").find(text)?.let { updateDrv(it.groupValues[1]) }
+            Regex(""" "game"\s*:\s*(\d+) """.trim()).find(text)
+                ?.let { updateGame(it.groupValues[1].toInt()) }
+            Regex(""" "mode"\s*:\s*(\d+) """.trim()).find(text)
+                ?.let { updateMode(it.groupValues[1].toInt()) }
+            Regex(""" "drv"\s*:\s*"([^"]*)" """.trim()).find(text)
+                ?.let { updateDrv(it.groupValues[1]) }
             configFile().writeText(text)
             "导入完成"
         } catch (t: Throwable) {
