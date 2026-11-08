@@ -61,9 +61,9 @@ private fun MainScreen(state: AppState, bg: androidx.compose.ui.graphics.Color) 
     val backdrop = rememberLayerBackdrop { drawRect(bg); drawContent() }
     Box(Modifier.fillMaxSize().safeDrawingPadding()) {
         Column(Modifier.fillMaxSize().layerBackdrop(backdrop)) {
-            Text("QueAN - 鹊安", 30.sp, Modifier.padding(start = 22.dp, top = 14.dp))
-            Text("内核启动器 · Compose", 14.sp, Modifier.padding(start = 22.dp, bottom = 6.dp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("QueAN - 鹊安", fontSize = 30.sp, modifier = Modifier.padding(start = 22.dp, top = 14.dp))
+            Text("内核启动器 · Compose", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 22.dp, bottom = 6.dp))
             Column(
                 Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())
                     .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -105,7 +105,7 @@ private fun MainScreen(state: AppState, bg: androidx.compose.ui.graphics.Color) 
 private fun Panel(title: String, content: @Composable ColumnScope.() -> Unit) {
     top.yukonga.miuix.kmp.basic.Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(title, 17.sp, fontWeight = FontWeight.SemiBold)
+            Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
             content()
         }
     }
@@ -114,8 +114,8 @@ private fun Panel(title: String, content: @Composable ColumnScope.() -> Unit) {
 @Composable
 private fun Row2(k: String, v: String) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(k, 14.sp, Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(v, 14.sp, fontWeight = FontWeight.Medium)
+        Text(k, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+        Text(v, fontSize = 14.sp, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -134,7 +134,7 @@ private fun HomeScreen(state: AppState) {
     }
     if (state.log.isNotEmpty()) {
         Panel("日志") {
-            Text(state.log, 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(state.log, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -179,9 +179,9 @@ private fun SettingsScreen(state: AppState) {
 @Composable
 private fun GuideScreen() {
     Panel("使用说明") {
-        Text("1. 首页点「初始化并启动」，脚本会以 root 执行。", 13.sp)
-        Text("2. 驱动与内核资源放在 assets/loader/ 下。", 13.sp)
-        Text("3. 底栏为液态玻璃（Miuix + Kyant 折射着色器）。", 13.sp)
-        Text("4. 需要 Android 13 及以上才有完整玻璃效果。", 13.sp)
+        Text("1. 首页点「初始化并启动」，脚本会以 root 执行。", fontSize = 13.sp)
+        Text("2. 驱动与内核资源放在 assets/loader/ 下。", fontSize = 13.sp)
+        Text("3. 底栏为液态玻璃（Miuix + Kyant 折射着色器）。", fontSize = 13.sp)
+        Text("4. 需要 Android 13 及以上才有完整玻璃效果。", fontSize = 13.sp)
     }
 }
