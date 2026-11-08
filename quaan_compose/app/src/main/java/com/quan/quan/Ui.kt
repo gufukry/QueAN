@@ -96,7 +96,7 @@ fun HairLine() {
 }
 
 @Composable
-fun DarkButton(text: String, onClick: () -> Unit, enabled: Boolean = true) {
+fun DarkButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
     Box(
         Modifier.fillMaxWidth().height(54.dp)
             .background(
