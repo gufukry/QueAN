@@ -40,6 +40,8 @@ class AppState(ctx: Context) {
     var expireText by mutableStateOf(prefs.getString("kami_exp_text", "") ?: "")
     var logging by mutableStateOf(false)
     var loginMsg by mutableStateOf("")
+    var needKernel by mutableStateOf(false)
+    var showKernelPrompt by mutableStateOf(false)
 
     val gameNames = listOf("和平精英", "PUBG MOBILE")
 
@@ -89,6 +91,74 @@ class AppState(ctx: Context) {
         prefs.edit().putBoolean("remember", v).apply()
         if (!v) prefs.edit().remove("kami").apply()
         else if (kami.isNotBlank()) prefs.edit().putString("kami", kami).apply()
+    }
+
+    /** 首次打开检查：没内核就弹提示 */
+    fun checkFirstRun() {
+        val downloaded = prefs.getBoolean("first_dl_" + gameKey(), false)
+        needKernel = !hasKernel()
+        showKernelPrompt = needKernel && !downloaded
+    }
+
+    fun dismissKernelPrompt() {
+        showKernelPrompt = false
+    }
+
+    /** 自动初始化：驱动就绪 → 起内核（不启动游戏） */
+    private fun runDriverBlocking(): Boolean {
+        if (drvSel.isBlank()) scanDrivers()
+        if (drvSel.isBlank()) {
+            appendLog("> 没有找到可用驱动，跳过驱动步骤")
+            return false
+        }
+        appendLog("> ① 自动导入驱动：$drv / $drvSel")
+        return try {
+            val dir = "/data/local/qdrv"
+            val names = app.assets.list("drivers/$drv") ?: emptyArray()
+            sh("rm -rf $dir && mkdir -p $dir && chmod 777 $dir")
+            for (n in names) {
+                val bytes = app.assets.open("drivers/$drv/$n").readBytes()
+                val f = File(app.filesDir, "drv_$n")
+                f.writeBytes(bytes)
+                sh("cp '" + f.absolutePath + "' '$dir/$n' && chmod 777 '$dir/$n'")
+            }
+            val pre = if (drv == "twt") "sh Executemefirst.sh < /dev/null; " else ""
+            val out = sh("cd $dir && $pre sh '$drvSel' < /dev/null")
+            appendLog(if (out.isBlank()) "> 驱动已执行" else out)
+            val mods = sh("cat /proc/modules 2>/dev/null; lsmod 2>/dev/null")
+            drvState = if (mods.contains("drv")) "已加载" else "已执行"
+            appendLog("> 驱动状态：$drvState")
+            true
+        } catch (t: Throwable) {
+            appendLog("> 驱动执行失败：${t.message}")
+            false
+        }
+    }
+
+    /** 登录 → 驱动 → 内核（悬浮窗由内核自己弹，不启动游戏） */
+    fun startFlow() {
+        if (logging) return
+        if (kami.isBlank()) { loginMsg = "请输入卡密"; return }
+        logging = true
+        loginMsg = "正在验证…"
+        Thread {
+            val r = wyLogin(kami.trim(), deviceId())
+            logging = false
+            licensed = r.ok
+            loginMsg = r.msg
+            expireText = r.expireText
+            prefs.edit().putBoolean("licensed", r.ok)
+                .putString("kami_exp_text", r.expireText).apply()
+            if (!r.ok) {
+                appendLog("> 卡密验证失败：${r.msg}")
+                return@Thread
+            }
+            if (remember) prefs.edit().putString("kami", kami).apply()
+            appendLog("> 卡密验证通过 ${r.expireText}")
+            runDriverBlocking()
+            appendLog("> ② 正在启动内核…")
+            startKernel()
+        }.start()
     }
 
     fun login() {
@@ -356,7 +426,9 @@ class AppState(ctx: Context) {
             }
             if (ok) {
                 kernelVerFile().writeText(upVer)
-                prefs.edit().putString("kernel_ver_${gameKey()}", upVer).apply()
+                prefs.edit().putString("kernel_ver_${gameKey()}", upVer)
+                    .putBoolean("first_dl_${gameKey()}", true).apply()
+                needKernel = false
                 upStatus = "已更新到 v$upVer"
                 appendLog("> 内核已更新到 v$upVer")
             } else {

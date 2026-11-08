@@ -34,7 +34,9 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -75,16 +77,44 @@ fun QueApp(state: AppState) {
         MaterialTheme(colorScheme = colors) {
             var splash by remember { mutableStateOf(true) }
             Box(Modifier.fillMaxSize().background(colors.background)) {
-                if (!splash) {
-                    LaunchedEffect(Unit) {
-                        state.kernelVer = state.kvNow()
-                        state.refreshStatus()
-                        state.scanDrivers()
-                        state.checkUpdate()
-                    }
-                    MainScreen(state, colors.background)
-                } else {
-                    SplashOverlay { splash = false }
+                // 主页一直在下面渲染，启动层只负责盖住并淡出，收尾才不会卡一下
+                MainScreen(state, colors.background)
+                LaunchedEffect(Unit) {
+                    state.kernelVer = state.kvNow()
+                    state.refreshStatus()
+                    state.scanDrivers()
+                    state.checkUpdate()
+                    state.checkFirstRun()
+                }
+                if (splash) SplashOverlay { splash = false }
+                if (state.showKernelPrompt) {
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = { },
+                        title = { Text("首次使用", fontWeight = FontWeight.SemiBold) },
+                        text = {
+                            Text(
+                                "还没有下载内核本体。需要先下载一次才能初始化，下载完会自动替换并生效。",
+                                fontSize = 14.sp
+                            )
+                        },
+                        confirmButton = {
+                            Text(
+                                "立即下载", fontSize = 15.sp, fontWeight = FontWeight.Medium,
+                                modifier = Modifier
+                                    .clickable { state.startUpdate() }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+                        },
+                        dismissButton = {
+                            Text(
+                                "稍后", fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .clickable { state.dismissKernelPrompt() }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+                        }
+                    )
                 }
             }
         }
@@ -106,40 +136,47 @@ private fun SplashOverlay(done: () -> Unit) {
     }
     val appear = remember { Animatable(0f) }
     val word = remember { Animatable(0f) }
-    var fade by remember { mutableStateOf(1f) }
+    val exit = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
         appear.animateTo(1f, tween(420))
         word.animateTo(1f, tween(360))
-        kotlinx.coroutines.delay(560)
-        fade = 0f
-        kotlinx.coroutines.delay(320)
+        kotlinx.coroutines.delay(480)
+        exit.animateTo(1f, tween(420))     // 平滑淡出，不用瞬切
         done()
     }
 
-    Column(
-        Modifier.fillMaxSize().background(Color.Black.copy(alpha = fade)),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(
-            Modifier.size(96.dp)
-                .background(Color.White, RoundedCornerShape(26.dp))
-                .padding(12.dp),
-            contentAlignment = Alignment.Center
+    val a = 1f - exit.value
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = a))) {
+        Column(
+            Modifier.fillMaxSize().alpha(a),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            if (logo != null) {
-                Image(logo, null, modifier = Modifier.fillMaxSize(), alpha = appear.value)
+            Box(
+                Modifier.size(104.dp)
+                    .graphicsLayer {
+                        scaleX = 0.86f + 0.14f * appear.value
+                        scaleY = scaleX
+                        alpha = appear.value
+                    }
+                    .background(Color.White, RoundedCornerShape(26.dp))
+                    .padding(12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (logo != null) {
+                    Image(logo, null, modifier = Modifier.fillMaxSize())
+                }
             }
+            Spacer(Modifier.height(20.dp))
+            Text(
+                "QueAN", color = Color.White.copy(alpha = word.value),
+                fontSize = 24.sp, fontWeight = FontWeight.Bold
+            )
+            Text(
+                "内核启动器", color = Color(0xFF8E8E93).copy(alpha = word.value), fontSize = 13.sp
+            )
         }
-        Spacer(Modifier.height(20.dp))
-        Text(
-            "QueAN", color = Color.White.copy(alpha = word.value),
-            fontSize = 24.sp, fontWeight = FontWeight.Bold
-        )
-        Text(
-            "内核启动器", color = Color(0xFF8E8E93).copy(alpha = word.value), fontSize = 13.sp
-        )
     }
 }
 
@@ -320,7 +357,7 @@ private fun HomePage(state: AppState) {
         DarkButton(
             if (state.licensed) "重新验证并启动" else "初始化并启动",
             enabled = !state.logging
-        ) { state.login() }
+        ) { state.startFlow() }
         Body("选择方式只保存设置，点击上方按钮后才执行初始化。")
         if (state.loginMsg.isNotBlank()) {
             Body(
