@@ -300,7 +300,10 @@ private fun SplashOverlay(done: () -> Unit) {
     val out = seg(0.88f, 0.12f)
     val a = 1f - out
 
-    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = a))) {
+    Box(
+        Modifier.fillMaxSize().background(Color.Black.copy(alpha = a)),
+        contentAlignment = Alignment.Center
+    ) {
         // HUD 细圆环 + 旋转的小点
         Canvas(Modifier.size(300.dp).alpha(a * ringIn)) {
             val r = size.minDimension / 2f - 6.dp.toPx()
