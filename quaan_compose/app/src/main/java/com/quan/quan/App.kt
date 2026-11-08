@@ -360,7 +360,7 @@ private fun SplashOverlay(done: () -> Unit) {
                                 scaleX = 1f + (1f - li) * 0.12f
                                 scaleY = scaleX
                             }
-                            .blur((1f - li) * 16.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
+                            .blur(16.dp * (1f - li), edgeTreatment = BlurredEdgeTreatment.Unbounded)
                     )
                 }
             }
