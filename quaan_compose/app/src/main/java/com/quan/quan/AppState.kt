@@ -78,7 +78,8 @@ class AppState(ctx: Context) {
     fun shCode(cmd: String): Pair<String, Int> = try {
         val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
         val out = p.inputStream.bufferedReader().readText()
-        p.waitFor() to p.exitValue()
+        p.waitFor()
+        out to p.exitValue()
     } catch (t: Throwable) {
         ("执行失败: ${t.message}") to -1
     }
