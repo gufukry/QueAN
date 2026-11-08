@@ -25,11 +25,22 @@ jobs:
         with:
           gradle-version: '9.6.0'
 
-      - name: Build debug APK
+      - name: Prepare signing key
+        run: |
+          keytool -genkeypair -v -keystore "$RUNNER_TEMP/quean.keystore" \
+            -alias quean -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass quean123456 -keypass quean123456 \
+            -dname "CN=QueAN, OU=Loader, O=QueAN, L=CN, C=CN" > /dev/null
+          echo "KEYSTORE_PATH=$RUNNER_TEMP/quean.keystore" >> $GITHUB_ENV
+          echo "KEYSTORE_PASSWORD=quean123456" >> $GITHUB_ENV
+          echo "KEY_ALIAS=quean" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=quean123456" >> $GITHUB_ENV
+
+      - name: Build release APK
         id: build
         continue-on-error: true
         working-directory: quaan_compose
-        run: gradle :app:assembleDebug --no-daemon --stacktrace > /tmp/build.log 2>&1 || (tail -c 20000 /tmp/build.log; exit 1)
+        run: gradle :app:assembleRelease --no-daemon --stacktrace > /tmp/build.log 2>&1 || (tail -c 20000 /tmp/build.log; exit 1)
 
       - name: Report build log
         if: always()
@@ -45,18 +56,18 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: steps.build.outcome == 'success'
         with:
-          name: QueAN-Compose-debug
-          path: quaan_compose/app/build/outputs/apk/debug/*.apk
+          name: QueAN-Compose-release
+          path: quaan_compose/app/build/outputs/apk/release/*.apk
 
       - name: Publish APK to branch
         if: steps.build.outcome == 'success'
         run: |
           mkdir -p out
-          cp quaan_compose/app/build/outputs/apk/debug/*.apk out/app-debug.apk
+          cp quaan_compose/app/build/outputs/apk/release/*.apk out/quean-release.apk
           printf 'version=2.0\nbuild=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > out/info.txt
           git checkout --orphan apk-tmp || true
           git rm -rf --cached . >/dev/null 2>&1 || true
-          git add -f out/app-debug.apk out/info.txt
+          git add -f out/quean-release.apk out/info.txt
           git config user.name "ci-bot"
           git config user.email "ci@quaan.local"
           git commit -m "apk: build from ${GITHUB_SHA:0:7}"

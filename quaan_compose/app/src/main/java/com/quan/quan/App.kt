@@ -49,7 +49,11 @@ fun QueApp(state: AppState) {
         )
         MaterialTheme(colorScheme = colors) {
             Surface(Modifier.fillMaxSize(), color = colors.background) {
-                LaunchedEffect(Unit) { state.refreshStatus() }
+                LaunchedEffect(Unit) {
+                    state.kernelVer = state.kvNow()
+                    state.refreshStatus()
+                    state.scanDrivers()
+                }
                 MainScreen(state, colors.background)
             }
         }
@@ -141,6 +145,35 @@ private fun HomeScreen(state: AppState) {
 
 @Composable
 private fun DeviceScreen(state: AppState) {
+    Panel("驱动通道") {
+        listOf("twt", "paradise", "kairos").forEach { name ->
+            top.yukonga.miuix.kmp.basic.Button(onClick = { state.updateDrv(name) },
+                modifier = Modifier.fillMaxWidth()) {
+                top.yukonga.miuix.kmp.basic.Text(if (state.drv == name) "✓ $name" else name)
+            }
+        }
+        Row2("已选脚本", state.drvSel.ifBlank { "自动匹配中…" })
+        Row2("驱动状态", state.drvState)
+        Row2("内核版本", state.kernelVer)
+    }
+    Panel("可用驱动 (${state.drvList.size})") {
+        if (state.drvList.isEmpty()) {
+            Text("assets/drivers/${state.drv} 下没有脚本", fontSize = 13.sp)
+        } else {
+            state.drvList.forEach { n ->
+                top.yukonga.miuix.kmp.basic.Button(
+                    onClick = { state.drvSel = n },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    top.yukonga.miuix.kmp.basic.Text(if (state.drvSel == n) "✓ $n" else n)
+                }
+            }
+        }
+    }
+    top.yukonga.miuix.kmp.basic.Button(onClick = { state.runDriver() },
+        modifier = Modifier.fillMaxWidth()) {
+        top.yukonga.miuix.kmp.basic.Text("执行驱动")
+    }
     Panel("设备信息") {
         Row2("机型", "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}")
         Row2("系统", "Android ${android.os.Build.VERSION.RELEASE} · API ${android.os.Build.VERSION.SDK_INT}")

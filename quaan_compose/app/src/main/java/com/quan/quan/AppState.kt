@@ -17,6 +17,11 @@ class AppState(ctx: Context) {
     var online by mutableStateOf(false)
     var running by mutableStateOf(false)
     var log by mutableStateOf("")
+    var drv by mutableStateOf(prefs.getString("drv", "paradise") ?: "paradise")
+    var drvSel by mutableStateOf(prefs.getString("drv_sel", "") ?: "")
+    var drvList by mutableStateOf(listOf<String>())
+    var drvState by mutableStateOf("未知")
+    var kernelVer by mutableStateOf("")
 
     val gameNames = listOf("和平精英", "PUBG MOBILE")
     val gamePackages = listOf("com.tencent.tmgp.pubgmhd", "com.tencent.ig")
@@ -24,6 +29,72 @@ class AppState(ctx: Context) {
     fun updateDark(v: Boolean) { dark = v; prefs.edit().putBoolean("dark", v).apply() }
     fun updateGame(v: Int) { game = v; prefs.edit().putInt("game", v).apply() }
     fun updateMode(v: Int) { mode = v; prefs.edit().putInt("mode", v).apply() }
+
+    fun updateDrv(v: String) {
+        drv = v
+        drvSel = ""
+        prefs.edit().putString("drv", v).remove("drv_sel").apply()
+        scanDrivers()
+    }
+
+    /** 通道下的驱动脚本列表 */
+    fun scanDrivers() {
+        val list = try {
+            (app.assets.list("drivers/$drv") ?: emptyArray())
+                .filter { it.contains(".") && !it.lowercase().contains("executemefirst") }
+                .sorted()
+        } catch (t: Throwable) {
+            emptyList()
+        }
+        drvList = list
+        if (drvSel.isBlank() || !list.contains(drvSel)) {
+            drvSel = autoPick(list) ?: ""
+        }
+    }
+
+    /** 按内核大版本挑脚本：6.12 → 6.12.ko.sh；没有就用最高的 */
+    private fun autoPick(list: List<String>): String? {
+        val kv = kernelVer.ifBlank { kvNow() }
+        val parts = kv.split(".")
+        val major = if (parts.size >= 2) parts[0] + "." + parts[1] else kv
+        list.firstOrNull { it.startsWith(major) || it.contains(major) }?.let { return it }
+        val numeric = list.filter { Regex("\\d+\\.\\d+").containsMatchIn(it) }
+        val sorted = numeric.sortedByDescending {
+            Regex("(\\d+)\\.(\\d+)").find(it)?.let { m ->
+                (m.groupValues[1] + "." + m.groupValues[2]).toDoubleOrNull()
+            } ?: 0.0
+        }
+        return sorted.firstOrNull() ?: list.firstOrNull()
+    }
+
+    fun kvNow(): String = sh("uname -r").takeWhile { it.isDigit() || it == '.' }.ifBlank { "-" }
+
+    /** 驱动脚本连同目录一起放到 /data/local/qdrv 再执行 */
+    fun runDriver() {
+        if (drvSel.isBlank()) { appendLog("> 还没有选驱动"); return }
+        appendLog("> 执行驱动：$drv / $drvSel")
+        Thread {
+            try {
+                val dir = "/data/local/qdrv"
+                val names = app.assets.list("drivers/$drv") ?: emptyArray()
+                sh("rm -rf $dir && mkdir -p $dir && chmod 777 $dir")
+                for (n in names) {
+                    val bytes = app.assets.open("drivers/$drv/$n").readBytes()
+                    val f = File(app.filesDir, "drv_$n")
+                    f.writeBytes(bytes)
+                    sh("cp '" + f.absolutePath + "' '$dir/$n' && chmod 777 '$dir/$n'")
+                }
+                val pre = if (drv == "twt") "sh Executemefirst.sh < /dev/null; " else ""
+                val out = sh("cd $dir && $pre sh '$drvSel' < /dev/null")
+                appendLog(if (out.isBlank()) "> 无输出" else out)
+                val mods = sh("cat /proc/modules 2>/dev/null; lsmod 2>/dev/null")
+                drvState = if (mods.contains("drv")) "已加载" else "已执行"
+                appendLog("> 驱动状态：$drvState")
+            } catch (t: Throwable) {
+                appendLog("> 驱动执行失败：${t.message}")
+            }
+        }.start()
+    }
 
     /** 执行 su 命令，返回输出 */
     fun sh(cmd: String): String = try {
