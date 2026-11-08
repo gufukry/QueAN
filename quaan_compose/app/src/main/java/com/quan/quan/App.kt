@@ -81,6 +81,7 @@ fun QueApp(state: AppState) {
         )
         MaterialTheme(colorScheme = colors) {
             var splash by remember { mutableStateOf(true) }
+            var uiReady by remember { mutableStateOf(false) }
             Box(Modifier.fillMaxSize().background(colors.background)) {
                 // 主页一直在下面渲染，启动层只负责盖住并淡出，收尾才不会卡一下
                 MainScreen(state, colors.background)
@@ -93,7 +94,14 @@ fun QueApp(state: AppState) {
                     state.autoCheckUpdate()
                 }
                 if (splash) SplashOverlay { splash = false }
-                if (state.updatePrompt) {
+                // 入场动画结束、稍等一下再弹窗，避免和淡出叠在一起
+                LaunchedEffect(splash) {
+                    if (!splash) {
+                        kotlinx.coroutines.delay(600)
+                        uiReady = true
+                    }
+                }
+                if (uiReady && state.updatePrompt) {
                     androidx.compose.material3.AlertDialog(
                         onDismissRequest = { state.dismissUpdatePrompt() },
                         title = { Text("发现新版本", fontWeight = FontWeight.SemiBold) },
@@ -122,7 +130,7 @@ fun QueApp(state: AppState) {
                         }
                     )
                 }
-                if (state.showKernelPrompt) {
+                if (uiReady && state.showKernelPrompt) {
                     androidx.compose.material3.AlertDialog(
                         onDismissRequest = { },
                         title = { Text("首次使用", fontWeight = FontWeight.SemiBold) },
