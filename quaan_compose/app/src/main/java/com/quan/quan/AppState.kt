@@ -371,13 +371,11 @@ class AppState(ctx: Context) {
             return
         }
         running = true
-        appendLog("> ② 正在启动内核…")
         Thread {
             val elf = isElf(src)
             val target = if (elf) "quean_kernel.bin" else "quean_kernel.sh"
             val run = if (elf) "./$target" else "sh $target"
-            val cmd = "pkill -f quean_kernel; sleep 0.3; " +
-                    "cp '${src.absolutePath}' /data/local/tmp/$target && " +
+            val cmd = "cp '${src.absolutePath}' /data/local/tmp/$target && " +
                     "chmod 777 /data/local/tmp/$target && cd /data/local/tmp && " +
                     "HX_DRV=$drv HX_NORECORD=false $run < /dev/null"
             appendLog("> 运行内核（${if (elf) "ELF" else "脚本"}）：$target  驱动=$drv")
@@ -390,7 +388,7 @@ class AppState(ctx: Context) {
     fun stopKernel() {
         Thread {
             appendLog("> 停止内核…")
-            appendLog(sh("pkill -f quean_kernel; pkill -f heping; pkill -f heping_dfm"))
+            appendLog(sh("pkill -f /data/local/tmp/quean_kernel; pkill -f heping_dfm"))
             refreshStatus()
         }.start()
     }
