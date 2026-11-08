@@ -1,6 +1,13 @@
 package com.quan.quan
 
 import android.graphics.BitmapFactory
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlurredEdgeTreatment
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -276,48 +283,105 @@ private fun SplashOverlay(done: () -> Unit) {
             null
         }
     }
-    val appear = remember { Animatable(0f) }
-    val word = remember { Animatable(0f) }
-    val exit = remember { Animatable(0f) }
-
+    val t = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        appear.animateTo(1f, tween(420))
-        word.animateTo(1f, tween(360))
-        kotlinx.coroutines.delay(480)
-        exit.animateTo(1f, tween(420))     // 平滑淡出，不用瞬切
+        t.animateTo(1f, tween(2100, easing = LinearEasing))
         done()
     }
+    val p = t.value
+    fun seg(start: Float, len: Float) = ((p - start) / len).coerceIn(0f, 1f)
 
-    val a = 1f - exit.value
+    val ringIn = seg(0.00f, 0.35f)
+    val iconIn = seg(0.04f, 0.28f)
+    val markIn = seg(0.08f, 0.40f)
+    val subIn = seg(0.44f, 0.26f)
+    val dashIn = seg(0.60f, 0.20f)
+    val out = seg(0.88f, 0.12f)
+    val a = 1f - out
+
     Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = a))) {
+        // HUD 细圆环 + 旋转的小点
+        Canvas(Modifier.size(300.dp).alpha(a * ringIn)) {
+            val r = size.minDimension / 2f - 6.dp.toPx()
+            drawCircle(Color(0x30FFFFFF), radius = r, style = Stroke(1.dp.toPx()))
+            drawCircle(Color(0x18FFFFFF), radius = r * 0.84f, style = Stroke(1.dp.toPx()))
+            val base = -90f + p * 150f
+            for (k in 0..2) {
+                val rad = Math.toRadians((base + k * 120f).toDouble())
+                drawCircle(
+                    Color(0x70FFFFFF), 2.5.dp.toPx(),
+                    Offset(
+                        center.x + (r * Math.cos(rad)).toFloat(),
+                        center.y + (r * Math.sin(rad)).toFloat()
+                    )
+                )
+            }
+            val w = size.width
+            drawLine(Color(0x22FFFFFF), Offset(0f, center.y), Offset(w * 0.10f, center.y), 1.dp.toPx())
+            drawLine(Color(0x22FFFFFF), Offset(w * 0.90f, center.y), Offset(w, center.y), 1.dp.toPx())
+        }
+
         Column(
             Modifier.fillMaxSize().alpha(a),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box(
-                Modifier.size(104.dp)
-                    .graphicsLayer {
-                        scaleX = 0.86f + 0.14f * appear.value
-                        scaleY = scaleX
-                        alpha = appear.value
-                    }
-                    .background(Color.White, RoundedCornerShape(26.dp))
-                    .padding(12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                if (logo != null) {
-                    Image(logo, null, modifier = Modifier.fillMaxSize())
+            if (logo != null) {
+                Box(
+                    Modifier.size(76.dp)
+                        .graphicsLayer {
+                            alpha = iconIn
+                            scaleX = 0.8f + 0.2f * iconIn
+                            scaleY = scaleX
+                        }
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(Color.White),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(logo, null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                }
+                Spacer(Modifier.height(22.dp))
+            }
+
+            // 字标：逐字模糊聚焦 + 轻微上浮
+            Row(horizontalArrangement = Arrangement.Center) {
+                val word = "QueAN"
+                word.forEachIndexed { i, ch ->
+                    val li = ((markIn - i * 0.10f) / 0.55f).coerceIn(0f, 1f)
+                    Text(
+                        ch.toString(),
+                        fontSize = 54.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = li),
+                        modifier = Modifier
+                            .graphicsLayer {
+                                translationY = (1f - li) * 26f
+                                scaleX = 1f + (1f - li) * 0.12f
+                                scaleY = scaleX
+                            }
+                            .blur((1f - li) * 16.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
+                    )
                 }
             }
-            Spacer(Modifier.height(20.dp))
+
+            Spacer(Modifier.height(10.dp))
             Text(
-                "QueAN", color = Color.White.copy(alpha = word.value),
-                fontSize = 24.sp, fontWeight = FontWeight.Bold
+                "内核启动器",
+                fontSize = 13.sp,
+                letterSpacing = (1f + 8f * subIn).sp,
+                color = Color(0xFF8E8E93).copy(alpha = subIn)
             )
-            Text(
-                "内核启动器", color = Color(0xFF8E8E93).copy(alpha = word.value), fontSize = 13.sp
-            )
+
+            Spacer(Modifier.height(34.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                repeat(5) { i ->
+                    val di = ((dashIn - i * 0.12f) / 0.5f).coerceIn(0f, 1f)
+                    Box(
+                        Modifier.size(width = 14.dp, height = 2.dp)
+                            .background(Color(0xFFBFBFBF).copy(alpha = di * 0.85f), RoundedCornerShape(1.dp))
+                    )
+                }
+            }
         }
     }
 }
