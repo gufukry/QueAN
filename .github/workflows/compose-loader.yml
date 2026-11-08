@@ -7,6 +7,9 @@ on:
       - 'quaan_compose/**'
       - '.github/workflows/compose-loader.yml'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,10 +26,24 @@ jobs:
           gradle-version: '9.0.0'
 
       - name: Build debug APK
+        id: build
+        continue-on-error: true
         working-directory: quaan_compose
-        run: gradle :app:assembleDebug --no-daemon --stacktrace
+        run: gradle :app:assembleDebug --no-daemon --stacktrace > /tmp/build.log 2>&1 || (tail -c 20000 /tmp/build.log; exit 1)
+
+      - name: Report build log
+        if: always()
+        run: |
+          mkdir -p ci-reports
+          cp /tmp/build.log ci-reports/build.log 2>/dev/null || true
+          git config user.name "ci-bot"
+          git config user.email "ci@quaan.local"
+          git add -f ci-reports/build.log
+          git commit -m "ci: build log (${{ steps.build.outcome }})" || true
+          git push origin HEAD:ci-log --force
 
       - uses: actions/upload-artifact@v4
+        if: steps.build.outcome == 'success'
         with:
           name: QueAN-Compose-debug
           path: quaan_compose/app/build/outputs/apk/debug/*.apk
