@@ -285,7 +285,6 @@ private fun HomePage(state: AppState) {
             )
         }
         OptionRadio("内核ROOT模式", "保留现有内核驱动与 ELF 核心流程", true) { }
-        OptionRadio("网络VPN模式", "无需 Root/驱动，使用 Android VPN + APK Canvas ESP", false) { }
         if (state.online) LightButton("停止内核") { state.stopKernel() }
         if (state.log.isNotBlank()) {
             HairLine()
