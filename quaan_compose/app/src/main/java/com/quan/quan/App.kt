@@ -101,7 +101,11 @@ fun QueApp(state: AppState) {
                             Text(
                                 "立即下载", fontSize = 15.sp, fontWeight = FontWeight.Medium,
                                 modifier = Modifier
-                                    .clickable { state.startUpdate() }
+                                    .clickable {
+                                        state.upGame = state.game
+                                        state.openUpdatePage(state.game)
+                                        state.startUpdate()
+                                    }
                                     .padding(horizontal = 12.dp, vertical = 8.dp)
                             )
                         },
@@ -273,6 +277,71 @@ private fun MainScreen(state: AppState, bg: Color) {
                 }
             }
         }
+        if (state.showUpdatePage) {
+            UpdatePage(state)
+        }
+    }
+}
+
+/* ---------------- 更新页 ---------------- */
+
+@Composable
+private fun UpdatePage(state: AppState) {
+    Column(
+        Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .safeDrawingPadding()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            "‹ 返回", fontSize = 15.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) { state.closeUpdatePage() }
+                .padding(vertical = 8.dp, horizontal = 4.dp)
+        )
+        Text(
+            "内核更新", fontSize = 32.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+
+        CardC {
+            CardTitle("目标游戏")
+            state.gameNames.forEachIndexed { i, name ->
+                OptionRadio(name, "", state.upGame == i) {
+                    state.upGame = i
+                    state.checkUpdate()
+                }
+            }
+        }
+
+        CardC {
+            CardTitle("版本")
+            KvRow(
+                "当前内核",
+                if (state.hasKernel(state.upGame)) "v" + state.localKernelVer(state.upGame)
+                else "未下载"
+            )
+            KvRow("最新版本", if (state.upVer.isBlank()) "-" else "v" + state.upVer)
+            Body(state.upStatus)
+            if (state.downloading) Body("下载中 ${(state.progress * 100).toInt()}%")
+            DarkButton(if (state.downloading) "下载中…" else "立即更新", enabled = !state.downloading) {
+                state.startUpdate()
+            }
+        }
+
+        if (state.noticeText.isNotBlank()) {
+            CardC {
+                CardTitle("更新内容")
+                Body(state.noticeText)
+            }
+        }
+        Spacer(Modifier.height(24.dp))
     }
 }
 
@@ -519,19 +588,15 @@ private fun ConfigPage(state: AppState) {
     }
 
     CardC {
-        CardTitle("内核更新 · " + state.gameNames[state.game])
-        KvRow("当前内核", if (state.hasKernel()) "v" + state.localKernelVer() else "未下载")
-        KvRow("最新版本", if (state.upVer.isBlank()) "-" else "v" + state.upVer)
-        Body(state.upStatus)
-        if (state.downloading) Body("下载中 ${(state.progress * 100).toInt()}%")
-        DarkButton("立即更新") { state.startUpdate() }
-        LightButton("检查更新") { state.checkUpdate() }
-    }
-
-    if (state.noticeText.isNotBlank()) {
-        CardC {
-            CardTitle("更新内容")
-            Body(state.noticeText)
+        CardTitle("内核更新")
+        KvRow(
+            "当前内核",
+            if (state.hasKernel(state.game)) "v" + state.localKernelVer(state.game) else "未下载"
+        )
+        Body("检测到新版会进入更新页；已是最新会直接提示。")
+        DarkButton("检查内核更新") {
+            state.upGame = state.game
+            state.checkAndRoute()
         }
     }
 

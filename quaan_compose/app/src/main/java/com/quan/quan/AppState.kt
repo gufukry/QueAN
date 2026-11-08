@@ -42,6 +42,8 @@ class AppState(ctx: Context) {
     var loginMsg by mutableStateOf("")
     var needKernel by mutableStateOf(false)
     var showKernelPrompt by mutableStateOf(false)
+    var upGame by mutableStateOf(0)          // 更新页选中的游戏
+    var showUpdatePage by mutableStateOf(false)
     var cfgInput by mutableStateOf("")
     var cfgStatus by mutableStateOf("")
 
@@ -282,17 +284,17 @@ class AppState(ctx: Context) {
 
     /* ---------------- 内核 ---------------- */
 
-    fun gameKey(): String = if (game == 1) "pubg" else "hp"
-    fun kernelFile(): File = File(app.filesDir, "quean_kernel_${gameKey()}.sh")
-    fun kernelVerFile(): File = File(app.filesDir, "quean_kernel_${gameKey()}.ver")
+    fun gameKey(g: Int = game): String = if (g == 1) "pubg" else "hp"
+    fun kernelFile(g: Int = game): File = File(app.filesDir, "quean_kernel_${gameKey(g)}.sh")
+    fun kernelVerFile(g: Int = game): File = File(app.filesDir, "quean_kernel_${gameKey(g)}.ver")
 
-    fun localKernelVer(): String {
-        val f = kernelVerFile()
+    fun localKernelVer(g: Int = game): String {
+        val f = kernelVerFile(g)
         if (f.exists() && f.length() > 0) return f.readText().trim()
-        return prefs.getString("kernel_ver_${gameKey()}", "") ?: ""
+        return prefs.getString("kernel_ver_${gameKey(g)}", "") ?: ""
     }
 
-    fun hasKernel(): Boolean = kernelFile().length() > 1024
+    fun hasKernel(g: Int = game): Boolean = kernelFile(g).length() > 1024
 
     fun startKernel() {
         if (running) { appendLog("内核已在运行"); return }
@@ -417,24 +419,70 @@ class AppState(ctx: Context) {
         Thread {
             val raw = fetchNotice()
             if (raw == null) {
-                upStatus = "公告获取失败，可直接点更新"
+                upStatus = "公告获取失败"
                 return@Thread
             }
             noticeRaw = raw
             noticeText = stripUpdateLines(raw)
             applyUpdateFor(raw)
-            val local = localKernelVer()
+            val local = localKernelVer(upGame)
             upStatus = when {
                 upUrl.isBlank() -> "这一份内核没有配置下载地址"
-                local.isBlank() -> "还没有下载过内核，可以直接更新"
+                local.isBlank() -> "还没有下载过内核"
                 compareVersion(upVer, local) > 0 -> "有新版 v$upVer（本地 v$local）"
                 else -> "已是最新 v$local"
             }
         }.start()
     }
 
+    /** 检查当前更新页所选游戏：有新版就进更新页，最新就只提示 */
+    fun checkAndRoute() {
+        upStatus = "正在检查…"
+        Thread {
+            val raw = fetchNotice()
+            if (raw == null) {
+                toast("公告获取失败，请检查网络")
+                upStatus = "公告获取失败"
+                return@Thread
+            }
+            noticeRaw = raw
+            noticeText = stripUpdateLines(raw)
+            applyUpdateFor(raw)
+            val local = localKernelVer(upGame)
+            val newer = !hasKernel(upGame) ||
+                    (upVer.isNotBlank() && (local.isBlank() || compareVersion(upVer, local) > 0))
+            if (newer) {
+                upStatus = if (local.isBlank()) "还没有下载过内核" else "有新版 v$upVer（本地 v$local）"
+                showUpdatePage = true
+            } else {
+                upStatus = "已是最新 v$local"
+                toast("已是最新版本 v$local")
+            }
+        }.start()
+    }
+
+    fun openUpdatePage(g: Int) {
+        upGame = g
+        applyUpdateFor(noticeRaw)
+        showUpdatePage = true
+    }
+
+    fun closeUpdatePage() {
+        showUpdatePage = false
+    }
+
+    private fun toast(msg: String) {
+        try {
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                android.widget.Toast.makeText(app, msg, android.widget.Toast.LENGTH_SHORT).show()
+            }
+        } catch (t: Throwable) {
+            // ignore
+        }
+    }
+
     private fun applyUpdateFor(raw: String) {
-        val block = updateBlock(raw, if (game == 0) "" else gameKey())
+        val block = updateBlock(raw, if (upGame == 0) "" else gameKey(upGame))
             ?: updateBlock(raw, "")
         if (block == null) { upVer = ""; upUrl = ""; return }
         val bar1 = block.indexOf('|')
@@ -459,13 +507,13 @@ class AppState(ctx: Context) {
         progress = 0f
         upStatus = "正在下载…"
         Thread {
-            val ok = downloadTo(upUrl, kernelFile()) { got, total ->
+            val ok = downloadTo(upUrl, kernelFile(upGame)) { got, total ->
                 progress = if (total > 0) got.toFloat() / total else 0f
             }
             if (ok) {
-                kernelVerFile().writeText(upVer)
-                prefs.edit().putString("kernel_ver_${gameKey()}", upVer)
-                    .putBoolean("first_dl_${gameKey()}", true).apply()
+                kernelVerFile(upGame).writeText(upVer)
+                prefs.edit().putString("kernel_ver_${gameKey(upGame)}", upVer)
+                    .putBoolean("first_dl_${gameKey(upGame)}", true).apply()
                 needKernel = false
                 upStatus = "已更新到 v$upVer"
                 appendLog("> 内核已更新到 v$upVer")
