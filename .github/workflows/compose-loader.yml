@@ -27,11 +27,8 @@ jobs:
 
       - name: Prepare signing key
         run: |
-          keytool -genkeypair -v -keystore "$RUNNER_TEMP/quean.keystore" \
-            -alias quean -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass quean123456 -keypass quean123456 \
-            -dname "CN=QueAN, OU=Loader, O=QueAN, L=CN, C=CN" > /dev/null
-          echo "KEYSTORE_PATH=$RUNNER_TEMP/quean.keystore" >> $GITHUB_ENV
+          # 固定 keystore（仓库内），保证每次签名一致，可直接覆盖升级
+          echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/quaan_compose/keystore/quean-release.jks" >> $GITHUB_ENV
           echo "KEYSTORE_PASSWORD=quean123456" >> $GITHUB_ENV
           echo "KEY_ALIAS=quean" >> $GITHUB_ENV
           echo "KEY_PASSWORD=quean123456" >> $GITHUB_ENV
