@@ -1,0 +1,14 @@
+sky includes navigation source from KernelSU v3.3.1:
+https://github.com/tiann/KernelSU/tree/v3.3.1/manager/app/src/main/java/me/weishu/kernelsu/ui/component
+
+FloatingBottomBar.kt, liquid/*.kt, miuix/animation/*.kt, miuix/modifier/*.kt are retained from upstream without modification.
+FloatingBottomBar.kt identifies its origin as the compose-miuix-ui IosLiquidGlassNavigationBar example (Apache-2.0).
+KernelSU repository license: GNU GPL version 3 (included in KernelSU-GPL-3.0.txt).
+Miuix library 0.9.4: Apache-2.0.
+The sky integration bridge and theme adapter were added on 2026-11-08.
+
+
+About background effect source移植：
+- BgEffectBackground.kt, BgEffectConfig.kt, BgEffectModifier.kt, BgEffectPainter.kt, DeviceType.kt, OS2BgFrag.kt, OS3BgFrag.kt 来自 compose-miuix-ui example/shared/component/effect。
+- 本项目将其包名调整为 com.sky.ui.aboutEffect，并将颜色配置接入 SkyTheme token；shader 数学逻辑保留。
+- 上述移植文件按 compose-miuix-ui 的 Apache-2.0 授权保留，完整文本见 Miuix-Apache-2.0.txt。
