@@ -210,6 +210,8 @@ class AppState(ctx: Context) {
             appendLog("> 没有找到可用驱动，跳过驱动步骤")
             return false
         }
+        val kvNowText = kvNow()
+        appendLog("> 本机内核：$kvNowText → 匹配脚本：$drvSel")
         appendLog("> ① 自动导入驱动：$drv / $drvSel")
         return try {
             val names = app.assets.list("drivers/$drv") ?: emptyArray()
@@ -239,7 +241,14 @@ class AppState(ctx: Context) {
                 ok = code2 == 0
             }
             val mods = sh("cat /proc/modules 2>/dev/null; lsmod 2>/dev/null")
-            drvState = if (mods.contains("drv")) "已加载" else if (ok) "已执行" else "失败"
+            val modsLine = mods.lineSequence().filter { it.isNotBlank() }.take(3).joinToString(" | ")
+            if (modsLine.isNotBlank()) appendLog("> 模块列表：$modsLine")
+            drvState = when {
+                mods.contains("paradise", true) || mods.contains("kma", true) ||
+                    mods.contains("hx_drv", true) -> "已加载"
+                ok -> "已执行"
+                else -> "失败"
+            }
             if (!ok) failed = true
             appendLog("> 驱动状态：$drvState")
             ok
@@ -257,6 +266,14 @@ class AppState(ctx: Context) {
         logging = true
         loginMsg = "正在验证…"
         Thread {
+            checkRoot()
+            if (!hasRoot) {
+                appendLog("> 没有拿到 root：请到 KernelSU / Magisk 里给 QueAN 授权后重试")
+                loginMsg = "需要 root 权限"
+                failed = true
+                logging = false
+                return@Thread
+            }
             val r = wyLogin(kami.trim(), deviceId())
             logging = false
             licensed = r.ok
@@ -271,6 +288,8 @@ class AppState(ctx: Context) {
             if (remember) prefs.edit().putString("kami", kami).apply()
             appendLog("> 卡密验证通过 ${r.expireText}")
             runDriverBlocking()
+            val kf = kernelFile(game)
+            appendLog("> 目标游戏：${gameNames[game]}　内核文件：${kf.name}（${kf.length() / 1024} KB）")
             appendLog("> ② 正在启动内核…")
             startKernel()
         }.start()
@@ -510,6 +529,7 @@ class AppState(ctx: Context) {
         }
         running = true
         Thread {
+            if (drvState != "已加载") appendLog("> 注意：驱动状态为「$drvState」，内核可能起不来")
             val elf = isElf(src)
             val target = if (elf) "quean_kernel.bin" else "quean_kernel.sh"
             val run = if (elf) "./$target" else "sh $target"
