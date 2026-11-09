@@ -338,6 +338,13 @@ class AppState(ctx: Context) {
         return u.ifBlank { "-" }
     }
 
+    // 终端
+    var showTerminal by mutableStateOf(false)
+    var termLog by mutableStateOf("")
+    var termInput by mutableStateOf("")
+    var termRunning by mutableStateOf(false)
+    private var termCwd = "/data/local/tmp"
+
     var driverDialog by mutableStateOf(false)
     var driverInput by mutableStateOf("1")
     var driverLog by mutableStateOf("")
@@ -404,6 +411,68 @@ class AppState(ctx: Context) {
             } catch (t: Throwable) {
                 driverLog += "> 失败：${t.message}\n"
             }
+        }.start()
+    }
+
+    fun openTerminal() {
+        showTerminal = true
+        if (termLog.isBlank()) termLog = "> QueAN 终端（root）\n> 输入命令后回车执行，支持 cd / sh xxx.sh\n"
+    }
+
+    fun closeTerminal() {
+        showTerminal = false
+    }
+
+    fun clearTerminal() {
+        termLog = ""
+    }
+
+    /** 在 root shell 里执行一行命令，输出实时进终端 */
+    fun runTerm() {
+        val raw = termInput.trim()
+        if (raw.isEmpty() || termRunning) return
+        termInput = ""
+        termRunning = true
+        termLog += "\n$ $raw\n"
+        if (raw.startsWith("cd ")) {
+            val target = raw.substring(3).trim()
+            Thread {
+                val (out, _) = shCode("cd $termCwd && cd $target 2>&1 && pwd")
+                val dir = out.lineSequence().lastOrNull { it.startsWith("/") }
+                if (dir != null) termCwd = dir.trim()
+                termLog += if (dir != null) "" else out
+                termRunning = false
+            }.start()
+            return
+        }
+        Thread {
+            val code = execStream("cd $termCwd 2>/dev/null; $raw") { line ->
+                termLog += line + "\n"
+            }
+            if (code != 0) termLog += "[退出码 $code]\n"
+            termRunning = false
+        }.start()
+    }
+
+    /** 选一个 .sh 拷进来直接跑 */
+    fun runScript(uri: android.net.Uri) {
+        termRunning = true
+        termLog += "\n> 导入脚本并执行\n"
+        Thread {
+            try {
+                val f = File(app.filesDir, "term_script.sh")
+                app.contentResolver.openInputStream(uri)?.use { input ->
+                    f.outputStream().use { input.copyTo(it) }
+                }
+                termLog += "> 已保存到 ${f.absolutePath}\n"
+                val code = execStream("cp '${f.absolutePath}' /data/local/tmp/term_script.sh && chmod 777 /data/local/tmp/term_script.sh && cd $termCwd && sh /data/local/tmp/term_script.sh 1") { line ->
+                    termLog += line + "\n"
+                }
+                termLog += "[退出码 $code]\n"
+            } catch (t: Throwable) {
+                termLog += "> 执行失败：${t.message}\n"
+            }
+            termRunning = false
         }.start()
     }
 

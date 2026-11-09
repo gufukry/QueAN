@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cottage
@@ -504,6 +506,126 @@ private fun MainScreen(state: AppState, bg: Color) {
         if (state.showUpdatePage) {
             UpdatePage(state)
         }
+        if (state.showTerminal) {
+            TerminalPage(state)
+        }
+    }
+}
+
+/* ---------------- 终端 ---------------- */
+
+@Composable
+private fun TerminalPage(state: AppState) {
+    val scroll = rememberScrollState()
+    val picker = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri -> if (uri != null) state.runScript(uri) }
+    LaunchedEffect(state.termLog) { scroll.animateScrollTo(scroll.maxValue) }
+
+    Column(
+        Modifier.fillMaxSize()
+            .background(Color(0xFF0B0B0C))
+            .safeDrawingPadding()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "‹ 返回", fontSize = 15.sp, color = Color(0xFF8E8E93),
+                modifier = Modifier
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { state.closeTerminal() }
+                    .padding(vertical = 8.dp, horizontal = 4.dp)
+            )
+            Spacer(Modifier.weight(1f))
+            Text(
+                "清空", fontSize = 14.sp, color = Color(0xFF8E8E93),
+                modifier = Modifier
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { state.clearTerminal() }
+                    .padding(vertical = 8.dp, horizontal = 8.dp)
+            )
+        }
+        Text(
+            "终端", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color.White,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Box(
+            Modifier.fillMaxWidth().weight(1f)
+                .background(Color(0xFF141416), RoundedCornerShape(16.dp))
+                .padding(12.dp)
+        ) {
+            Column(Modifier.verticalScroll(scroll)) {
+                Text(
+                    if (state.termLog.isBlank()) "> 等待命令" else state.termLog,
+                    fontSize = 12.sp, lineHeight = 17.sp,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    color = Color(0xFFD7D7DC)
+                )
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("\$", fontSize = 15.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                color = Color(0xFF00B578))
+            Spacer(Modifier.width(8.dp))
+            Box(
+                Modifier.weight(1f).height(48.dp)
+                    .background(Color(0xFF1C1C1E), RoundedCornerShape(14.dp))
+                    .padding(horizontal = 14.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                if (state.termInput.isEmpty()) {
+                    Text(
+                        "输入命令", fontSize = 14.sp, color = Color(0xFF6E6E73),
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                    )
+                }
+                BasicTextField(
+                    value = state.termInput,
+                    onValueChange = { state.termInput = it },
+                    singleLine = true,
+                    textStyle = TextStyle(
+                        fontSize = 14.sp, color = Color(0xFFF2F2F2),
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                    ),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Text,
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Send
+                    ),
+                    keyboardActions = androidx.compose.foundation.text.KeyboardActions(onSend = { state.runTerm() }),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Box(
+                Modifier.height(48.dp).width(64.dp)
+                    .background(
+                        if (state.termRunning) Color(0xFF3A3A3C) else Color(0xFF00B578),
+                        RoundedCornerShape(14.dp)
+                    )
+                    .clickable(enabled = !state.termRunning) { state.runTerm() },
+                contentAlignment = Alignment.Center
+            ) {
+                Text("运行", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "执行脚本（.sh）", fontSize = 14.sp, color = Color(0xFF00B578),
+                modifier = Modifier
+                    .clickable { picker.launch("*/*") }
+                    .padding(vertical = 6.dp, horizontal = 6.dp)
+            )
+            Spacer(Modifier.weight(1f))
+            Text(
+                "以 su 执行", fontSize = 12.sp, color = Color(0xFF6E6E73)
+            )
+        }
     }
 }
 
@@ -783,6 +905,12 @@ private fun DevicePage(state: AppState) {
 
 @Composable
 private fun ConfigPage(state: AppState) {
+    CardC {
+        CardTitle("终端")
+        Body("直接用 root 权限执行命令或脚本，不用改源码。")
+        LightButton("打开终端") { state.openTerminal() }
+    }
+
     CardC {
         CardTitle("切换游戏")
         state.gameNames.forEachIndexed { i, name ->
