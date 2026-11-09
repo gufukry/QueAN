@@ -19,6 +19,7 @@ class AppState(ctx: Context) {
     var online by mutableStateOf(false)
     var hasRoot by mutableStateOf(false)
     var failed by mutableStateOf(false)
+    var noRecord by mutableStateOf(prefs.getInt("norecord", 0) == 1)
     var running by mutableStateOf(false)
     var log by mutableStateOf("")
     var drv by mutableStateOf(
@@ -67,6 +68,10 @@ class AppState(ctx: Context) {
     fun updateDark(v: Boolean) { dark = v; prefs.edit().putBoolean("dark", v).apply() }
     fun updateGame(v: Int) { game = v; prefs.edit().putInt("game", v).apply() }
     fun updateMode(v: Int) { mode = v; prefs.edit().putInt("mode", v).apply() }
+    fun updateNoRecord(v: Boolean) {
+        noRecord = v
+        prefs.edit().putInt("norecord", if (v) 1 else 0).apply()
+    }
 
     fun updateDrv(v: String) {
         drv = v
@@ -220,7 +225,8 @@ class AppState(ctx: Context) {
                 if (!n.contains(".")) continue
                 File(tmp, n).writeBytes(app.assets.open("drivers/$drv/$n").readBytes())
             }
-            val inFile = File(app.filesDir, "user_driver.in").also { it.writeText("1") }
+            val autoIn = (prefs.getString("drv_in", "1") ?: "1").ifBlank { "1" }
+            val inFile = File(app.filesDir, "user_driver.in").also { it.writeText(autoIn) }
             val pre = if (drv == "twt")
                 names.filter { it.lowercase().contains("executemefirst") }
                     .joinToString("") { "sh '$it' < /dev/null; " } else ""
@@ -231,11 +237,12 @@ class AppState(ctx: Context) {
                     "cd /data/local/qdrv && $pre sh '$drvSel' '$input' " +
                     "< /data/local/tmp/quean_in.txt"
 
-            val (out1, code1) = shCode(build("1"))
+            appendLog("> 脚本输入：$autoIn")
+            val (out1, code1) = shCode(build(autoIn))
             if (out1.isNotBlank()) appendLog(out1)
             var ok = code1 == 0
             if (!ok) {
-                appendLog("> insmod 方式失败（退出码 $code1），改用 ksud 重试")
+                appendLog("> 方式 $autoIn 失败（退出码 $code1），改用 2（ksud）重试")
                 val (out2, code2) = shCode(build("2"))
                 if (out2.isNotBlank()) appendLog(out2)
                 ok = code2 == 0
@@ -365,7 +372,7 @@ class AppState(ctx: Context) {
     private var termCwd = "/data/local/tmp"
 
     var driverDialog by mutableStateOf(false)
-    var driverInput by mutableStateOf("1")
+    var driverInput by mutableStateOf(prefs.getString("drv_in", "1") ?: "1")
     var driverLog by mutableStateOf("")
 
     fun openDriverDialog() {
@@ -398,6 +405,7 @@ class AppState(ctx: Context) {
             return
         }
         val input = driverInput.trim().ifBlank { "1" }
+        prefs.edit().putString("drv_in", input).apply()
         driverLog = "> 驱动：$drv / $drvSel   输入：$input\n"
         Thread {
             try {
@@ -535,12 +543,93 @@ class AppState(ctx: Context) {
             val run = if (elf) "./$target" else "sh $target"
             val cmd = "cp '${src.absolutePath}' /data/local/tmp/$target && " +
                     "chmod 777 /data/local/tmp/$target && cd /data/local/tmp && " +
-                    "HX_DRV=$drv HX_NORECORD=false $run < /dev/null"
-            appendLog("> 运行内核（${if (elf) "ELF" else "脚本"}）：$target  驱动=$drv")
+                    "HX_DRV=$drv HX_NORECORD=${if (noRecord) 1 else 0} $run < /dev/null"
+            appendLog("> 运行内核（${if (elf) "ELF" else "脚本"}）：$target  驱动=$drv  防录屏=${if (noRecord) "开" else "关"}")
             shStream(cmd)
             refreshStatus()
             running = false
         }.start()
+
+        // 内核起来后按 Java 版逻辑进游戏，悬浮窗才会挂到游戏进程上
+        Thread {
+            val deadline = System.currentTimeMillis() + 25000
+            while (System.currentTimeMillis() < deadline) {
+                Thread.sleep(1200)
+                if (!running) return@Thread
+                val node = nodePath()
+                if (node != null) {
+                    appendLog("> ③ 内核就绪：$node")
+                    launchGame()
+                    return@Thread
+                }
+                if (kernelPid().isNotBlank()) {
+                    appendLog("> ③ 内核进程已驻留")
+                    launchGame()
+                    return@Thread
+                }
+            }
+            appendLog("> 25 秒内没检测到内核就绪，先不进入游戏")
+        }.start()
+    }
+
+    private val HX_NODES = listOf(
+        "/proc/longao_kernel", "/proc/inte_ko", "/proc/paradise", "/dev/paradise",
+        "/proc/twt", "/dev/twt", "/proc/kairos", "/dev/kairos", "/proc/hx", "/dev/hx"
+    )
+
+    fun nodePath(): String? = HX_NODES.firstOrNull { File(it).exists() }
+
+    private fun kernelPid(): String {
+        val pid = sh("pidof quean_kernel.bin quean_kernel.sh 2>/dev/null")
+        return if (pid.startsWith("执行失败")) "" else pid.trim()
+    }
+
+    /** 内核就绪后进游戏（游戏已在跑就直接跳过） */
+    fun launchGame() {
+        val cands = if (game == 1) listOf(
+            "com.tencent.ig", "com.rekoo.pubgm", "com.vng.pubgmobile", "com.pubg.krmobile"
+        ) else listOf(
+            "com.tencent.tmgp.pubgmhd", "com.tencent.tmgp.pubgmhdce", "com.tencent.tmgp.pubgm"
+        )
+        for (pkg in cands) {
+            if (sh("pidof $pkg 2>/dev/null").trim().isNotEmpty()) {
+                appendLog("> 游戏已在运行：$pkg")
+                return
+            }
+            val intent = app.packageManager.getLaunchIntentForPackage(pkg)
+            if (intent != null) {
+                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                try {
+                    app.startActivity(intent)
+                    appendLog("> 启动游戏：$pkg")
+                    return
+                } catch (t: Throwable) {
+                    appendLog("> 启动失败：${t.message}")
+                }
+            }
+        }
+        // 按关键字找改名的渠道包
+        try {
+            for (ai in app.packageManager.getInstalledApplications(0)) {
+                val pkg = ai.packageName
+                val low = pkg.lowercase()
+                if (low.contains("pubgm") || low.contains("tmgp") ||
+                    low.contains("pubgmobile") || low.endsWith(".ig")
+                ) {
+                    val intent = app.packageManager.getLaunchIntentForPackage(pkg)
+                    if (intent != null) {
+                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                        app.startActivity(intent)
+                        appendLog("> 启动游戏（匹配包名）：$pkg")
+                        return
+                    }
+                }
+            }
+        } catch (t: Throwable) {
+            appendLog("> 枚举应用失败：${t.message}")
+        }
+        val r = sh("monkey -p ${cands[0]} -c android.intent.category.LAUNCHER 1 2>&1")
+        appendLog("> 未找到游戏，请先安装。$r")
     }
 
     fun stopKernel() {

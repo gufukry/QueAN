@@ -828,6 +828,17 @@ private fun HomePage(state: AppState) {
         CardTitle("运行方式")
         OptionRadio("内核ROOT模式", "使用内核驱动与 ELF 核心", true) { }
         HairLine()
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("防录屏", fontSize = 16.sp)
+                Text(
+                    "屏蔽系统录屏与截图（HX_NORECORD=1）", fontSize = 12.5.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(checked = state.noRecord, onCheckedChange = { state.updateNoRecord(it) })
+        }
+        HairLine()
         Text("当前内核", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(state.kernelVer, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
         if (state.online) {
