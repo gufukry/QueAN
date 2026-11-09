@@ -9,6 +9,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -76,16 +77,33 @@ fun QueApp(state: AppState) {
     }
     MiuixTheme(controller = controller) {
         val c = MiuixTheme.colorScheme
-        val colors = if (state.dark) darkColorScheme(
+        val darkNow = state.dark
+        val anim = tween<Color>(durationMillis = 420)
+        val bg by animateColorAsState(
+            if (darkNow) Color(0xFF000000) else Color(0xFFF2F3F5), anim, label = "bg"
+        )
+        val sf by animateColorAsState(
+            if (darkNow) Color(0xFF1C1C1E) else Color(0xFFFFFFFF), anim, label = "surface"
+        )
+        val sv by animateColorAsState(
+            if (darkNow) Color(0xFF2C2C2E) else Color(0xFFF5F5F7), anim, label = "surfaceVariant"
+        )
+        val onSf by animateColorAsState(
+            if (darkNow) Color(0xFFF2F2F2) else Color(0xFF0D0D0D), anim, label = "onSurface"
+        )
+        val onSv by animateColorAsState(
+            if (darkNow) Color(0xFF8C8C8C) else Color(0xFF808080), anim, label = "onSurfaceVariant"
+        )
+        val colors = if (darkNow) darkColorScheme(
             primary = c.primary, onPrimary = c.onPrimary,
-            background = Color(0xFF000000), onBackground = Color(0xFFF2F2F2),
-            surface = Color(0xFF1C1C1E), onSurface = Color(0xFFF2F2F2),
-            surfaceVariant = Color(0xFF2C2C2E), onSurfaceVariant = Color(0xFF8C8C8C)
+            background = bg, onBackground = onSf,
+            surface = sf, onSurface = onSf,
+            surfaceVariant = sv, onSurfaceVariant = onSv
         ) else lightColorScheme(
             primary = c.primary, onPrimary = c.onPrimary,
-            background = Color(0xFFF2F3F5), onBackground = Color(0xFF0D0D0D),
-            surface = Color(0xFFFFFFFF), onSurface = Color(0xFF0D0D0D),
-            surfaceVariant = Color(0xFFF5F5F7), onSurfaceVariant = Color(0xFF808080)
+            background = bg, onBackground = onSf,
+            surface = sf, onSurface = onSf,
+            surfaceVariant = sv, onSurfaceVariant = onSv
         )
         MaterialTheme(colorScheme = colors) {
             androidx.compose.runtime.CompositionLocalProvider(
@@ -286,18 +304,18 @@ private fun SplashOverlay(done: () -> Unit) {
     }
     val t = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        t.animateTo(1f, tween(2100, easing = LinearEasing))
+        t.animateTo(1f, tween(3100, easing = LinearEasing))
         done()
     }
     val p = t.value
     fun seg(start: Float, len: Float) = ((p - start) / len).coerceIn(0f, 1f)
 
-    val ringIn = seg(0.00f, 0.35f)
-    val iconIn = seg(0.04f, 0.28f)
-    val markIn = seg(0.08f, 0.40f)
-    val subIn = seg(0.44f, 0.26f)
-    val dashIn = seg(0.60f, 0.20f)
-    val out = seg(0.88f, 0.12f)
+    val ringIn = seg(0.00f, 0.30f)
+    val iconIn = seg(0.05f, 0.26f)
+    val markIn = seg(0.12f, 0.38f)
+    val subIn = seg(0.50f, 0.24f)
+    val dashIn = seg(0.68f, 0.16f)
+    val out = seg(0.91f, 0.09f)
     val a = 1f - out
 
     Box(
