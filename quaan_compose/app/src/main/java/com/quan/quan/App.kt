@@ -186,7 +186,11 @@ fun QueApp(state: AppState) {
                                 ) {
                                     Column(Modifier.verticalScroll(dScroll)) {
                                         Text(
-                                            if (state.driverLog.isBlank()) "日志会显示在这里"
+                                            if (state.driverLog.isBlank())
+                                                "> 还没执行过驱动\n" +
+                                                "> 通道：${state.drv}    脚本：${state.drvSel.ifBlank { "未匹配" }}\n" +
+                                                "> 脚本的菜单、退出码、驱动状态都会显示在这里\n" +
+                                                "> 菜单里要 1 就把 1 填到上面的输入框再点「执行」"
                                             else state.driverLog,
                                             fontSize = 12.sp, lineHeight = 17.sp,
                                             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
@@ -966,6 +970,7 @@ private fun DriverIO(state: AppState) {
         )
     }
     Spacer(Modifier.height(8.dp))
+    val empty = state.driverLog.isBlank()
     Box(
         Modifier.fillMaxWidth().height(190.dp)
             .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
@@ -973,13 +978,18 @@ private fun DriverIO(state: AppState) {
     ) {
         Column(Modifier.verticalScroll(scroll)) {
             Text(
-                if (state.driverLog.isBlank()) "驱动输出会显示在这里（脚本的菜单、insmod/ksud 结果都在这）"
+                if (empty)
+                    "> 还没执行过驱动，先看这里\n" +
+                    "> 通道：${state.drv}    脚本：${state.drvSel.ifBlank { "未匹配（先选一个）" }}\n" +
+                    "> 脚本跑起来会打印菜单，常见是：\n" +
+                    ">   1) insmod 加载    2) ksud 加载    3) 卸载模块\n" +
+                    "> 把对应数字填到上面的输入框（不确定就填 1），再点「执行驱动」\n" +
+                    "> 输出、退出码、驱动状态会记在这，下次打开还在"
                 else state.driverLog,
                 fontSize = 12.sp, lineHeight = 17.sp,
                 fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                color = if (state.driverLog.isBlank())
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                else Color(0xFF3A7D44)
+                color = if (empty) MaterialTheme.colorScheme.onSurfaceVariant
+                        else Color(0xFF3A7D44)
             )
         }
     }
