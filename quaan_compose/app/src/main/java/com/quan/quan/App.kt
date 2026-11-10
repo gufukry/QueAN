@@ -929,9 +929,9 @@ private fun DevicePage(state: AppState) {
         KvRow("已选脚本", state.drvSel.ifBlank { "自动匹配中…" })
         KvRow("驱动状态", state.drvState)
         state.drvList.forEach { n ->
-            OptionRadio(n, "", state.drvSel == n) { state.drvSel = n }
+            OptionRadio(n, "", state.drvSel == n) { state.drvSel = n; state.loadDriverScriptText() }
         }
-        Body("脚本会自己打印菜单，按提示填序号（一般就是 1）后点执行，输出会显示在下面。")
+        Body("「脚本内容」能直接看这份 .sh 的原文；「执行日志」看运行输出。脚本要你选 1 就把 1 填进输入框再点执行。")
         DriverIO(state)
         DarkButton("执行驱动") { state.runDriverManual() }
         LightButton("放大查看日志") { state.openDriverDialog() }
@@ -942,7 +942,8 @@ private fun DevicePage(state: AppState) {
 @Composable
 private fun DriverIO(state: AppState) {
     val scroll = rememberScrollState()
-    LaunchedEffect(state.driverLog) { scroll.animateScrollTo(scroll.maxValue) }
+    var showScript by remember { mutableStateOf(true) }
+    LaunchedEffect(state.driverLog) { if (state.driverLog.isNotBlank()) showScript = false }
     Spacer(Modifier.height(8.dp))
     Box(
         Modifier.fillMaxWidth().height(48.dp)
@@ -970,27 +971,57 @@ private fun DriverIO(state: AppState) {
         )
     }
     Spacer(Modifier.height(8.dp))
-    val empty = state.driverLog.isBlank()
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        val on = MaterialTheme.colorScheme.primary
+        val off = MaterialTheme.colorScheme.onSurfaceVariant
+        Text(
+            "脚本内容", fontSize = 14.sp, color = if (showScript) on else off,
+            modifier = Modifier.clickable { showScript = true }
+                .padding(vertical = 4.dp, horizontal = 6.dp)
+        )
+        Spacer(Modifier.width(4.dp))
+        Text(
+            "执行日志", fontSize = 14.sp, color = if (showScript) off else on,
+            modifier = Modifier.clickable { showScript = false }
+                .padding(vertical = 4.dp, horizontal = 6.dp)
+        )
+        Spacer(Modifier.weight(1f))
+        Text(
+            state.drvSel.ifBlank { "未匹配脚本" },
+            fontSize = 12.sp, color = off
+        )
+    }
     Box(
         Modifier.fillMaxWidth().height(190.dp)
             .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
             .padding(10.dp)
     ) {
         Column(Modifier.verticalScroll(scroll)) {
-            Text(
-                if (empty)
-                    "> 还没执行过驱动，先看这里\n" +
-                    "> 通道：${state.drv}    脚本：${state.drvSel.ifBlank { "未匹配（先选一个）" }}\n" +
-                    "> 脚本跑起来会打印菜单，常见是：\n" +
-                    ">   1) insmod 加载    2) ksud 加载    3) 卸载模块\n" +
-                    "> 把对应数字填到上面的输入框（不确定就填 1），再点「执行驱动」\n" +
-                    "> 输出、退出码、驱动状态会记在这，下次打开还在"
-                else state.driverLog,
-                fontSize = 12.sp, lineHeight = 17.sp,
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                color = if (empty) MaterialTheme.colorScheme.onSurfaceVariant
-                        else Color(0xFF3A7D44)
-            )
+            if (showScript) {
+                Text(
+                    if (state.driverScriptText.isBlank())
+                        "> 还没有匹配到脚本\n> 先在下面选一个（通道：${state.drv}）"
+                    else state.driverScriptText,
+                    fontSize = 12.sp, lineHeight = 17.sp,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    color = if (state.driverScriptText.isBlank())
+                        MaterialTheme.colorScheme.onSurfaceVariant else Color(0xFF2F6E3C)
+                )
+            } else {
+                val empty = state.driverLog.isBlank()
+                Text(
+                    if (empty)
+                        "> 还没执行过驱动\n" +
+                        "> 通道：${state.drv}    脚本：${state.drvSel.ifBlank { "未匹配（先选一个）" }}\n" +
+                        "> 把菜单序号填到上面的输入框（不确定就填 1），再点「执行驱动」\n" +
+                        "> 输出、退出码、驱动状态会记在这，下次打开还在"
+                    else state.driverLog,
+                    fontSize = 12.sp, lineHeight = 17.sp,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    color = if (empty) MaterialTheme.colorScheme.onSurfaceVariant
+                            else Color(0xFF3A7D44)
+                )
+            }
         }
     }
 }

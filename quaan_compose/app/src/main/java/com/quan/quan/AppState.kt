@@ -354,6 +354,18 @@ class AppState(ctx: Context) {
         if (drvSel.isBlank() || !list.contains(drvSel)) {
             drvSel = autoPick(list) ?: ""
         }
+        loadDriverScriptText()
+    }
+
+    /** 读当前选中脚本的文本，供驱动页展示（读不到就留空） */
+    fun loadDriverScriptText() {
+        if (drvSel.isBlank()) { driverScriptText = ""; return }
+        driverScriptText = try {
+            app.assets.open("drivers/$drv/$drvSel")
+                .bufferedReader().use { it.readText() }.take(12000)
+        } catch (t: Throwable) {
+            ""
+        }
     }
 
     private fun autoPick(list: List<String>): String? {
@@ -383,6 +395,7 @@ class AppState(ctx: Context) {
     var driverDialog by mutableStateOf(false)
     var driverInput by mutableStateOf(prefs.getString("drv_in", "1") ?: "1")
     var driverLog by mutableStateOf(loadDriverLog())
+    var driverScriptText by mutableStateOf("")   // 当前/刚执行过的 .sh 文本
 
     private fun driverLogFile() = File(app.filesDir, "driver_last.log")
 
@@ -431,6 +444,7 @@ class AppState(ctx: Context) {
         }
         val input = driverInput.trim().ifBlank { "1" }
         prefs.edit().putString("drv_in", input).apply()
+        loadDriverScriptText()
         driverLog = "> 驱动：$drv / $drvSel   输入：$input\n"
         saveDriverLog()
         Thread {
