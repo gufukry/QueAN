@@ -177,7 +177,7 @@ fun QueApp(state: AppState) {
                                 }
                                 Spacer(Modifier.height(10.dp))
                                 Box(
-                                    Modifier.fillMaxWidth().height(150.dp)
+                                    Modifier.fillMaxWidth().height(210.dp)
                                         .background(
                                             MaterialTheme.colorScheme.surfaceVariant,
                                             RoundedCornerShape(14.dp)
@@ -187,10 +187,7 @@ fun QueApp(state: AppState) {
                                     Column(Modifier.verticalScroll(dScroll)) {
                                         Text(
                                             if (state.driverLog.isBlank())
-                                                "> 还没执行过驱动\n" +
-                                                "> 通道：${state.drv}    脚本：${state.drvSel.ifBlank { "未匹配" }}\n" +
-                                                "> 脚本的菜单、退出码、驱动状态都会显示在这里\n" +
-                                                "> 菜单里要 1 就把 1 填到上面的输入框再点「执行」"
+                                                "还没有执行记录，点「执行」后脚本输出的文字会显示在这里"
                                             else state.driverLog,
                                             fontSize = 12.sp, lineHeight = 17.sp,
                                             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
@@ -929,100 +926,9 @@ private fun DevicePage(state: AppState) {
         KvRow("已选脚本", state.drvSel.ifBlank { "自动匹配中…" })
         KvRow("驱动状态", state.drvState)
         state.drvList.forEach { n ->
-            OptionRadio(n, "", state.drvSel == n) { state.drvSel = n; state.loadDriverScriptText() }
+            OptionRadio(n, "", state.drvSel == n) { state.drvSel = n }
         }
-        Body("「脚本内容」能直接看这份 .sh 的原文；「执行日志」看运行输出。脚本要你选 1 就把 1 填进输入框再点执行。")
-        DriverIO(state)
-        DarkButton("执行驱动") { state.runDriverManual() }
-        LightButton("放大查看日志") { state.openDriverDialog() }
-    }
-}
-
-/** 驱动页内联的输入框 + 输出日志（不弹窗也能看到脚本打印的菜单） */
-@Composable
-private fun DriverIO(state: AppState) {
-    val scroll = rememberScrollState()
-    var showScript by remember { mutableStateOf(true) }
-    LaunchedEffect(state.driverLog) { if (state.driverLog.isNotBlank()) showScript = false }
-    Spacer(Modifier.height(8.dp))
-    Box(
-        Modifier.fillMaxWidth().height(48.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
-            .padding(horizontal = 14.dp),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        if (state.driverInput.isEmpty()) {
-            Text(
-                "菜单序号，脚本提示要 1 就填 1",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        BasicTextField(
-            value = state.driverInput,
-            onValueChange = { state.driverInput = it },
-            singleLine = true,
-            textStyle = TextStyle(fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface),
-            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
-                imeAction = androidx.compose.ui.text.input.ImeAction.Done
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-    Spacer(Modifier.height(8.dp))
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        val on = MaterialTheme.colorScheme.primary
-        val off = MaterialTheme.colorScheme.onSurfaceVariant
-        Text(
-            "脚本内容", fontSize = 14.sp, color = if (showScript) on else off,
-            modifier = Modifier.clickable { showScript = true }
-                .padding(vertical = 4.dp, horizontal = 6.dp)
-        )
-        Spacer(Modifier.width(4.dp))
-        Text(
-            "执行日志", fontSize = 14.sp, color = if (showScript) off else on,
-            modifier = Modifier.clickable { showScript = false }
-                .padding(vertical = 4.dp, horizontal = 6.dp)
-        )
-        Spacer(Modifier.weight(1f))
-        Text(
-            state.drvSel.ifBlank { "未匹配脚本" },
-            fontSize = 12.sp, color = off
-        )
-    }
-    Box(
-        Modifier.fillMaxWidth().height(190.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
-            .padding(10.dp)
-    ) {
-        Column(Modifier.verticalScroll(scroll)) {
-            if (showScript) {
-                Text(
-                    if (state.driverScriptText.isBlank())
-                        "> 还没有匹配到脚本\n> 先在下面选一个（通道：${state.drv}）"
-                    else state.driverScriptText,
-                    fontSize = 12.sp, lineHeight = 17.sp,
-                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                    color = if (state.driverScriptText.isBlank())
-                        MaterialTheme.colorScheme.onSurfaceVariant else Color(0xFF2F6E3C)
-                )
-            } else {
-                val empty = state.driverLog.isBlank()
-                Text(
-                    if (empty)
-                        "> 还没执行过驱动\n" +
-                        "> 通道：${state.drv}    脚本：${state.drvSel.ifBlank { "未匹配（先选一个）" }}\n" +
-                        "> 把菜单序号填到上面的输入框（不确定就填 1），再点「执行驱动」\n" +
-                        "> 输出、退出码、驱动状态会记在这，下次打开还在"
-                    else state.driverLog,
-                    fontSize = 12.sp, lineHeight = 17.sp,
-                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                    color = if (empty) MaterialTheme.colorScheme.onSurfaceVariant
-                            else Color(0xFF3A7D44)
-                )
-            }
-        }
+        DarkButton("执行驱动") { state.openDriverDialog() }
     }
 }
 
