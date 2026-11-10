@@ -928,11 +928,15 @@ private fun ConfigPage(state: AppState) {
         CardTitle("切换游戏")
         state.gameNames.forEachIndexed { i, name ->
             OptionRadio(name, "", state.game == i) {
+                val changed = state.game != i
                 state.updateGame(i)
-                state.checkUpdate()
+                if (changed) {
+                    state.checkFirstRun()        // 该游戏还没内核就弹首次下载提示
+                    state.autoCheckUpdate(true)  // 再静默检测云更新版本
+                }
             }
         }
-        Body("切换后会按对应游戏读取内核文件与云更新版本。")
+        Body("切换后会自动检测该游戏是否有新内核，有新版会弹提示。")
     }
 
     CardC {

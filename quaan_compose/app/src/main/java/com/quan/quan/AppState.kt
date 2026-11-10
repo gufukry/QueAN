@@ -769,8 +769,8 @@ class AppState(ctx: Context) {
         }.start()
     }
 
-    /** 启动时静默检查当前游戏：有新版就弹提示（不跳页） */
-    fun autoCheckUpdate() {
+    /** 静默检查当前游戏：有新版就弹提示（不跳页）；notifyWhenLatest 为真时最新也会 toast */
+    fun autoCheckUpdate(notifyWhenLatest: Boolean = false) {
         if (showKernelPrompt || needKernel) return   // 首次使用只提示下载内核
         Thread {
             val raw = fetchNotice() ?: return@Thread
@@ -784,6 +784,8 @@ class AppState(ctx: Context) {
                 promptGame = game
                 promptVer = upVer
                 updatePrompt = true
+            } else if (notifyWhenLatest) {
+                toast(if (local.isBlank()) "还没有下载过内核" else "已是最新版本 v$local")
             }
         }.start()
     }
