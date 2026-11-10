@@ -771,20 +771,27 @@ class AppState(ctx: Context) {
 
     /** 静默检查当前游戏：有新版就弹提示（不跳页）；notifyWhenLatest 为真时最新也会 toast */
     fun autoCheckUpdate(notifyWhenLatest: Boolean = false) {
-        if (showKernelPrompt || needKernel) return   // 首次使用只提示下载内核
         Thread {
             val raw = fetchNotice() ?: return@Thread
             noticeRaw = raw
             noticeText = stripUpdateLines(raw)
             applyUpdateFor(raw, game)
-            val local = localKernelVer(game)
+            var local = localKernelVer(game)
+            // 内核已经在，但版本号文件丢了：按云端当前版本补写，避免一直被当成旧版
+            if (local.isBlank() && hasKernel(game) && upVer.isNotBlank()) {
+                local = upVer
+                runCatching {
+                    kernelVerFile(game).writeText(upVer)
+                    prefs.edit().putString("kernel_ver_${gameKey(game)}", upVer).apply()
+                }
+            }
             val newer = !hasKernel(game) ||
                     (upVer.isNotBlank() && (local.isBlank() || compareVersion(upVer, local) > 0))
-            if (newer && upUrl.isNotBlank()) {
+            if (newer && upUrl.isNotBlank() && !showKernelPrompt) {
                 promptGame = game
                 promptVer = upVer
                 updatePrompt = true
-            } else if (notifyWhenLatest) {
+            } else if (notifyWhenLatest && !newer) {
                 toast(if (local.isBlank()) "还没有下载过内核" else "已是最新版本 v$local")
             }
         }.start()
@@ -821,9 +828,17 @@ class AppState(ctx: Context) {
         }
     }
 
+    /** 公告里每个游戏可能用的段落标签 */
+    private fun updateAliases(g: Int): List<String> =
+        if (g == 1) listOf("pubg", "pubgm", "pubg mobile", "国际服", "国际")
+        else listOf("", "和平", "和平精英", "hp")
+
     private fun applyUpdateFor(raw: String, g: Int = upGame) {
-        val block = updateBlock(raw, if (g == 0) "" else gameKey(g))
-            ?: updateBlock(raw, "")
+        var block: String? = null
+        for (t in updateAliases(g)) {
+            block = updateBlock(raw, t)
+            if (block != null) break
+        }
         if (block == null) { upVer = ""; upUrl = ""; return }
         val bar1 = block.indexOf('|')
         if (bar1 < 0) {
