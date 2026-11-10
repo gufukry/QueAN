@@ -76,7 +76,7 @@ fun rc4(data: ByteArray, key: ByteArray): ByteArray {
 
 /** 拉公告（先 GET 再 POST），返回原文 */
 fun fetchNotice(): String? {
-    val base = "/api/?id=notice&app=${Wy.APPID}"
+    val base = "/api/?id=notice&app=${Wy.APPID}&_t=${System.currentTimeMillis()}"
     val urls = listOf("https://${Wy.HOST}$base", "http://${Wy.HOST}$base")
     var resp: String? = null
     for (pass in 0..1) {
@@ -97,6 +97,10 @@ fun fetchNotice(): String? {
         .replace("\\\"", "\"")
         .trim()
 }
+
+/** 下载地址是否像个真链接（域名字符集限定 ASCII，占位符直接判无效） */
+fun isDownloadUrl(u: String): Boolean =
+    Regex("^https?://[A-Za-z0-9.-]+(:[0-9]+)?/").containsMatchIn(u)
 
 /** 取某个游戏的 [更新...] 段落（不含其它游戏那段） */
 fun updateBlock(text: String, tag: String): String? {

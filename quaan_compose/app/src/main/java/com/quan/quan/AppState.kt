@@ -511,6 +511,8 @@ class AppState(ctx: Context) {
 
     /* ---------------- 内核 ---------------- */
 
+    fun gameNameOf(g: Int): String = gameNames.getOrNull(g) ?: "该游戏"
+
     fun gameKey(g: Int = game): String = if (g == 1) "pubg" else "hp"
     fun kernelFile(g: Int = game): File = File(app.filesDir, "quean_kernel_${gameKey(g)}.sh")
     fun kernelVerFile(g: Int = game): File = File(app.filesDir, "quean_kernel_${gameKey(g)}.ver")
@@ -734,9 +736,11 @@ class AppState(ctx: Context) {
             noticeText = stripUpdateLines(raw)
             applyUpdateFor(raw)
             val local = localKernelVer(upGame)
+            appendLog("> 云更新 ${gameKey(upGame)}: 云端 v${upVer.ifBlank { "?" }} / 本地 v${local.ifBlank { "?" }}${if (upUrlBad) "（下载地址无效）" else ""}")
             upStatus = when {
-                upUrl.isBlank() -> "这一份内核没有配置下载地址"
-                local.isBlank() -> "还没有下载过内核"
+                upVer.isBlank() -> "公告里没有 ${gameNameOf(upGame)} 的版本段"
+                local.isBlank() -> "还没有下载过内核（云端 v$upVer）"
+                compareVersion(upVer, local) > 0 && upUrlBad -> "有新版 v$upVer，但下载地址无效"
                 compareVersion(upVer, local) > 0 -> "有新版 v$upVer（本地 v$local）"
                 else -> "已是最新 v$local"
             }
@@ -759,7 +763,10 @@ class AppState(ctx: Context) {
             val local = localKernelVer(upGame)
             val newer = !hasKernel(upGame) ||
                     (upVer.isNotBlank() && (local.isBlank() || compareVersion(upVer, local) > 0))
-            if (newer) {
+            if (newer && upUrlBad) {
+                upStatus = "有新版 v$upVer，但下载地址无效"
+                toast("检测到新版 v$upVer，但下载地址无效（后台配置的链接是占位符）")
+            } else if (newer) {
                 upStatus = if (local.isBlank()) "还没有下载过内核" else "有新版 v$upVer（本地 v$local）"
                 showUpdatePage = true
             } else {
@@ -787,7 +794,10 @@ class AppState(ctx: Context) {
             }
             val newer = !hasKernel(game) ||
                     (upVer.isNotBlank() && (local.isBlank() || compareVersion(upVer, local) > 0))
-            if (newer && upUrl.isNotBlank() && !showKernelPrompt) {
+            appendLog("> 云更新 ${gameKey(game)}: 云端 v${upVer.ifBlank { "?" }} / 本地 v${local.ifBlank { "?" }}${if (upUrlBad) "（下载地址无效）" else ""}")
+            if (newer && upUrlBad && notifyWhenLatest) {
+                toast("检测到新版 v$upVer，但下载地址无效")
+            } else if (newer && upUrl.isNotBlank() && !showKernelPrompt) {
                 promptGame = game
                 promptVer = upVer
                 updatePrompt = true
@@ -839,7 +849,7 @@ class AppState(ctx: Context) {
             block = updateBlock(raw, t)
             if (block != null) break
         }
-        if (block == null) { upVer = ""; upUrl = ""; return }
+        if (block == null) { upVer = ""; upUrl = ""; upUrlBad = false; return }
         val bar1 = block.indexOf('|')
         if (bar1 < 0) {
             upVer = block.trim()
@@ -853,6 +863,8 @@ class AppState(ctx: Context) {
             upNote = if (bar2 < 0) "" else block.substring(bar2 + 1).trim().replace("\\n", "\n")
         }
         if (!upUrl.startsWith("http")) upUrl = ""
+        upUrlBad = upUrl.isBlank() || !isDownloadUrl(upUrl)
+        if (upUrlBad) upUrl = ""     // 占位符/中文域名一律当没有地址
     }
 
     fun startUpdate() {
