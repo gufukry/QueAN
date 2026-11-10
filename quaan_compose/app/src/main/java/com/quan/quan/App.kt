@@ -159,7 +159,7 @@ fun QueApp(state: AppState) {
                                 ) {
                                     if (state.driverInput.isEmpty()) {
                                         Text(
-                                            "输入菜单序号，默认 1",
+                                            "菜单序号，脚本提示要 1 就填 1",
                                             fontSize = 14.sp,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -927,7 +927,61 @@ private fun DevicePage(state: AppState) {
         state.drvList.forEach { n ->
             OptionRadio(n, "", state.drvSel == n) { state.drvSel = n }
         }
-        DarkButton("执行驱动") { state.openDriverDialog() }
+        Body("脚本会自己打印菜单，按提示填序号（一般就是 1）后点执行，输出会显示在下面。")
+        DriverIO(state)
+        DarkButton("执行驱动") { state.runDriverManual() }
+        LightButton("放大查看日志") { state.openDriverDialog() }
+    }
+}
+
+/** 驱动页内联的输入框 + 输出日志（不弹窗也能看到脚本打印的菜单） */
+@Composable
+private fun DriverIO(state: AppState) {
+    val scroll = rememberScrollState()
+    LaunchedEffect(state.driverLog) { scroll.animateScrollTo(scroll.maxValue) }
+    Spacer(Modifier.height(8.dp))
+    Box(
+        Modifier.fillMaxWidth().height(48.dp)
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
+            .padding(horizontal = 14.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        if (state.driverInput.isEmpty()) {
+            Text(
+                "菜单序号，脚本提示要 1 就填 1",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        BasicTextField(
+            value = state.driverInput,
+            onValueChange = { state.driverInput = it },
+            singleLine = true,
+            textStyle = TextStyle(fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface),
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+                imeAction = androidx.compose.ui.text.input.ImeAction.Done
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+    Spacer(Modifier.height(8.dp))
+    Box(
+        Modifier.fillMaxWidth().height(190.dp)
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
+            .padding(10.dp)
+    ) {
+        Column(Modifier.verticalScroll(scroll)) {
+            Text(
+                if (state.driverLog.isBlank()) "驱动输出会显示在这里（脚本的菜单、insmod/ksud 结果都在这）"
+                else state.driverLog,
+                fontSize = 12.sp, lineHeight = 17.sp,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                color = if (state.driverLog.isBlank())
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                else Color(0xFF3A7D44)
+            )
+        }
     }
 }
 

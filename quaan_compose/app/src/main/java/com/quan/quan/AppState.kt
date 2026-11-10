@@ -202,6 +202,11 @@ class AppState(ctx: Context) {
 
     /** 刷驱动：默认输入 1（insmod），失败自动换 2（ksud） */
     private fun runDriverBlocking(): Boolean {
+        fun dlog(t: String) {                 // 同时写主日志、驱动页日志和磁盘
+            appendLog(t)
+            driverLog = (driverLog + t + "\n").takeLast(4000)
+            saveDriverLog()
+        }
         val hasParadise = try {
             (app.assets.list("drivers/paradise") ?: emptyArray()).isNotEmpty()
         } catch (t: Throwable) {
@@ -214,12 +219,14 @@ class AppState(ctx: Context) {
         }
         if (drvSel.isBlank()) scanDrivers()
         if (drvSel.isBlank()) {
-            appendLog("> 没有找到可用驱动，跳过驱动步骤")
+            dlog("> 没有找到可用驱动，跳过驱动步骤")
             return false
         }
+        driverLog = "> 自动刷驱动：$drv / $drvSel\n"
+        saveDriverLog()
         val kvNowText = kvNow()
-        appendLog("> 本机内核：$kvNowText → 匹配脚本：$drvSel")
-        appendLog("> ① 自动导入驱动：$drv / $drvSel")
+        dlog("> 本机内核：$kvNowText → 匹配脚本：$drvSel")
+        dlog("> ① 自动导入驱动：$drv / $drvSel")
         return try {
             val names = app.assets.list("drivers/$drv") ?: emptyArray()
             val tmp = File(app.filesDir, "qdrv").also { it.mkdirs() }
@@ -239,19 +246,19 @@ class AppState(ctx: Context) {
                     "cd /data/local/qdrv && $pre sh '$drvSel' '$input' " +
                     "< /data/local/tmp/quean_in.txt"
 
-            appendLog("> 脚本输入：$autoIn")
+            dlog("> 脚本输入：$autoIn")
             val (out1, code1) = shCode(build(autoIn))
-            if (out1.isNotBlank()) appendLog(out1)
+            if (out1.isNotBlank()) dlog(out1)
             var ok = code1 == 0
             if (!ok) {
-                appendLog("> 方式 $autoIn 失败（退出码 $code1），改用 2（ksud）重试")
+                dlog("> 方式 $autoIn 失败（退出码 $code1），改用 2（ksud）重试")
                 val (out2, code2) = shCode(build("2"))
-                if (out2.isNotBlank()) appendLog(out2)
+                if (out2.isNotBlank()) dlog(out2)
                 ok = code2 == 0
             }
             val mods = sh("cat /proc/modules 2>/dev/null; lsmod 2>/dev/null")
             val modsLine = mods.lineSequence().filter { it.isNotBlank() }.take(3).joinToString(" | ")
-            if (modsLine.isNotBlank()) appendLog("> 模块列表：$modsLine")
+            if (modsLine.isNotBlank()) dlog("> 模块列表：$modsLine")
             drvState = when {
                 mods.contains("paradise", true) || mods.contains("kma", true) ||
                     mods.contains("hx_drv", true) -> "已加载"
@@ -259,10 +266,10 @@ class AppState(ctx: Context) {
                 else -> "失败"
             }
             if (!ok) failed = true
-            appendLog("> 驱动状态：$drvState")
+            dlog("> 驱动状态：$drvState")
             ok
         } catch (t: Throwable) {
-            appendLog("> 驱动执行失败：${t.message}")
+            dlog("> 驱动执行失败：${t.message}")
             false
         }
     }
@@ -375,11 +382,27 @@ class AppState(ctx: Context) {
 
     var driverDialog by mutableStateOf(false)
     var driverInput by mutableStateOf(prefs.getString("drv_in", "1") ?: "1")
-    var driverLog by mutableStateOf("")
+    var driverLog by mutableStateOf(loadDriverLog())
+
+    private fun driverLogFile() = File(app.filesDir, "driver_last.log")
+
+    private fun loadDriverLog(): String = try {
+        val f = driverLogFile()
+        if (f.exists()) f.readText().takeLast(8000) else ""
+    } catch (t: Throwable) {
+        ""
+    }
+
+    private fun saveDriverLog() {
+        try {
+            driverLogFile().writeText(driverLog)
+        } catch (t: Throwable) {
+            // 忽略写盘失败
+        }
+    }
 
     fun openDriverDialog() {
-        driverLog = ""
-        driverDialog = true
+        driverDialog = true      // 不清日志：放大查看时要能看到刚才的输出
     }
 
     fun closeDriverDialog() {
@@ -409,6 +432,7 @@ class AppState(ctx: Context) {
         val input = driverInput.trim().ifBlank { "1" }
         prefs.edit().putString("drv_in", input).apply()
         driverLog = "> 驱动：$drv / $drvSel   输入：$input\n"
+        saveDriverLog()
         Thread {
             try {
                 val names = app.assets.list("drivers/$drv") ?: emptyArray()
@@ -432,13 +456,16 @@ class AppState(ctx: Context) {
                     appendLog(line)
                 }
                 driverLog += "> 退出码 $code\n"
+                saveDriverLog()
                 val mods = sh("cat /proc/modules 2>/dev/null; lsmod 2>/dev/null")
                 drvState = if (mods.contains("drv")) "已加载" else if (code == 0) "已执行" else "失败"
                 driverLog += "> 驱动状态：$drvState\n"
+                saveDriverLog()
                 appendLog("> 驱动状态：$drvState")
                 if (code != 0) failed = true
             } catch (t: Throwable) {
                 driverLog += "> 失败：${t.message}\n"
+                saveDriverLog()
             }
         }.start()
     }
