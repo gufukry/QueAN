@@ -38,6 +38,7 @@ class AppState(ctx: Context) {
     var downloading by mutableStateOf(false)
     var progress by mutableStateOf(0f)
     var upStatus by mutableStateOf("尚未检查")
+    var upUrlBad by mutableStateOf(false)   // 云端版本有，但下载地址无效（占位符等）
     // 卡密
     var kami by mutableStateOf(prefs.getString("kami", "") ?: "")
     var remember by mutableStateOf(prefs.getBoolean("remember", false))
