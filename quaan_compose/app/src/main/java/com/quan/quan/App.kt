@@ -109,7 +109,9 @@ fun QueApp(state: AppState) {
         )
         MaterialTheme(colorScheme = colors) {
             androidx.compose.runtime.CompositionLocalProvider(
-                androidx.compose.material3.LocalContentColor provides colors.onBackground
+                androidx.compose.material3.LocalContentColor provides colors.onBackground,
+                androidx.compose.material3.LocalTextStyle provides
+                        TextStyle(fontFamily = AppFontFamily, fontSize = 15.sp)
             ) {
             var splash by remember { mutableStateOf(true) }
             var uiReady by remember { mutableStateOf(false) }

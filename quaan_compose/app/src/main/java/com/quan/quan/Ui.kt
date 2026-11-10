@@ -25,9 +25,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+/** 全局字体：苹方黑体·纤细（res/font/pingfang_thin.ttf） */
+val AppFontFamily = FontFamily(
+    Font(R.font.pingfang_thin, FontWeight.Thin),
+    Font(R.font.pingfang_thin, FontWeight.Light),
+    Font(R.font.pingfang_thin, FontWeight.Normal),
+    Font(R.font.pingfang_thin, FontWeight.Medium),
+    Font(R.font.pingfang_thin, FontWeight.SemiBold),
+    Font(R.font.pingfang_thin, FontWeight.Bold)
+)
 
 /** 深色强调色（浅色主题=近黑，深色主题=近白） */
 @Composable
