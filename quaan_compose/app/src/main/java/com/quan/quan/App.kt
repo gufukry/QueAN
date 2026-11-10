@@ -637,12 +637,12 @@ private fun TerminalPage(state: AppState) {
             Text(
                 "执行脚本（.sh）", fontSize = 14.sp, color = Color(0xFF00B578),
                 modifier = Modifier
-                    .clickable { picker.launch("*/*") }
+                    .clickable(enabled = !state.termRunning) { picker.launch("*/*") }
                     .padding(vertical = 6.dp, horizontal = 6.dp)
             )
             Spacer(Modifier.weight(1f))
             Text(
-                "以 su 执行", fontSize = 12.sp, color = Color(0xFF6E6E73)
+                "以 su 执行 · 输入框内容作参数", fontSize = 12.sp, color = Color(0xFF6E6E73)
             )
         }
     }

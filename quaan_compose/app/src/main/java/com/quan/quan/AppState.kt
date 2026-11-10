@@ -444,7 +444,9 @@ class AppState(ctx: Context) {
 
     fun openTerminal() {
         showTerminal = true
-        if (termLog.isBlank()) termLog = "> QueAN 终端（root）\n> 输入命令后回车执行，支持 cd / sh xxx.sh\n"
+        if (termLog.isBlank()) termLog =
+            "> QueAN 终端（root）\n> 输入命令回车执行：cd / sh xxx.sh / ls 等\n" +
+            "> 「执行脚本」选 .sh 会自动拷到 /data/local/tmp 并用 su 运行，输入框内容作为脚本参数\n"
     }
 
     fun closeTerminal() {
@@ -473,8 +475,12 @@ class AppState(ctx: Context) {
             }.start()
             return
         }
+        // 直接输入 xxx.sh / ./xxx.sh 时自动用 sh 执行（很多脚本没有可执行位）
+        val head = raw.trim().split(" ").firstOrNull() ?: raw
+        val lower = head.lowercase()
+        val cmd = if (lower.endsWith(".sh") && lower != "sh" && lower != "bash") "sh $raw" else raw
         Thread {
-            val code = execStream("cd $termCwd 2>/dev/null; $raw") { line ->
+            val code = execStream("cd $termCwd 2>/dev/null; $cmd") { line ->
                 termLog += line + "\n"
             }
             if (code != 0) termLog += "[退出码 $code]\n"
@@ -482,26 +488,46 @@ class AppState(ctx: Context) {
         }.start()
     }
 
-    /** 选一个 .sh 拷进来直接跑 */
+    /** 选一个 .sh：按原文件名拷到 /data/local/tmp 后用 su 执行；输入框内容当脚本参数 */
     fun runScript(uri: android.net.Uri) {
+        if (termRunning) return
         termRunning = true
-        termLog += "\n> 导入脚本并执行\n"
         Thread {
             try {
-                val f = File(app.filesDir, "term_script.sh")
+                val rawName = queryDisplayName(uri) ?: "term_script.sh"
+                val name = rawName.replace(Regex("[^A-Za-z0-9._-]"), "_").ifBlank { "term_script.sh" }
+                val local = File(app.filesDir, name)
                 app.contentResolver.openInputStream(uri)?.use { input ->
-                    f.outputStream().use { input.copyTo(it) }
+                    local.outputStream().use { input.copyTo(it) }
+                } ?: run {
+                    termLog += "> 读取脚本失败\n"
+                    termRunning = false
+                    return@Thread
                 }
-                termLog += "> 已保存到 ${f.absolutePath}\n"
-                val code = execStream("cp '${f.absolutePath}' /data/local/tmp/term_script.sh && chmod 777 /data/local/tmp/term_script.sh && cd $termCwd && sh /data/local/tmp/term_script.sh 1") { line ->
-                    termLog += line + "\n"
-                }
+                val args = termInput.trim().also { termInput = "" }
+                val dst = "/data/local/tmp/$name"
+                termLog += "\n> 执行 $dst" + (if (args.isNotEmpty()) " $args" else "") + "\n"
+                val cmd = "cp '${local.absolutePath}' '$dst' && chmod 777 '$dst' && cd $termCwd && " +
+                        "sh '$dst'" + (if (args.isNotEmpty()) " $args" else "")
+                val code = execStream(cmd) { line -> termLog += line + "\n" }
                 termLog += "[退出码 $code]\n"
             } catch (t: Throwable) {
                 termLog += "> 执行失败：${t.message}\n"
             }
             termRunning = false
         }.start()
+    }
+
+    /** 取选择器里的文件名（拿不到就返回 null） */
+    private fun queryDisplayName(uri: android.net.Uri): String? {
+        return try {
+            app.contentResolver.query(uri, null, null, null, null)?.use { c ->
+                val idx = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                if (idx >= 0 && c.moveToFirst()) c.getString(idx) else null
+            }
+        } catch (t: Throwable) {
+            null
+        }
     }
 
     fun runDriver() {
