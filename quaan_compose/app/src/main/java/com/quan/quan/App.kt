@@ -222,16 +222,33 @@ fun QueApp(state: AppState) {
                         onDismissRequest = { state.dismissUpdatePrompt() },
                         title = { Text("发现新版本", fontWeight = FontWeight.SemiBold) },
                         text = {
-                            Text(
-                                "${state.gameNames[state.promptGame]} 内核 v${state.promptVer} 已发布，前往更新页下载？",
-                                fontSize = 14.sp
-                            )
+                            Column {
+                                Text(
+                                    if (state.promptBadUrl)
+                                        "${state.gameNames[state.promptGame]} 内核 v${state.promptVer} 已发布，但后台配的下载地址无效（还是占位符），暂时无法下载。"
+                                    else
+                                        "${state.gameNames[state.promptGame]} 内核 v${state.promptVer} 已发布，前往更新页下载？",
+                                    fontSize = 14.sp
+                                )
+                                if (state.promptBadUrl) {
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(
+                                        "在后台公告里把 [更新${state.gameKey(state.promptGame)}] 那行的链接换成真实直链即可。",
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
                         },
                         confirmButton = {
                             Text(
-                                "前往更新", fontSize = 15.sp, fontWeight = FontWeight.Medium,
+                                if (state.promptBadUrl) "知道了" else "前往更新",
+                                fontSize = 15.sp, fontWeight = FontWeight.Medium,
                                 modifier = Modifier
-                                    .clickable { state.gotoUpdateFromPrompt() }
+                                    .clickable {
+                                        if (state.promptBadUrl) state.dismissUpdatePrompt()
+                                        else state.gotoUpdateFromPrompt()
+                                    }
                                     .padding(horizontal = 12.dp, vertical = 8.dp)
                             )
                         },

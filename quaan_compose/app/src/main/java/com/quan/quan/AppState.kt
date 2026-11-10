@@ -50,6 +50,7 @@ class AppState(ctx: Context) {
     var upGame by mutableStateOf(0)          // 更新页选中的游戏
     var showUpdatePage by mutableStateOf(false)
     var updatePrompt by mutableStateOf(false)
+    var promptBadUrl by mutableStateOf(false)
     var promptGame by mutableStateOf(0)
     var promptVer by mutableStateOf("")
     var cfgInput by mutableStateOf("")
@@ -795,12 +796,14 @@ class AppState(ctx: Context) {
             val newer = !hasKernel(game) ||
                     (upVer.isNotBlank() && (local.isBlank() || compareVersion(upVer, local) > 0))
             appendLog("> 云更新 ${gameKey(game)}: 云端 v${upVer.ifBlank { "?" }} / 本地 v${local.ifBlank { "?" }}${if (upUrlBad) "（下载地址无效）" else ""}")
-            if (newer && upUrlBad && notifyWhenLatest) {
-                toast("检测到新版 v$upVer，但下载地址无效")
-            } else if (newer && upUrl.isNotBlank() && !showKernelPrompt) {
+            if (newer && !showKernelPrompt) {          // 地址无效也要提示出来，不能让用户以为没更新
                 promptGame = game
                 promptVer = upVer
                 updatePrompt = true
+                if (upUrlBad) {
+                    promptBadUrl = true
+                    toast("检测到新版 v$upVer，但下载地址无效")
+                }
             } else if (notifyWhenLatest && !newer) {
                 toast(if (local.isBlank()) "还没有下载过内核" else "已是最新版本 v$local")
             }
@@ -809,6 +812,7 @@ class AppState(ctx: Context) {
 
     /** 弹窗里点「前往更新」：打开更新页并选好对应游戏 */
     fun gotoUpdateFromPrompt() {
+        promptBadUrl = false
         upGame = promptGame
         updatePrompt = false
         openUpdatePage(promptGame)
@@ -816,6 +820,7 @@ class AppState(ctx: Context) {
 
     fun dismissUpdatePrompt() {
         updatePrompt = false
+        promptBadUrl = false
     }
 
     fun openUpdatePage(g: Int) {
