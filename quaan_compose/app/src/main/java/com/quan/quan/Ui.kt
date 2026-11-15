@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** 全局字体：苹方黑体·纤细（res/font/pingfang_thin.ttf） */
+/** 全局字体：苹方黑体·中粗-简（res/font/pingfang_thin.ttf，与内核同款） */
 val AppFontFamily = FontFamily(
     Font(R.font.pingfang_thin, FontWeight.Thin),
     Font(R.font.pingfang_thin, FontWeight.Light),
