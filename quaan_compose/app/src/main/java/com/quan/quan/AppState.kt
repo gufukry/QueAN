@@ -47,7 +47,7 @@ class AppState(ctx: Context) {
     var upUrlBad by mutableStateOf(false)   // 云端版本有，但下载地址无效（占位符等）
 
     // ---- 云更新：三个项目各自独立的路由与检测状态（互不影响）----
-    enum class CloudRoute { None, Menu, Kernel, Launcher, Notice }
+    enum class CloudRoute { None, Kernel, Launcher, Notice }
     enum class CheckState { Idle, Checking, Latest, Newer, Failed }
 
     var cloudRoute by mutableStateOf(CloudRoute.None)
@@ -936,7 +936,7 @@ class AppState(ctx: Context) {
                     toast("检测到新版 v$upVer，但下载地址无效")
                 }
             }
-        }
+        }.start()
     }
 
     fun dismissAppPrompt() {
@@ -974,17 +974,10 @@ class AppState(ctx: Context) {
 
     /* ================= 云更新：菜单路由 ================= */
 
-    fun openCloudMenu() { cloudRoute = CloudRoute.Menu }
-
     fun openCloud(route: CloudRoute) { cloudRoute = route }
 
-    /** 子页返回上一步：子页 → 菜单，菜单 → 关闭 */
-    fun cloudBack() {
-        cloudRoute = when (cloudRoute) {
-            CloudRoute.Kernel, CloudRoute.Launcher, CloudRoute.Notice -> CloudRoute.Menu
-            else -> CloudRoute.None
-        }
-    }
+    /** 子页返回：关闭覆盖层，回到「系统」页（三个入口就在那一页）*/
+    fun cloudBack() { cloudRoute = CloudRoute.None }
 
     fun closeCloud() { cloudRoute = CloudRoute.None }
 
@@ -1028,7 +1021,7 @@ class AppState(ctx: Context) {
                 else -> "当前内核已是最新版本 v$local"
             }
             appendLog("> 检测内核: 云端 v${upVer.ifBlank { "?" }} / 本地 v${local.ifBlank { "未下载" }}")
-        }
+        }.start()
     }
 
     /* ================= 云更新：启动器 ================= */
@@ -1080,7 +1073,7 @@ class AppState(ctx: Context) {
                 else -> "当前启动器已是最新版本 v$local"
             }
             appendLog("> 检测启动器: 云端 v${appUpVer.ifBlank { "?" }} / 本地 v${local.ifBlank { "?" }}")
-        }
+        }.start()
     }
 
     /* ================= 云更新：公告 ================= */
@@ -1111,7 +1104,7 @@ class AppState(ctx: Context) {
                 isNew -> "发现新公告，点击查看"
                 else -> "公告已是最新"
             }
-        }
+        }.start()
     }
 
     /** 看过公告后记下原文，下次用它与云端比对判断「有没有新公告」 */

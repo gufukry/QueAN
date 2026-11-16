@@ -63,10 +63,10 @@ import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.ThemeController
 
-private val TABS = listOf("首页", "设备", "配置", "指南")
+private val TABS = listOf("首页", "设备", "配置", "系统", "指南")
 private val ICONS = listOf(
     Icons.Rounded.Cottage, Icons.Rounded.Smartphone,
-    Icons.Rounded.Settings, Icons.Rounded.MenuBook
+    Icons.Rounded.Settings, Icons.Rounded.Build, Icons.Rounded.MenuBook
 )
 
 @Composable
@@ -486,11 +486,12 @@ private fun SplashOverlay(done: () -> Unit) {
 @Composable
 private fun MainScreen(state: AppState, bg: Color) {
     val backdrop = rememberLayerBackdrop { drawRect(bg); drawContent() }
-    val titles = listOf("启动", "本机", "设置", "说明")
+    val titles = listOf("启动", "本机", "设置", "系统", "说明")
     val subs = listOf(
         "填好卡密即可一键初始化并启动内核。",
         "本机信息、驱动与内核状态一览。",
-        "切换游戏、导入配置、检查内核更新。",
+        "切换游戏、导入配置。",
+        "云更新与系统级选项。",
         "启动流程与常见问题。"
     )
 
@@ -544,6 +545,7 @@ private fun MainScreen(state: AppState, bg: Color) {
                         0 -> HomePage(state)
                         1 -> DevicePage(state)
                         2 -> ConfigPage(state)
+                        3 -> SystemPage(state)
                         else -> GuidePage()
                     }
                     Spacer(Modifier.height(96.dp))
@@ -727,40 +729,10 @@ private fun cloudHeader(state: AppState, title: String, subtitle: String = "") {
 @Composable
 private fun CloudPages(state: AppState) {
     when (state.cloudRoute) {
-        AppState.CloudRoute.Menu -> CloudMenuPage(state)
         AppState.CloudRoute.Kernel -> KernelUpdatePage(state)
         AppState.CloudRoute.Launcher -> LauncherUpdatePage(state)
         AppState.CloudRoute.Notice -> NoticePage(state)
         AppState.CloudRoute.None -> {}
-    }
-}
-
-@Composable
-private fun CloudMenuPage(state: AppState) {
-    Column(
-        Modifier.fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .safeDrawingPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        cloudHeader(state, "云更新")
-
-        CardC {
-            CardTitle("更新项目")
-            Body("每一项都独立检测、独立更新，互不影响。")
-            CloudEntry("内核更新", state.badgeOf(state.kernelCheck)) {
-                state.openCloud(AppState.CloudRoute.Kernel)
-            }
-            CloudEntry("启动器更新", state.badgeOf(state.appCheck)) {
-                state.openCloud(AppState.CloudRoute.Launcher)
-            }
-            CloudEntry("更新公告", state.badgeOf(state.noticeCheck, isNotice = true)) {
-                state.openCloud(AppState.CloudRoute.Notice)
-            }
-        }
-        Spacer(Modifier.height(24.dp))
     }
 }
 
@@ -1145,16 +1117,29 @@ private fun DevicePage(state: AppState) {
     }
 }
 
+/* ---------------- 系统页 ---------------- */
+
+@Composable
+private fun SystemPage(state: AppState) {
+    CardC {
+        CardTitle("云更新")
+        Body("三项各自检测、各自更新，互不影响。")
+        CloudEntry("内核更新", state.badgeOf(state.kernelCheck)) {
+            state.openCloud(AppState.CloudRoute.Kernel)
+        }
+        CloudEntry("启动器更新", state.badgeOf(state.appCheck)) {
+            state.openCloud(AppState.CloudRoute.Launcher)
+        }
+        CloudEntry("更新公告", state.badgeOf(state.noticeCheck, isNotice = true)) {
+            state.openCloud(AppState.CloudRoute.Notice)
+        }
+    }
+}
+
 /* ---------------- 配置页 ---------------- */
 
 @Composable
 private fun ConfigPage(state: AppState) {
-    CardC {
-        CardTitle("云更新")
-        Body("内核更新、启动器更新、更新公告分别有独立页面，各自检测互不影响。")
-        LightButton("打开云更新") { state.openCloudMenu() }
-    }
-
     CardC {
         CardTitle("终端")
         Body("直接用 root 权限执行命令或脚本，不用改源码。")
@@ -1227,10 +1212,10 @@ private fun ConfigPage(state: AppState) {
             "当前内核",
             if (state.hasKernel(state.game)) "v" + state.localKernelVer(state.game) else "未下载"
         )
-        Body("内核、启动器、公告的检测已拆到「云更新」里，各自独立。")
-        DarkButton("前往云更新") {
+        Body("内核、启动器、公告的检测在「系统」页里，各自独立。")
+        DarkButton("去系统页") {
             state.upGame = state.game
-            state.openCloudMenu()
+            state.page = 3
         }
     }
 
