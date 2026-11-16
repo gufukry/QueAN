@@ -45,6 +45,16 @@ class AppState(ctx: Context) {
     var appUpNote by mutableStateOf("")
     var appUpStatus by mutableStateOf("")
     var upUrlBad by mutableStateOf(false)   // 云端版本有，但下载地址无效（占位符等）
+
+    // ---- 云更新：三个项目各自独立的路由与检测状态（互不影响）----
+    enum class CloudRoute { None, Menu, Kernel, Launcher, Notice }
+    enum class CheckState { Idle, Checking, Latest, Newer, Failed }
+
+    var cloudRoute by mutableStateOf(CloudRoute.None)
+    var kernelCheck by mutableStateOf(CheckState.Idle)
+    var appCheck by mutableStateOf(CheckState.Idle)
+    var noticeCheck by mutableStateOf(CheckState.Idle)
+    var noticeStatus by mutableStateOf("尚未检测")
     // 卡密
     var kami by mutableStateOf(prefs.getString("kami", "") ?: "")
     var remember by mutableStateOf(prefs.getBoolean("remember", false))
@@ -55,7 +65,6 @@ class AppState(ctx: Context) {
     var needKernel by mutableStateOf(false)
     var showKernelPrompt by mutableStateOf(false)
     var upGame by mutableStateOf(0)          // 更新页选中的游戏
-    var showUpdatePage by mutableStateOf(false)
     var updatePrompt by mutableStateOf(false)
     var promptBadUrl by mutableStateOf(false)
     var promptGame by mutableStateOf(0)
@@ -804,35 +813,6 @@ class AppState(ctx: Context) {
         }.start()
     }
 
-    /** 检查当前更新页所选游戏：有新版就进更新页，最新就只提示 */
-    fun checkAndRoute() {
-        upStatus = "正在检查…"
-        Thread {
-            val raw = fetchNotice()
-            if (raw == null) {
-                toast("公告获取失败，请检查网络")
-                upStatus = "公告获取失败"
-                return@Thread
-            }
-            noticeRaw = raw
-            noticeText = stripUpdateLines(raw)
-            applyUpdateFor(raw)
-            val local = localKernelVer(upGame)
-            val newer = !hasKernel(upGame) ||
-                    (upVer.isNotBlank() && (local.isBlank() || compareVersion(upVer, local) > 0))
-            if (newer && upUrlBad) {
-                upStatus = "有新版 v$upVer，但下载地址无效"
-                toast("检测到新版 v$upVer，但下载地址无效（后台配置的链接是占位符）")
-            } else if (newer) {
-                upStatus = if (local.isBlank()) "还没有下载过内核" else "有新版 v$upVer（本地 v$local）"
-                showUpdatePage = true
-            } else {
-                upStatus = "已是最新 v$local"
-                toast("已是最新版本 v$local")
-            }
-        }.start()
-    }
-
     /** 静默检查当前游戏：有新版就弹提示（不跳页）；notifyWhenLatest 为真时最新也会 toast */
     fun autoCheckUpdate(notifyWhenLatest: Boolean = false) {
         Thread {
@@ -851,6 +831,9 @@ class AppState(ctx: Context) {
             }
             val newer = !hasKernel(game) ||
                     (upVer.isNotBlank() && (local.isBlank() || compareVersion(upVer, local) > 0))
+            // 静默检测也同步菜单徽标，状态只归内核这一项
+            if (upVer.isBlank()) kernelCheck = CheckState.Failed
+            else kernelCheck = if (newer) CheckState.Newer else CheckState.Latest
             appendLog("> 云更新 ${gameKey(game)}: 云端 v${upVer.ifBlank { "?" }} / 本地 v${local.ifBlank { "?" }}${if (upUrlBad) "（下载地址无效）" else ""}")
             if (newer && !showKernelPrompt) {          // 地址无效也要提示出来，不能让用户以为没更新
                 promptGame = game
@@ -882,11 +865,160 @@ class AppState(ctx: Context) {
     fun openUpdatePage(g: Int) {
         upGame = g
         applyUpdateFor(noticeRaw)
-        showUpdatePage = true
+        cloudRoute = CloudRoute.Kernel
     }
 
     fun closeUpdatePage() {
-        showUpdatePage = false
+        cloudBack()
+    }
+
+    /* ================= 云更新：菜单路由 ================= */
+
+    fun openCloudMenu() { cloudRoute = CloudRoute.Menu }
+
+    fun openCloud(route: CloudRoute) { cloudRoute = route }
+
+    /** 子页返回上一步：子页 → 菜单，菜单 → 关闭 */
+    fun cloudBack() {
+        cloudRoute = when (cloudRoute) {
+            CloudRoute.Kernel, CloudRoute.Launcher, CloudRoute.Notice -> CloudRoute.Menu
+            else -> CloudRoute.None
+        }
+    }
+
+    fun closeCloud() { cloudRoute = CloudRoute.None }
+
+    /** 菜单项右侧的徽标文案，三个项目各自独立 */
+    fun badgeOf(s: CheckState, isNotice: Boolean = false): String = when (s) {
+        CheckState.Idle -> "未检测"
+        CheckState.Checking -> "检测中"
+        CheckState.Latest -> if (isNotice) "已最新" else "已是最新"
+        CheckState.Newer -> if (isNotice) "有新公告" else "有新版本"
+        CheckState.Failed -> "检测失败"
+    }
+
+    /* ================= 云更新：内核 ================= */
+
+    fun checkKernelUpdate() {
+        if (kernelCheck == CheckState.Checking) return
+        kernelCheck = CheckState.Checking
+        upStatus = "正在检测内核更新…"
+        Thread {
+            val raw = fetchNotice()
+            if (raw == null) {
+                kernelCheck = CheckState.Failed
+                upStatus = "检测失败，请检查网络后重试"
+                return@Thread
+            }
+            noticeRaw = raw
+            applyUpdateFor(raw, upGame)
+            val local = localKernelVer(upGame)
+            val newer = !hasKernel(upGame) ||
+                    (upVer.isNotBlank() && (local.isBlank() || compareVersion(upVer, local) > 0))
+            kernelCheck = when {
+                upVer.isBlank() -> CheckState.Failed
+                newer && upUrlBad -> CheckState.Failed
+                newer -> CheckState.Newer
+                else -> CheckState.Latest
+            }
+            upStatus = when {
+                upVer.isBlank() -> "检测失败，请检查网络后重试"
+                newer && upUrlBad -> "发现新版本 v$upVer，但后台没配置有效下载地址"
+                newer -> "发现新内核版本 v$upVer，是否前往更新？"
+                else -> "当前内核已是最新版本 v$local"
+            }
+            appendLog("> 检测内核: 云端 v${upVer.ifBlank { "?" }} / 本地 v${local.ifBlank { "未下载" }}")
+        }
+    }
+
+    /* ================= 云更新：启动器 ================= */
+
+    fun checkLauncherUpdate(ctx: Context) {
+        if (appCheck == CheckState.Checking) return
+        appCheck = CheckState.Checking
+        appUpStatus = "正在检测启动器更新…"
+        Thread {
+            val raw = fetchNotice()
+            if (raw == null) {
+                appCheck = CheckState.Failed
+                appUpStatus = "检测失败，请检查网络后重试"
+                return@Thread
+            }
+            val block = updateBlock(raw, "启动器") ?: updateBlock(raw, "app")
+            if (block == null) {
+                appUpVer = ""
+                appUpUrl = ""
+                appCheck = CheckState.Failed
+                appUpStatus = "检测失败：公告里没有启动器版本段"
+                return@Thread
+            }
+            val bar1 = block.indexOf('|')
+            if (bar1 < 0) {
+                appUpVer = block.trim()
+                appUpUrl = ""
+                appUpNote = ""
+            } else {
+                appUpVer = block.substring(0, bar1).trim()
+                val bar2 = block.indexOf('|', bar1 + 1)
+                val urlPart = if (bar2 < 0) block.substring(bar1 + 1) else block.substring(bar1 + 1, bar2)
+                appUpUrl = urlPart.lineSequence().firstOrNull()?.trim()?.removeSuffix("#") ?: ""
+                appUpNote = if (bar2 < 0) "" else
+                    (block.substring(bar2 + 1).trim().lineSequence().firstOrNull() ?: "")
+                        .replace("\\n", "\n")
+            }
+            if (!appUpUrl.startsWith("http")) appUpUrl = ""
+            val local = localAppVer(ctx)
+            val newer = appUpVer.isNotBlank() && compareVersion(appUpVer, local) > 0
+            appCheck = when {
+                appUpVer.isBlank() -> CheckState.Failed
+                newer -> CheckState.Newer
+                else -> CheckState.Latest
+            }
+            appUpStatus = when {
+                appUpVer.isBlank() -> "检测失败：公告里没有启动器版本号"
+                newer -> "发现新启动器版本 v$appUpVer，是否前往更新？"
+                else -> "当前启动器已是最新版本 v$local"
+            }
+            appendLog("> 检测启动器: 云端 v${appUpVer.ifBlank { "?" }} / 本地 v${local.ifBlank { "?" }}")
+        }
+    }
+
+    /* ================= 云更新：公告 ================= */
+
+    fun checkNoticeUpdate() {
+        if (noticeCheck == CheckState.Checking) return
+        noticeCheck = CheckState.Checking
+        noticeStatus = "正在检测更新公告…"
+        Thread {
+            val raw = fetchNotice()
+            if (raw == null) {
+                noticeCheck = CheckState.Failed
+                noticeStatus = "公告检测失败，请稍后重试"
+                return@Thread
+            }
+            val text = stripUpdateLines(raw)
+            noticeRaw = raw
+            noticeText = text
+            val last = prefs.getString("notice_last", "") ?: ""
+            val isNew = text.isNotBlank() && text != last
+            noticeCheck = when {
+                text.isBlank() -> CheckState.Latest   // 没内容就是没有新公告
+                isNew -> CheckState.Newer
+                else -> CheckState.Latest
+            }
+            noticeStatus = when {
+                text.isBlank() -> "暂无新公告"
+                isNew -> "发现新公告，点击查看"
+                else -> "公告已是最新"
+            }
+        }
+    }
+
+    /** 看过公告后记下原文，下次用它与云端比对判断「有没有新公告」 */
+    fun markNoticeRead() {
+        prefs.edit().putString("notice_last", noticeText).apply()
+        noticeCheck = CheckState.Latest
+        noticeStatus = "公告已是最新"
     }
 
     private fun toast(msg: String) {
@@ -938,48 +1070,6 @@ class AppState(ctx: Context) {
     }
 
     /** 公告里用 [更新启动器] 版本|下载直链|说明 这一行来发布启动器新版 */
-    fun checkAppUpdate(ctx: Context) {
-        appUpStatus = "正在检查…"
-        Thread {
-            val raw = fetchNotice()
-            if (raw == null) {
-                appUpStatus = "公告获取失败"
-                return@Thread
-            }
-            val block = updateBlock(raw, "启动器") ?: updateBlock(raw, "app")
-            if (block == null) {
-                appUpVer = ""
-                appUpUrl = ""
-                appUpStatus = "公告里没有启动器版本段"
-                return@Thread
-            }
-            val bar1 = block.indexOf('|')
-            if (bar1 < 0) {
-                appUpVer = block.trim()
-                appUpUrl = ""
-                appUpNote = ""
-            } else {
-                appUpVer = block.substring(0, bar1).trim()
-                val bar2 = block.indexOf('|', bar1 + 1)
-                val urlPart = if (bar2 < 0) block.substring(bar1 + 1) else block.substring(bar1 + 1, bar2)
-                appUpUrl = urlPart.lineSequence().firstOrNull()?.trim()?.removeSuffix("#") ?: ""
-                // 说明只取第一行：公告里第三段后面常常接着几行更新内容，
-                // 全吃进来会和下面的「更新内容」卡片重复
-                appUpNote = if (bar2 < 0) "" else
-                    (block.substring(bar2 + 1).trim().lineSequence().firstOrNull() ?: "")
-                        .replace("\\n", "\n")
-            }
-            if (!appUpUrl.startsWith("http")) appUpUrl = ""
-            val local = localAppVer(ctx)
-            appUpStatus = when {
-                appUpVer.isBlank() -> "公告里没有启动器版本号"
-                compareVersion(appUpVer, local) > 0 -> "有新版 v$appUpVer（本地 v$local）"
-                else -> "已是最新 v$local"
-            }
-            appendLog("> 启动器: 云端 v${appUpVer.ifBlank { "?" }} / 本地 v${local.ifBlank { "?" }}")
-        }.start()
-    }
-
     /** 打开启动器新版的下载地址（走系统浏览器 / 下载器） */
     fun openAppUpdate(ctx: Context) {
         if (appUpUrl.isBlank()) {
@@ -1013,7 +1103,7 @@ class AppState(ctx: Context) {
                 needKernel = false
                 upStatus = "已更新到 v$upVer"
                 Thread.sleep(600)
-                showUpdatePage = false
+                cloudRoute = CloudRoute.None
                 appendLog("> 内核已更新到 v$upVer")
             } else {
                 upStatus = "下载失败，请重试"

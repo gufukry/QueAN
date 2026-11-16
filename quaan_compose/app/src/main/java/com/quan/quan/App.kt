@@ -122,7 +122,6 @@ fun QueApp(state: AppState) {
                     state.kernelVer = state.kvNow()
                     state.refreshStatus()
                     state.scanDrivers()
-                    state.checkUpdate()
                     state.checkFirstRun()
                     state.autoCheckUpdate()
                 }
@@ -523,8 +522,8 @@ private fun MainScreen(state: AppState, bg: Color) {
                 }
             }
         }
-        if (state.showUpdatePage) {
-            UpdatePage(state)
+        if (state.cloudRoute != AppState.CloudRoute.None) {
+            CloudPages(state)
         }
         if (state.showTerminal) {
             TerminalPage(state)
@@ -652,7 +651,40 @@ private fun TerminalPage(state: AppState) {
 /* ---------------- 更新页 ---------------- */
 
 @Composable
-private fun UpdatePage(state: AppState) {
+/* ---------------- 云更新：菜单 + 三个独立页面 ---------------- */
+
+private fun cloudHeader(state: AppState, title: String, subtitle: String = "") {
+    // 每个云更新子页都用同一套返回逻辑：子页 → 云更新菜单 → 关闭
+    Text(
+        "‹ 返回", fontSize = 15.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { state.cloudBack() }
+            .padding(vertical = 8.dp, horizontal = 4.dp)
+    )
+    Text(
+        title, fontSize = 32.sp, fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(vertical = 4.dp)
+    )
+    if (subtitle.isNotBlank()) Body(subtitle)
+}
+
+@Composable
+private fun CloudPages(state: AppState) {
+    when (state.cloudRoute) {
+        AppState.CloudRoute.Menu -> CloudMenuPage(state)
+        AppState.CloudRoute.Kernel -> KernelUpdatePage(state)
+        AppState.CloudRoute.Launcher -> LauncherUpdatePage(state)
+        AppState.CloudRoute.Notice -> NoticePage(state)
+        AppState.CloudRoute.None -> {}
+    }
+}
+
+@Composable
+private fun CloudMenuPage(state: AppState) {
     Column(
         Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
@@ -661,27 +693,68 @@ private fun UpdatePage(state: AppState) {
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        cloudHeader(state, "云更新")
+
+        CardC {
+            CardTitle("更新项目")
+            Body("每一项都独立检测、独立更新，互不影响。")
+            CloudEntry("内核更新", state.badgeOf(state.kernelCheck)) {
+                state.openCloud(AppState.CloudRoute.Kernel)
+            }
+            CloudEntry("启动器更新", state.badgeOf(state.appCheck)) {
+                state.openCloud(AppState.CloudRoute.Launcher)
+            }
+            CloudEntry("更新公告", state.badgeOf(state.noticeCheck, isNotice = true)) {
+                state.openCloud(AppState.CloudRoute.Notice)
+            }
+        }
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun CloudEntry(name: String, badge: String, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { onClick() }
+            .padding(vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(name, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
+        Spacer(Modifier.weight(1f))
         Text(
-            "‹ 返回", fontSize = 15.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) { state.closeUpdatePage() }
-                .padding(vertical = 8.dp, horizontal = 4.dp)
+            badge, fontSize = 12.5.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            "内核更新", fontSize = 32.sp, fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 4.dp)
+            "  ›", fontSize = 15.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+@Composable
+private fun KernelUpdatePage(state: AppState) {
+    Column(
+        Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .safeDrawingPadding()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        cloudHeader(state, "内核更新")
 
         CardC {
             CardTitle("目标游戏")
             state.gameNames.forEachIndexed { i, name ->
                 OptionRadio(name, "", state.upGame == i) {
                     state.upGame = i
-                    state.checkUpdate()
+                    state.kernelCheck = AppState.CheckState.Idle
+                    state.upStatus = "尚未检测"
                 }
             }
         }
@@ -693,32 +766,106 @@ private fun UpdatePage(state: AppState) {
                 if (state.hasKernel(state.upGame)) "v" + state.localKernelVer(state.upGame)
                 else "未下载"
             )
-            KvRow("最新版本", if (state.upVer.isBlank()) "-" else "v" + state.upVer)
+            KvRow("最新内核", if (state.upVer.isBlank()) "-" else "v" + state.upVer)
+            KvRow("检测状态", state.badgeOf(state.kernelCheck))
             Body(state.upStatus)
-            if (state.downloading) Body("下载中 ${(state.progress * 100).toInt()}%")
-            DarkButton(if (state.downloading) "下载中…" else "立即更新", enabled = !state.downloading) {
-                state.startUpdate()
-            }
+            DarkButton(
+                if (state.kernelCheck == AppState.CheckState.Checking) "正在检测内核更新…" else "检测内核更新",
+                enabled = state.kernelCheck != AppState.CheckState.Checking
+            ) { state.checkKernelUpdate() }
         }
 
-        // 启动器自身的云更新：公告里发布 [更新启动器] 版本|直链|说明
-        CardC {
-            CardTitle("启动器")
-            val ctx2 = LocalContext.current
-            KvRow("当前版本", "v" + state.localAppVer(ctx2))
-            KvRow("云端版本", if (state.appUpVer.isBlank()) "-" else "v" + state.appUpVer)
-            Body(state.appUpStatus.ifBlank { "点下面按钮检查启动器更新" })
-            if (state.appUpNote.isNotBlank()) Body(state.appUpNote)
-            DarkButton("检查启动器更新") { state.checkAppUpdate(ctx2) }
-            if (state.appUpUrl.isNotBlank()) {
-                DarkButton("下载新版本") { state.openAppUpdate(ctx2) }
+        // 只有确认有新版本才出现更新入口；已是最新时这里整块不渲染
+        if (state.kernelCheck == AppState.CheckState.Newer) {
+            CardC {
+                CardTitle("更新")
+                if (state.upNote.isNotBlank()) Body(state.upNote)
+                if (state.downloading) Body("下载中 ${(state.progress * 100).toInt()}%")
+                DarkButton(
+                    if (state.downloading) "下载中…" else "立即更新内核",
+                    enabled = !state.downloading
+                ) { state.startUpdate() }
             }
         }
 
         if (state.noticeText.isNotBlank()) {
             CardC {
-                CardTitle("更新内容")
+                CardTitle("更新说明")
                 Body(state.noticeText)
+            }
+        }
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun LauncherUpdatePage(state: AppState) {
+    val ctx = LocalContext.current
+    Column(
+        Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .safeDrawingPadding()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        cloudHeader(state, "启动器更新")
+
+        CardC {
+            CardTitle("版本")
+            KvRow("当前启动器", "v" + state.localAppVer(ctx))
+            KvRow("最新启动器", if (state.appUpVer.isBlank()) "-" else "v" + state.appUpVer)
+            KvRow("检测状态", state.badgeOf(state.appCheck))
+            Body(state.appUpStatus.ifBlank { "尚未检测" })
+            DarkButton(
+                if (state.appCheck == AppState.CheckState.Checking) "正在检测启动器更新…" else "检测启动器更新",
+                enabled = state.appCheck != AppState.CheckState.Checking
+            ) { state.checkLauncherUpdate(ctx) }
+        }
+
+        if (state.appCheck == AppState.CheckState.Newer) {
+            CardC {
+                CardTitle("更新")
+                if (state.appUpNote.isNotBlank()) Body(state.appUpNote)
+                DarkButton("前往下载启动器") { state.openAppUpdate(ctx) }
+            }
+        }
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun NoticePage(state: AppState) {
+    Column(
+        Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .safeDrawingPadding()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        cloudHeader(state, "更新公告")
+
+        CardC {
+            CardTitle("状态")
+            KvRow("检测状态", state.badgeOf(state.noticeCheck, isNotice = true))
+            Body(state.noticeStatus)
+            DarkButton(
+                if (state.noticeCheck == AppState.CheckState.Checking) "正在检测更新公告…" else "检测更新公告",
+                enabled = state.noticeCheck != AppState.CheckState.Checking
+            ) { state.checkNoticeUpdate() }
+        }
+
+        if (state.noticeText.isNotBlank()) {
+            CardC {
+                CardTitle("公告内容")
+                Body(state.noticeText)
+                LightButton("标记为已读") { state.markNoticeRead() }
+            }
+        } else {
+            CardC {
+                CardTitle("公告内容")
+                Body("暂无公告")
             }
         }
         Spacer(Modifier.height(24.dp))
@@ -951,6 +1098,12 @@ private fun DevicePage(state: AppState) {
 @Composable
 private fun ConfigPage(state: AppState) {
     CardC {
+        CardTitle("云更新")
+        Body("内核更新、启动器更新、更新公告分别有独立页面，各自检测互不影响。")
+        LightButton("打开云更新") { state.openCloudMenu() }
+    }
+
+    CardC {
         CardTitle("终端")
         Body("直接用 root 权限执行命令或脚本，不用改源码。")
         LightButton("打开终端") { state.openTerminal() }
@@ -1022,10 +1175,10 @@ private fun ConfigPage(state: AppState) {
             "当前内核",
             if (state.hasKernel(state.game)) "v" + state.localKernelVer(state.game) else "未下载"
         )
-        Body("检测到新版会进入更新页；已是最新会直接提示。")
-        DarkButton("检查内核更新") {
+        Body("内核、启动器、公告的检测已拆到「云更新」里，各自独立。")
+        DarkButton("前往云更新") {
             state.upGame = state.game
-            state.checkAndRoute()
+            state.openCloudMenu()
         }
     }
 
