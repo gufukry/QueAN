@@ -55,6 +55,9 @@ class AppState(ctx: Context) {
     var appCheck by mutableStateOf(CheckState.Idle)
     var noticeCheck by mutableStateOf(CheckState.Idle)
     var noticeStatus by mutableStateOf("尚未检测")
+    // 启动器新版本弹窗（启动时自动检测用）
+    var appPrompt by mutableStateOf(false)
+    var appPromptVer by mutableStateOf("")
     // 卡密
     var kami by mutableStateOf(prefs.getString("kami", "") ?: "")
     var remember by mutableStateOf(prefs.getBoolean("remember", false))
@@ -847,6 +850,103 @@ class AppState(ctx: Context) {
                 toast(if (local.isBlank()) "还没有下载过内核" else "已是最新版本 v$local")
             }
         }.start()
+    }
+
+    /**
+     * 启动时的一次性检测，只请求一次公告，按优先级决定弹哪个窗：
+     *   1) 启动器有新版本
+     *   2) 首次打开、还没下过内核
+     *   3) 当前游戏的内核有新版本
+     * 三个弹窗互斥，同一时刻只会出现一个。
+     */
+    fun autoCheckOnLaunch(ctx: Context) {
+        Thread {
+            val raw = fetchNotice()
+            // 网络失败也要做本地首次判断，不能让新用户看不到下载入口
+            if (raw == null) {
+                checkFirstRun()
+                return@Thread
+            }
+            noticeRaw = raw
+            noticeText = noticeBody(raw)
+
+            // ---- 启动器 ----
+            val appBlock = updateBlock(raw, "启动器") ?: updateBlock(raw, "app")
+            var appNewer = false
+            if (appBlock == null) {
+                appUpVer = ""
+                appUpUrl = ""
+                appCheck = CheckState.Failed
+            } else {
+                val b1 = appBlock.indexOf('|')
+                if (b1 < 0) {
+                    appUpVer = appBlock.trim()
+                    appUpUrl = ""
+                    appUpNote = ""
+                } else {
+                    appUpVer = appBlock.substring(0, b1).trim()
+                    val b2 = appBlock.indexOf('|', b1 + 1)
+                    val urlPart = if (b2 < 0) appBlock.substring(b1 + 1) else appBlock.substring(b1 + 1, b2)
+                    appUpUrl = urlPart.lineSequence().firstOrNull()?.trim()?.removeSuffix("#") ?: ""
+                    appUpNote = if (b2 < 0) "" else
+                        (appBlock.substring(b2 + 1).trim().lineSequence().firstOrNull() ?: "")
+                }
+                if (!appUpUrl.startsWith("http")) appUpUrl = ""
+                val localApp = localAppVer(ctx)
+                appNewer = appUpVer.isNotBlank() && compareVersion(appUpVer, localApp) > 0
+                appCheck = if (appUpVer.isBlank()) CheckState.Failed
+                else if (appNewer) CheckState.Newer else CheckState.Latest
+                appUpStatus = when {
+                    appUpVer.isBlank() -> "检测失败：公告里没有启动器版本号"
+                    appNewer -> "发现新启动器版本 v$appUpVer，是否前往更新？"
+                    else -> "当前启动器已是最新版本 v$localApp"
+                }
+            }
+
+            // ---- 内核 ----
+            applyUpdateFor(raw, game)
+            var localK = localKernelVer(game)
+            if (localK.isBlank() && hasKernel(game) && upVer.isNotBlank()) {
+                localK = upVer
+                runCatching {
+                    kernelVerFile(game).writeText(upVer)
+                    prefs.edit().putString("kernel_ver_${gameKey(game)}", upVer).apply()
+                }
+            }
+            val kernelNewer = !hasKernel(game) ||
+                    (upVer.isNotBlank() && (localK.isBlank() || compareVersion(upVer, localK) > 0))
+            kernelCheck = if (upVer.isBlank()) CheckState.Failed
+            else if (kernelNewer) CheckState.Newer else CheckState.Latest
+            appendLog("> 启动检测: 启动器 v${appUpVer.ifBlank { "?" }} / 内核 v${upVer.ifBlank { "?" }}")
+
+            // ---- 按优先级弹窗 ----
+            if (appNewer) {
+                appPromptVer = appUpVer
+                appPrompt = true
+                return@Thread
+            }
+            checkFirstRun()
+            if (showKernelPrompt) return@Thread       // 首次下载优先于内核更新提示
+            if (kernelNewer) {
+                promptGame = game
+                promptVer = upVer
+                updatePrompt = true
+                if (upUrlBad) {
+                    promptBadUrl = true
+                    toast("检测到新版 v$upVer，但下载地址无效")
+                }
+            }
+        }
+    }
+
+    fun dismissAppPrompt() {
+        appPrompt = false
+    }
+
+    /** 弹窗「前往更新」：关掉弹窗并进入启动器更新页 */
+    fun gotoLauncherFromPrompt() {
+        appPrompt = false
+        cloudRoute = CloudRoute.Launcher
     }
 
     /** 弹窗里点「前往更新」：打开更新页并选好对应游戏 */

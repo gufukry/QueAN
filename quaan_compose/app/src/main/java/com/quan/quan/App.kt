@@ -113,6 +113,7 @@ fun QueApp(state: AppState) {
                 androidx.compose.material3.LocalTextStyle provides
                         TextStyle(fontFamily = AppFontFamily, fontSize = 15.sp)
             ) {
+            val appCtx = LocalContext.current.applicationContext
             var splash by remember { mutableStateOf(true) }
             var uiReady by remember { mutableStateOf(false) }
             Box(Modifier.fillMaxSize().background(colors.background)) {
@@ -123,7 +124,8 @@ fun QueApp(state: AppState) {
                     state.refreshStatus()
                     state.scanDrivers()
                     state.checkFirstRun()
-                    state.autoCheckUpdate()
+                    // 一次请求按优先级检测：启动器新版 > 首次下载 > 内核新版
+                    state.autoCheckOnLaunch(appCtx)
                 }
                 if (splash) SplashOverlay { splash = false }
                 // 入场动画结束、稍等一下再弹窗，避免和淡出叠在一起
@@ -212,6 +214,56 @@ fun QueApp(state: AppState) {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier
                                     .clickable { state.closeDriverDialog() }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+                        }
+                    )
+                }
+                if (uiReady && state.appPrompt) {
+                    androidx.compose.material3.AlertDialog(
+                        onDismissRequest = { state.dismissAppPrompt() },
+                        title = { Text("启动器有新版", fontWeight = FontWeight.SemiBold) },
+                        text = {
+                            Column {
+                                Text(
+                                    "启动器 v${state.appPromptVer} 已发布，前往更新页下载？",
+                                    fontSize = 14.sp
+                                )
+                                if (state.appUpNote.isNotBlank()) {
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(
+                                        state.appUpNote, fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                if (state.appUpUrl.isBlank()) {
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(
+                                        "后台没有配置有效的下载直链，暂时无法下载。",
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            Text(
+                                if (state.appUpUrl.isBlank()) "知道了" else "前往更新",
+                                fontSize = 15.sp, fontWeight = FontWeight.Medium,
+                                modifier = Modifier
+                                    .clickable {
+                                        if (state.appUpUrl.isBlank()) state.dismissAppPrompt()
+                                        else state.gotoLauncherFromPrompt()
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+                        },
+                        dismissButton = {
+                            Text(
+                                "稍后", fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .clickable { state.dismissAppPrompt() }
                                     .padding(horizontal = 12.dp, vertical = 8.dp)
                             )
                         }
