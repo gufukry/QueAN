@@ -963,7 +963,11 @@ class AppState(ctx: Context) {
                 val bar2 = block.indexOf('|', bar1 + 1)
                 val urlPart = if (bar2 < 0) block.substring(bar1 + 1) else block.substring(bar1 + 1, bar2)
                 appUpUrl = urlPart.lineSequence().firstOrNull()?.trim()?.removeSuffix("#") ?: ""
-                appUpNote = if (bar2 < 0) "" else block.substring(bar2 + 1).trim().replace("\\n", "\n")
+                // 说明只取第一行：公告里第三段后面常常接着几行更新内容，
+                // 全吃进来会和下面的「更新内容」卡片重复
+                appUpNote = if (bar2 < 0) "" else
+                    (block.substring(bar2 + 1).trim().lineSequence().firstOrNull() ?: "")
+                        .replace("\\n", "\n")
             }
             if (!appUpUrl.startsWith("http")) appUpUrl = ""
             val local = localAppVer(ctx)
