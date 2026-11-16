@@ -3,6 +3,8 @@ package com.quan.quan
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -38,6 +40,10 @@ class AppState(ctx: Context) {
     var downloading by mutableStateOf(false)
     var progress by mutableStateOf(0f)
     var upStatus by mutableStateOf("尚未检查")
+    var appUpVer by mutableStateOf("")     // 启动器云端版本
+    var appUpUrl by mutableStateOf("")     // 启动器下载地址
+    var appUpNote by mutableStateOf("")
+    var appUpStatus by mutableStateOf("")
     var upUrlBad by mutableStateOf(false)   // 云端版本有，但下载地址无效（占位符等）
     // 卡密
     var kami by mutableStateOf(prefs.getString("kami", "") ?: "")
@@ -920,6 +926,70 @@ class AppState(ctx: Context) {
         if (!upUrl.startsWith("http")) upUrl = ""
         upUrlBad = upUrl.isBlank() || !isDownloadUrl(upUrl)
         if (upUrlBad) upUrl = ""     // 占位符/中文域名一律当没有地址
+    }
+
+    /* ---------------- 启动器自身的云更新 ---------------- */
+
+    /** 本机启动器版本（取 packageManager 里的 versionName） */
+    fun localAppVer(ctx: Context): String = try {
+        ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName ?: ""
+    } catch (t: Throwable) {
+        ""
+    }
+
+    /** 公告里用 [更新启动器] 版本|下载直链|说明 这一行来发布启动器新版 */
+    fun checkAppUpdate(ctx: Context) {
+        appUpStatus = "正在检查…"
+        Thread {
+            val raw = fetchNotice()
+            if (raw == null) {
+                appUpStatus = "公告获取失败"
+                return@Thread
+            }
+            val block = updateBlock(raw, "启动器") ?: updateBlock(raw, "app")
+            if (block == null) {
+                appUpVer = ""
+                appUpUrl = ""
+                appUpStatus = "公告里没有启动器版本段"
+                return@Thread
+            }
+            val bar1 = block.indexOf('|')
+            if (bar1 < 0) {
+                appUpVer = block.trim()
+                appUpUrl = ""
+                appUpNote = ""
+            } else {
+                appUpVer = block.substring(0, bar1).trim()
+                val bar2 = block.indexOf('|', bar1 + 1)
+                val urlPart = if (bar2 < 0) block.substring(bar1 + 1) else block.substring(bar1 + 1, bar2)
+                appUpUrl = urlPart.lineSequence().firstOrNull()?.trim()?.removeSuffix("#") ?: ""
+                appUpNote = if (bar2 < 0) "" else block.substring(bar2 + 1).trim().replace("\\n", "\n")
+            }
+            if (!appUpUrl.startsWith("http")) appUpUrl = ""
+            val local = localAppVer(ctx)
+            appUpStatus = when {
+                appUpVer.isBlank() -> "公告里没有启动器版本号"
+                compareVersion(appUpVer, local) > 0 -> "有新版 v$appUpVer（本地 v$local）"
+                else -> "已是最新 v$local"
+            }
+            appendLog("> 启动器: 云端 v${appUpVer.ifBlank { "?" }} / 本地 v${local.ifBlank { "?" }}")
+        }.start()
+    }
+
+    /** 打开启动器新版的下载地址（走系统浏览器 / 下载器） */
+    fun openAppUpdate(ctx: Context) {
+        if (appUpUrl.isBlank()) {
+            appUpStatus = "没有可用的下载地址"
+            return
+        }
+        try {
+            ctx.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse(appUpUrl))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        } catch (t: Throwable) {
+            appUpStatus = "打开下载地址失败"
+        }
     }
 
     fun startUpdate() {

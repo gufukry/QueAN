@@ -701,6 +701,20 @@ private fun UpdatePage(state: AppState) {
             }
         }
 
+        // 启动器自身的云更新：公告里发布 [更新启动器] 版本|直链|说明
+        CardC {
+            CardTitle("启动器")
+            val ctx2 = LocalContext.current
+            KvRow("当前版本", "v" + state.localAppVer(ctx2))
+            KvRow("云端版本", if (state.appUpVer.isBlank()) "-" else "v" + state.appUpVer)
+            Body(state.appUpStatus.ifBlank { "点下面按钮检查启动器更新" })
+            if (state.appUpNote.isNotBlank()) Body(state.appUpNote)
+            DarkButton("检查启动器更新") { state.checkAppUpdate(ctx2) }
+            if (state.appUpUrl.isNotBlank()) {
+                DarkButton("下载新版本") { state.openAppUpdate(ctx2) }
+            }
+        }
+
         if (state.noticeText.isNotBlank()) {
             CardC {
                 CardTitle("更新内容")
