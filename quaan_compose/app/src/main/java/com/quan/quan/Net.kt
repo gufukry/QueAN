@@ -119,6 +119,18 @@ fun stripUpdateLines(text: String): String =
         .replace("\\n", "\n")
         .trim()
 
+/**
+ * 公告正文：优先取 [公告] 标记之后的内容，
+ * 没有标记时退回「去掉所有 [更新...] 行」的旧行为。
+ * 这样更新说明归各自的更新页，公告页只显示公告本身。
+ */
+fun noticeBody(text: String): String {
+    val key = "[公告]"
+    val i = text.indexOf(key)
+    if (i >= 0) return text.substring(i + key.length).replace("\\n", "\n").trim()
+    return stripUpdateLines(text)
+}
+
 /** 下载到 filesDir，返回文件；onProgress(已下载, 总大小) */
 fun downloadTo(url: String, dst: File, onProgress: (Long, Long) -> Unit): Boolean {
     var c: HttpURLConnection? = null

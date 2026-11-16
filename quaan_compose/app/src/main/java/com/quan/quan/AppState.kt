@@ -799,7 +799,7 @@ class AppState(ctx: Context) {
                 return@Thread
             }
             noticeRaw = raw
-            noticeText = stripUpdateLines(raw)
+            noticeText = noticeBody(raw)
             applyUpdateFor(raw)
             val local = localKernelVer(upGame)
             appendLog("> 云更新 ${gameKey(upGame)}: 云端 v${upVer.ifBlank { "?" }} / 本地 v${local.ifBlank { "?" }}${if (upUrlBad) "（下载地址无效）" else ""}")
@@ -818,7 +818,7 @@ class AppState(ctx: Context) {
         Thread {
             val raw = fetchNotice() ?: return@Thread
             noticeRaw = raw
-            noticeText = stripUpdateLines(raw)
+            noticeText = noticeBody(raw)
             applyUpdateFor(raw, game)
             var local = localKernelVer(game)
             // 内核已经在，但版本号文件丢了：按云端当前版本补写，避免一直被当成旧版
@@ -996,7 +996,7 @@ class AppState(ctx: Context) {
                 noticeStatus = "公告检测失败，请稍后重试"
                 return@Thread
             }
-            val text = stripUpdateLines(raw)
+            val text = noticeBody(raw)
             noticeRaw = raw
             noticeText = text
             val last = prefs.getString("notice_last", "") ?: ""
@@ -1053,7 +1053,10 @@ class AppState(ctx: Context) {
             val bar2 = block.indexOf('|', bar1 + 1)
             val urlPart = if (bar2 < 0) block.substring(bar1 + 1) else block.substring(bar1 + 1, bar2)
             upUrl = urlPart.lineSequence().firstOrNull()?.trim()?.removeSuffix("#") ?: ""
-            upNote = if (bar2 < 0) "" else block.substring(bar2 + 1).trim().replace("\\n", "\n")
+            // 只取第一行：第三段之后常常接着公告正文，全吃进来就会串到更新页
+            upNote = if (bar2 < 0) "" else
+                (block.substring(bar2 + 1).trim().lineSequence().firstOrNull() ?: "")
+                    .replace("\\n", "\n")
         }
         if (!upUrl.startsWith("http")) upUrl = ""
         upUrlBad = upUrl.isBlank() || !isDownloadUrl(upUrl)
