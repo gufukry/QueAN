@@ -29,14 +29,10 @@ android {
 
     buildTypes {
         getByName("release") {
-            // 打开代码压缩和无用资源剔除：Compose / miuix 这类库里
-            // 有大量没被引用到的类与资源，不剔的话 APK 会白白大一圈
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            // R8 暂不开：miuix / Compose 里有大量反射与动态引用，
+            // 规则没收干净时构建或运行都可能出问题。体积靠字体子集化先降下来。
+            isMinifyEnabled = false
+            isShrinkResources = false
             if (System.getenv("KEYSTORE_PATH") != null) {
                 signingConfig = signingConfigs.getByName("release")
             }
